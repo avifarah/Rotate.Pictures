@@ -1,0 +1,155 @@
+﻿<Window x:Class="Rotate.Pictures.View.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:Rotate.Pictures"
+		mc:Ignorable="d"
+		Title="Rotating picture display"
+		Icon="{Binding Source=local.ViewModel.MainWindowViewModel, Path=CurrentPicture, Mode=OneWay}"
+		Height="850"
+		Width="1200"
+>
+	<Window.Resources>
+		<RoutedUICommand x:Key="BackImageCommand" Text="Previous picture" />
+		<RoutedUICommand x:Key="NextImageCommand" Text="Next picture" />
+	</Window.Resources>
+
+	<Window.CommandBindings>
+		<CommandBinding Command="{StaticResource BackImageCommand}" Executed="BackImageMove" />
+		<CommandBinding Command="{StaticResource NextImageCommand}" Executed="NextImageMove" />
+		<CommandBinding Command="MediaCommands.Play" CanExecute="MediaCanExecute" Executed="MediaPlay"/>
+		<CommandBinding Command="MediaCommands.Pause" CanExecute="MediaCanPause" Executed="MediaPause"/>
+		<CommandBinding Command="MediaCommands.Stop" CanExecute="MediaCanStop" Executed="MediaStop"/>
+		<CommandBinding Command="MediaCommands.FastForward" CanExecute="MediaCanFastForward" Executed="MediaFastForward"/>
+		<CommandBinding Command="MediaCommands.Rewind" CanExecute="MediaCanRewind" Executed="MediaRewind"/>
+		<CommandBinding Command="MediaCommands.MuteVolume" Executed="MediaToggleVolume"/>
+	</Window.CommandBindings>
+
+	<Window.InputBindings>
+		<KeyBinding Key="Left" Command="{StaticResource BackImageCommand}" />
+		<KeyBinding Key="Right" Command="{StaticResource NextImageCommand}" />
+	</Window.InputBindings>
+	
+	<DockPanel>
+		<Menu DockPanel.Dock="Top">
+			<MenuItem Header="_Tools">
+				<MenuItem Header="_Time between pictures..." Command="{Binding SetTimeBetweenPicturesCommand}" />
+				<MenuItem Header="_Pictures meta data..." Command="{Binding SetPicturesMetaDataCommand}" />
+				<MenuItem Header="_Picture buffer depth..." Command="{Binding SetPictureBufferDepthCommand}" />
+				<MenuItem Header="_Rotate pictures on start" IsCheckable="True" IsChecked="{Binding InitialRotationMode}" />
+			</MenuItem>
+			<MenuItem Header="_Stretch Mode..." Command="{Binding SetSelectedStrechModeCommand}" />
+			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+					  Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
+					  Command="MediaCommands.Play" >
+				<MenuItem.Header>
+					<Image Source="/Rotate.Pictures;component/Images/Play.ico" Height="20" Width="20"/>
+				</MenuItem.Header>
+			</MenuItem>
+			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
+					  Command="MediaCommands.Pause">
+				<MenuItem.Header>
+					<Image Source="/Rotate.Pictures;component/Images/Pause.png" Height="20" Width="20"/>
+				</MenuItem.Header>
+			</MenuItem>
+			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
+			          Command="MediaCommands.Stop">
+				<MenuItem.Header>
+					<Image Source="/Rotate.Pictures;component/Images/Stop.png" Height="20" Width="20"/>
+				</MenuItem.Header>
+			</MenuItem>
+			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
+			          Command="MediaCommands.FastForward">
+				<MenuItem.Header>
+					<Image Source="/Rotate.Pictures;component/Images/Advance.png" Height="20" Width="20"/>
+				</MenuItem.Header>
+			</MenuItem>
+			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
+			          Command="MediaCommands.Rewind">
+				<MenuItem.Header>
+					<Image Source="/Rotate.Pictures;component/Images/Rewind.png" Height="20" Width="20"/>
+				</MenuItem.Header>
+			</MenuItem>
+			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}">
+				<MenuItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="Position:" Margin="16,0,8,0"/>
+						<Slider x:Name="MeSliderPosition" TickPlacement="BottomRight" TickFrequency="5" Width="300" Maximum="100"
+						        IsMoveToPointEnabled="True" MouseLeftButtonDown="OnMotionMouseLeftButtonDown" MouseLeftButtonUp="OnMotionMouseLeftButtonDown"
+						        Thumb.DragStarted="MotionDragStarted" Thumb.DragCompleted="MotionDragCompleted"/>
+					</StackPanel>
+				</MenuItem.Header>
+			</MenuItem>
+			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}">
+				<MenuItem.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="/Rotate.Pictures;component/Images/Volume.gif" Width="18" Height="18" Margin="0,0,8,0"/>
+						<Slider x:Name="MeSliderVolume" TickPlacement="BottomRight" TickFrequency="0.05" Width="100" Minimum="0" Maximum="1" Value="0.25"
+						        IsMoveToPointEnabled="True" 
+						        Thumb.DragStarted="OnVolumeDragStarted" Thumb.DragCompleted="OnVolumeDragCompleted" ValueChanged="OnVolumeValueChanged"/>
+					</StackPanel>
+				</MenuItem.Header>
+			</MenuItem>
+		</Menu>
+
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="18"/>
+			</Grid.RowDefinitions>
+			<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderBrush="Transparent" BorderThickness="0"
+			        Background="Transparent" Command="{Binding StopStartCommand}" IsDefault="True"
+			        ToolTipService.ShowDuration="1000" ToolTip="Selecting the picture or video toggles the stop/start picture rotation">
+				<Grid>
+					<Image Source="{Binding CurrentPicture, Mode=OneWay}" Stretch="{Binding ImageStretch}" IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}" />
+					<MediaElement x:Name="MePlayer" Source="{Binding CurrentPicture, Mode=OneWay}"
+								  LoadedBehavior="Play" UnloadedBehavior="Stop" MediaOpened="MePlayer_OnMediaOpened"
+								  Stretch="{Binding ImageStretch}" IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}" Margin="0,3,0,-3"/>
+				</Grid>
+			</Button>
+
+			<Grid Grid.Row="1">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="18"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="100"/>
+					<ColumnDefinition Width="22"/>
+					<ColumnDefinition Width="18"/>
+				</Grid.ColumnDefinitions>
+
+				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding BackImageCommand}" ToolTip="Rotate picture set to previous picture"
+				        ToolTipService.ShowDuration="3000">
+					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+				</Button>
+
+				<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding CurrentPicture, Mode=OneWay}"
+				         Background="Yellow" Foreground="Black" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
+				         BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True" Grid.Column="1" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"/>
+
+				<ProgressBar Minimum="0" Maximum="{Binding IntervalProgressBarMax, Mode=OneWay}" Visibility="{Binding SliderVisibility}"
+							 Background="Yellow" Foreground="#FFB2B200" Grid.Column="2"
+							 Value="{Binding VisHeartBeatValue, Mode=OneWay}" BorderThickness="1" BorderBrush="Black" Margin="0,0,3,0"/>
+				<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3" Margin="0,0,3,0"
+				         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
+				         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
+				         ToolTipService.ShowDuration="3000" />
+
+				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding NextImageCommand}" Grid.Column="4"
+				        ToolTip="Rotate picture set to next picture" ToolTipService.ShowDuration="3000">
+					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Image.LayoutTransform>
+							<ScaleTransform ScaleX="-1"/>
+						</Image.LayoutTransform>
+					</Image>
+				</Button>
+			</Grid>
+		</Grid>
+	</DockPanel>
+</Window>

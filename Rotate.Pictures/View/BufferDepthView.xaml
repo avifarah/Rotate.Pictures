@@ -1,0 +1,30 @@
+﻿<Window x:Class="Rotate.Pictures.View.BufferDepthView"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:Rotate.Pictures.View"
+		mc:Ignorable="d"
+		Title="BufferDepth"
+		WindowStyle="None"
+		Height="120"
+		Width="200"
+>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<TextBlock Text="Picture Buffer Depth" Grid.ColumnSpan="2" Foreground="Blue" FontSize="14" FontWeight="Bold" TextAlignment="Center" Margin="10"/>
+		<Label Grid.Row="1" Grid.Column="0" Content="Depth:" Margin="3" Target="{Binding ElementName=Depth}"/>
+		<TextBox x:Name="Depth" Margin="6,6,10,6" Grid.Row="1" Grid.Column="1" PreviewTextInput="Depth_PreviewTextInput" Text="{Binding Depth}" />
+		
+		<Button Grid.Row="2" Grid.Column="0" Margin="6,6,10,6" Content="_Cancel" Command="{Binding CancelCommand}" IsCancel="True"/>
+		<Button Grid.Row="2" Grid.Column="1" Margin="6,6,10,6" Content="_OK" Command="{Binding OkCommand}" IsDefault="True"/>
+	</Grid>
+</Window>

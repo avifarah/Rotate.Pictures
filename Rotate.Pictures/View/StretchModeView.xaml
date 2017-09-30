@@ -1,0 +1,47 @@
+﻿<Window x:Class="Rotate.Pictures.View.StretchModeView"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:Rotate.Pictures.View"
+		xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+		mc:Ignorable="d"
+		WindowStyle="None"
+		Title="Picture Stretch Mode"
+		Height="160"
+		Width="160"
+>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="4*"/>
+			<RowDefinition Height="4*"/>
+			<RowDefinition Height="4*"/>
+			<RowDefinition Height="4*"/>
+			<RowDefinition Height="5*"/>
+		</Grid.RowDefinitions>
+		<RadioButton Content="Fill" HorizontalAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="5" VerticalAlignment="Top" IsChecked="{Binding FillRb, Mode=TwoWay}" GroupName="PictureStretch"
+					 ToolTip="Hight and width are stretched independently to fit the window" ToolTipService.ShowDuration="3000" />
+		<RadioButton Content="None" HorizontalAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="5" VerticalAlignment="Top" IsChecked="{Binding NoneRb, Mode=TwoWay}" Grid.Row="1" GroupName="PictureStretch"
+					 ToolTip="Neither height nor width are changed from their original lengths" ToolTipService.ShowDuration="3000" />
+		<RadioButton Content="Uniform" HorizontalAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="5" VerticalAlignment="Top" IsChecked="{Binding UniformRb, Mode=TwoWay}" Grid.Row="2" GroupName="PictureStretch"
+					 ToolTip="Picture is stretched uniformly until height or width reaches window's border" ToolTipService.ShowDuration="3000" />
+		<RadioButton Content="UniformToFill" HorizontalAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="5" VerticalAlignment="Top" IsChecked="{Binding UniformToFillRb, Mode=TwoWay}" Grid.Row="3" GroupName="PictureStretch"
+					 ToolTip="Picture is stretched uniformly passed first height or width reaches window's border and until the second, width or height, reaches window's border" ToolTipService.ShowDuration="3000" />
+		<StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+			<Button Content="Cancel" Margin="5" VerticalAlignment="Stretch" Width="60" IsCancel="True">
+				<i:Interaction.Triggers>
+					<i:EventTrigger EventName="Click">
+						<i:InvokeCommandAction Command="{Binding CancelCommand}"/>
+					</i:EventTrigger>
+				</i:Interaction.Triggers>
+			</Button>
+			<Button Content="OK" Margin="5" VerticalAlignment="Stretch" Width="60" IsDefault="True">
+				<i:Interaction.Triggers>
+					<i:EventTrigger EventName="Click">
+						<i:InvokeCommandAction Command="{Binding SetStretchMode}"/>
+					</i:EventTrigger>
+				</i:Interaction.Triggers>
+			</Button>
+		</StackPanel>
+	</Grid>
+</Window>
