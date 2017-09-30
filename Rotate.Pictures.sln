@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rotate.Pictures", "Rotate.Pictures\Rotate.Pictures.csproj", "{AEA1616D-6C08-4208-BB9A-7B7F729F96B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest.Rotate.Pictures", "UnitTest.Rotate.Pictures\UnitTest.Rotate.Pictures.csproj", "{B6FC4372-A155-4CF8-98AD-B596B5418852}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AEA1616D-6C08-4208-BB9A-7B7F729F96B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEA1616D-6C08-4208-BB9A-7B7F729F96B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEA1616D-6C08-4208-BB9A-7B7F729F96B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEA1616D-6C08-4208-BB9A-7B7F729F96B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6FC4372-A155-4CF8-98AD-B596B5418852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6FC4372-A155-4CF8-98AD-B596B5418852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6FC4372-A155-4CF8-98AD-B596B5418852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6FC4372-A155-4CF8-98AD-B596B5418852}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
