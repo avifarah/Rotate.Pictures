@@ -129,6 +129,9 @@
 					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 				</Button>
 
+				<TextBlock x:Name="WindowSizeState" Grid.Column="0" Text="{Binding WindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
+				<TextBlock x:Name="OldWindowSizeState" Grid.Column="0" Text="{Binding OldWindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
+
 				<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding CurrentPicture, Mode=OneWay}"
 				         Background="Yellow" Foreground="Black" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
 				         BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True" Grid.Column="1" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"/>

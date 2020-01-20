@@ -95,6 +95,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converter\MotionPictureVisibleConverter.cs" />
+    <Compile Include="Converter\WindowSizeStateConverter.cs" />
     <Compile Include="MessageCommunication\BufferDepthMessage.cs" />
     <Compile Include="MessageCommunication\CloseDialog.cs" />
     <Compile Include="MessageCommunication\CommandRequest.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="ViewModel\MediaPlayerViewModel.cs" />
     <Compile Include="ViewModel\StretchModeViewModel.cs" />
     <Compile Include="ViewModel\ViewModelBase.cs" />
+    <Compile Include="View\MainWindow.p2.cs" />
     <Compile Include="View\MediaPlayerView.xaml.cs">
       <DependentUpon>MediaPlayerView.xaml</DependentUpon>
     </Compile>

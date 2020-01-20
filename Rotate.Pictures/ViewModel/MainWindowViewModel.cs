@@ -27,7 +27,7 @@ namespace Rotate.Pictures.ViewModel
 		private readonly PictureModel _model;
 		private bool _userIsDraggingMotionPicSlider;
 
-		private readonly StretchDialogService _strechSvc;
+		private readonly StretchDialogService _stretchSvc;
 		private readonly IntervalBetweenPicturesService _intervalBetweenPicturesService;
 		private readonly FileTypeToRotateService _pictureMetadataService;
 		private readonly PictureBufferDepthService _pictureBufferService;
@@ -36,7 +36,7 @@ namespace Rotate.Pictures.ViewModel
 		{
 			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository");
 
-			_strechSvc = new StretchDialogService();
+			_stretchSvc = new StretchDialogService();
 			_intervalBetweenPicturesService = new IntervalBetweenPicturesService();
 			_pictureMetadataService = new FileTypeToRotateService();
 			_pictureBufferService = new PictureBufferDepthService();
@@ -110,16 +110,19 @@ namespace Rotate.Pictures.ViewModel
 			set
 			{
 				_rotationRunning = value;
-				if (_picChangeTmr != null) _picChangeTmr.IsEnabled = _rotationRunning;
 				OnPropertyChanged();
+				if (_picChangeTmr != null) _picChangeTmr.IsEnabled = _rotationRunning;
 				SliderVisibility = _rotationRunning ? "Visible" : "Collapsed";
-				if (_rotationRunning)
+				if (_picChangeTmr != null && IsWindowStateMinimized(WindowSizeState))
 				{
-					_picChangeTmr.Start();
-					ResetHeartBeat();
+					if (_rotationRunning)
+					{
+						_picChangeTmr.Start();
+						ResetHeartBeat();
+					}
+					else
+						_picChangeTmr.Stop();
 				}
-				else
-					_picChangeTmr.Stop();
 
 				_visualHeartbeatTmr.IsEnabled = _rotationRunning;
 				CurrentPictureColumnSpan = _rotationRunning ? 1 : 2;
@@ -150,6 +153,32 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
+		private WindowState _windowSizeState;
+
+		public WindowState WindowSizeState
+		{
+			get => _windowSizeState;
+			set
+			{
+				_windowSizeState = value;
+				if (!IsWindowStateMinimized(_windowSizeState) && IsWindowStateMinimized(_oldWindowSizeState)) ResetHeartBeat();
+				OnPropertyChanged();
+			}
+		}
+
+		private WindowState _oldWindowSizeState;
+
+		public WindowState OldWindowSizeState
+		{
+			get => _oldWindowSizeState;
+			set
+			{
+				_oldWindowSizeState = value;
+				if (!IsWindowStateMinimized(_windowSizeState) && IsWindowStateMinimized(_oldWindowSizeState)) ResetHeartBeat();
+				OnPropertyChanged();
+			}
+		}
+
 		private int _intervalBetweenPictures = ConfigValue.Inst.IntervalBetweenPictures();
 
 		public int IntervalBetweenPictures
@@ -163,6 +192,8 @@ namespace Rotate.Pictures.ViewModel
 				OnPropertyChanged();
 
 				if (!RotationRunning) return;
+				if (IsWindowStateMinimized(WindowSizeState)) return;
+
 				_picChangeTmr.Stop();
 				_picChangeTmr.Start();
 				ResetHeartBeat();
@@ -236,6 +267,8 @@ namespace Rotate.Pictures.ViewModel
 
 		private void RetrieveNextPicture()
 		{
+			if (WindowSizeState == WindowState.Minimized) return;
+
 			var pic = _model.GetNextPicture();
 			if (pic == null) return;
 			CurrentPicture = pic;
@@ -298,7 +331,7 @@ namespace Rotate.Pictures.ViewModel
 			UpdateConfigFile.Inst.UpdateConfig(key, (IntervalBetweenPictures / 1000.0F).ToString(CultureInfo.CurrentCulture));
 		}
 
-		private void OnCloseStretchMode(CloseDialog obj) => _strechSvc.CloseDetailDialog();
+		private void OnCloseStretchMode(CloseDialog obj) => _stretchSvc.CloseDetailDialog();
 
 		private void OnSetStretchMode(SelectedStretchModeMessage stretchMode)
 		{
@@ -341,7 +374,7 @@ namespace Rotate.Pictures.ViewModel
 
 		private void ResetPictures()
 		{
-			if (RotationRunning)
+			if (RotationRunning && WindowSizeState != WindowState.Minimized)
 			{
 				_picChangeTmr.Stop();
 				_model.Restart();
@@ -408,6 +441,9 @@ namespace Rotate.Pictures.ViewModel
 			ResetHeartBeat();
 
 			if (!RotationRunning) return;
+			// No need to check minimized state because we cannot select the back-image-button if the window is minimized
+			//if (WindowSizeState == WindowState.Minimized) return;
+
 			_picChangeTmr.Stop();
 			_picChangeTmr.Start();
 			ResetHeartBeat();
@@ -421,6 +457,9 @@ namespace Rotate.Pictures.ViewModel
 				CurrentPicture = SelectionTracker.Inst.Next();
 
 			if (!RotationRunning) return;
+			// No need to check minimized state because we cannot select the next-image-button if the window is minimized
+			//if (WindowSizeState == WindowState.Minimized) return;
+
 			_picChangeTmr.Stop();
 			_picChangeTmr.Start();
 			ResetHeartBeat();
@@ -431,7 +470,7 @@ namespace Rotate.Pictures.ViewModel
 		private void SetSelectedStrechMode(object _)
 		{
 			var mode = ImageStretch.TextToMode();
-			_strechSvc.ShowDetailDialog(mode);
+			_stretchSvc.ShowDetailDialog(mode);
 		}
 
 		private void SetPicturesMetaData(object _)
@@ -457,6 +496,12 @@ namespace Rotate.Pictures.ViewModel
 
 		#endregion
 
+		#region Utilities
+
+		private bool IsWindowStateMinimized(WindowState state) => state == WindowState.Minimized;
+
+		#endregion
+
 		#region INotifyPropertyChanged
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -465,7 +510,6 @@ namespace Rotate.Pictures.ViewModel
 		{
 			//Log.Info($"propName = {propName}");
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-			;
 		}
 
 		#endregion

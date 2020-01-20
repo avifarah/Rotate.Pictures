@@ -11,6 +11,7 @@
 			<converter:IsStillPictureConverter x:Key="LocalStillPictureConverter"/>
 			<converter:StartStopRotateConverter x:Key="LocalStartStopConverter"/>
 			<converter:MotionPictureVisibleConverter x:Key="LocalMotionPictureVisibleConverter"/>
+			<converter:WindowSizeStateConverter x:Key="LocalWindowSizeStateConverter"/>
 		</ResourceDictionary>
 	</Application.Resources>
 </Application>
