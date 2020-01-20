@@ -136,10 +136,17 @@
 				<ProgressBar Minimum="0" Maximum="{Binding IntervalProgressBarMax, Mode=OneWay}" Visibility="{Binding SliderVisibility}"
 							 Background="Yellow" Foreground="#FFB2B200" Grid.Column="2"
 							 Value="{Binding VisHeartBeatValue, Mode=OneWay}" BorderThickness="1" BorderBrush="Black" Margin="0,0,3,0"/>
-				<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3" Margin="0,0,3,0"
-				         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
-				         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
-				         ToolTipService.ShowDuration="3000" />
+				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3"
+				        Command="{Binding StopStartCommand}">
+					<Button.Content>
+						<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+								 Width="15" Height="15"
+								 Margin="0,0,3,0"
+						         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
+						         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
+						         ToolTipService.ShowDuration="3000" />
+					</Button.Content>
+				</Button>
 
 				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding NextImageCommand}" Grid.Column="4"
 				        ToolTip="Rotate picture set to next picture" ToolTipService.ShowDuration="3000">
