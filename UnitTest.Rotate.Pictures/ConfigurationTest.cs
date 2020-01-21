@@ -45,7 +45,7 @@ namespace UnitTest.Rotate.Pictures
 			// Arrange
 			ConfigValue.Inst.SetStillExtension(string.Empty);
 			ConfigValue.Inst.SetMotionExtension(string.Empty);
-			var expected = new List<string> { ".jpg", ".png", ".bmp", ".avi", ".jpeg", ".Peggy", ".Ben" };
+			var expected = new List<string>();
 
 			// Act
 			var actual = ConfigValue.Inst.FileExtensionsToConsider();
@@ -80,7 +80,6 @@ namespace UnitTest.Rotate.Pictures
 			ConfigValue.Inst.SetStillExtension(".Abc;.Def;.Ghi");
 			ConfigValue.Inst.SetMotionExtension(null);
 			var expected = new List<string> { ".Abc", ".Def", ".Ghi" };
-			expected.AddRange(".avi;.jpeg;.Peggy;.Ben".Split(new[] { ';' }).ToList());
 
 			// Act
 			var actual = ConfigValue.Inst.FileExtensionsToConsider();
@@ -97,8 +96,8 @@ namespace UnitTest.Rotate.Pictures
 			// Arrange
 			ConfigValue.Inst.SetStillExtension(string.Empty);
 			ConfigValue.Inst.SetMotionExtension(".Abc;.Def;.Ghi");
-			var expected = ".jpg;.png;.bmp".Split(new[] { ';' }).ToList();
-			expected.AddRange(".Abc;.Def;.Ghi".Split(new[] { ';' }).ToList());
+			var expected = ".Abc;.Def;.Ghi".Split(new[] { ';' }).ToList();
+			//expected.AddRange(".jpg;.png;.bmp".Split(new[] { ';' }).ToList());
 
 			// Act
 			var actual = ConfigValue.Inst.FileExtensionsToConsider();

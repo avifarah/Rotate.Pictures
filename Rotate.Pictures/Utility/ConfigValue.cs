@@ -136,7 +136,8 @@ namespace Rotate.Pictures.Utility
 			}
 
 			extensions = extensions == null ? MotionPictures() : MotionFromConfig(extensions);
-			return extensions ?? defaultExtensions;
+			var extToConsider = extensions ?? defaultExtensions;
+			return extToConsider;
 		}
 
 		private readonly List<string> _defStillExt = new List<string> { ".jpg", ".bmp", ".gif", ".png", ".psd", ".tif" };

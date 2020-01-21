@@ -55,6 +55,7 @@ namespace UnitTest.Rotate.Pictures
 		public void AppendTest()
 		{
 			// Arrange
+			SelectionTracker.Inst.ClearTracker();
 			for (var i = 0; i < 100; ++i)
 				SelectionTracker.Inst.Append($"{i}.pic");
 

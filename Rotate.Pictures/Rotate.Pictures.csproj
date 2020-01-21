@@ -103,6 +103,7 @@
     <Compile Include="MessageCommunication\MessageContext.cs" />
     <Compile Include="MessageCommunication\SelectedStretchModeMessage.cs" />
     <Compile Include="MessageCommunication\SetIntervalMessage.cs" />
+    <Compile Include="Model\PictureRetrievingEventArgs.cs" />
     <Compile Include="Service\IMediaService.cs" />
     <Compile Include="Service\StretchDialogService.cs" />
     <Compile Include="Utility\ExceptionUtil.cs" />

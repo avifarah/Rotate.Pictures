@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
@@ -57,13 +60,20 @@ namespace UnitTest.Rotate.Pictures
 		public void PictureModelPostiveTest()
 		{
 			// Arrange
-			string pic = null;
+			// We need to reset the extensions as they are permanent from previous run 
+			ConfigValue.Inst.SetStillExtension(".jpg;.png;.bmp");
+			ConfigValue.Inst.SetMotionExtension(".avi;.jpeg;.Peggy;.Ben");
 			ConfigValue.Inst.SetInitialPictureDirectories(null);
+
 			var model = new PictureModel();
+
 			var t = Task.Delay(2000);
 			t.Wait();
 
 			// Act
+			string pic = null;
+			var retrieving = model.IsPicturesRetrieving;
+
 			for (int i = 0; i < 5 && pic == null; ++i)
 			{
 				pic = model.GetNextPicture();

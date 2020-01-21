@@ -9,7 +9,9 @@ namespace Rotate.Pictures.Utility
 	/// </summary>
 	public class PictureCollection : IList<string>
 	{
-		private SynchronizedCollection<string> _picCollection = new SynchronizedCollection<string>();
+		private SynchronizedCollection<string> _picCollection;
+
+		public PictureCollection() => _picCollection = new SynchronizedCollection<string>();
 
 		public string this[int index]
 		{

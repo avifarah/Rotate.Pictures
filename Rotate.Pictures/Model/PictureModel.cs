@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,12 +21,18 @@ namespace Rotate.Pictures.Model
 		/// <summary>Collection of all pictures in all directories supplied by the user in the configuration file</summary>
 		private readonly PictureCollection _picCollection = new PictureCollection();
 
+		/// <summary>When equals True then all pictures are retrieved and set in _picCollection</summary>
+		private volatile int _retreived;
+
 		/// <summary>Extensions to consider</summary>
-		private List<string> _extions;
+		private List<string> _extensionList;
 
 		private readonly Random _rand = new Random();
 		private Task _taskModel;
 		private CancellationTokenSource _cts;
+
+		public event EventHandler<PictureRetrievingEventArgs> PictureRetrievingHandler = delegate {};
+		public string _retrievingNow = null;
 
 		/// <summary>
 		/// .ctor
@@ -50,14 +57,13 @@ namespace Rotate.Pictures.Model
 				catch (Exception e) { Log.Error($"Message: {e.Message}", e); }
 			}
 
-			// Clearing out picture collection, _picCollection, does not clear out the
-			// SelectionTracker. _picCollection is responsible for the pictures in the
-			// directories provided by the configuration's key="Initial Folders" while
-			// SelectionTracker is responsible for trackig pictures that were previously
-			// displayed.
+			// Clearing out picture collection, _picCollection, does not clear out the SelectionTracker. 
+			// _picCollection is responsible for the pictures in the directories provided by the 
+			// configuration's key="Initial Folders" while SelectionTracker is responsible for tracking
+			// pictures that were previously displayed.
 			_picCollection.Clear();
 
-			_extions = ConfigValue.Inst.FileExtensionsToConsider();
+			_extensionList = ConfigValue.Inst.FileExtensionsToConsider();
 			_cts = new CancellationTokenSource();
 			_taskModel = Task.Run(() => RetrievePictures(), _cts.Token);
 		}
@@ -77,7 +83,8 @@ namespace Rotate.Pictures.Model
 			}
 
 			var index = _rand.Next(cnt);
-			return _picCollection[index];
+			var pic = _picCollection[index];
+			return pic;
 		}
 
 		/// <summary>
@@ -85,12 +92,16 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		private void RetrievePictures()
 		{
+			Interlocked.Exchange(ref _retreived, 0);
+
 			var dirs = ConfigValue.Inst.InitialPictureDirectories();
 			foreach (var dir in dirs)
 			{
 				if (Directory.Exists(dir))
 					RetrievePictures(dir);
 			}
+
+			Interlocked.Exchange(ref _retreived, 1);
 		}
 
 		/// <summary>
@@ -99,14 +110,20 @@ namespace Rotate.Pictures.Model
 		/// <param name="dir"></param>
 		private void RetrievePictures(string dir)
 		{
+			_retrievingNow = dir;
+			OnPictureRetrieving(dir);
 			var files = Directory.GetFiles(dir);
-			var rightFiles = files.Where(fl => _extions.Any(e => fl.EndsWith(e, StringComparison.CurrentCultureIgnoreCase)));
 
+			var rightFiles = files.Where(fl => _extensionList.Any(e => fl.EndsWith(e, StringComparison.CurrentCultureIgnoreCase))).ToList();
 			_picCollection.AddRange(rightFiles);
 
 			var dirs = Directory.GetDirectories(dir);
 			foreach (var d in dirs)
 				RetrievePictures(d);
 		}
+
+		public bool IsPicturesRetrieving => _retreived == 0;
+
+		void OnPictureRetrieving(string picDirectory) => PictureRetrievingHandler(this, new PictureRetrievingEventArgs(picDirectory));
 	}
 }
