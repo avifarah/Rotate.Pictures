@@ -6,6 +6,6 @@ namespace Rotate.Pictures.MessageCommunication
 	{
 		public float SelectedInterval { get; }
 
-		public SelectedIntervalMessage(int selectedInterval) => SelectedInterval = (float)selectedInterval / 1000.0F;
+		public SelectedIntervalMessage(int selectedInterval) => SelectedInterval = selectedInterval / 1000.0F;
 	}
 }

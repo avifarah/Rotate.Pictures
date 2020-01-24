@@ -80,7 +80,7 @@ namespace Rotate.Pictures.ViewModel
 				return;
 			}
 
-			PictureFolders = metadata.PictureFlder;
+			PictureFolders = metadata.PictureFolder;
 			FirstPictureToDisplay = metadata.FirstPictureToDisplay;
 			StillPictureExtensions = metadata.StillPictureExtensions;
 			MotionPictureExtensions = metadata.MotionPictureExtensions;

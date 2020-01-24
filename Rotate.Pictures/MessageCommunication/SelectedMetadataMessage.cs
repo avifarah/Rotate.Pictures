@@ -9,7 +9,7 @@ namespace Rotate.Pictures.MessageCommunication
 
 		public SelectedMetadataMessage(PictureMetaDataTransmission metadata) => _metadata = metadata;
 
-		public string PictureFlder => _metadata.PictureFolder;
+		public string PictureFolder => _metadata.PictureFolder;
 
 		public string FirstPictureToDisplay => _metadata.FirstPictureToDisplay;
 

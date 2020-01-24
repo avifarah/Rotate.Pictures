@@ -91,13 +91,13 @@ namespace Rotate.Pictures.Utility
 
 		public List<string> FileExtensionsToConsider()
 		{
-			List<string> MotionFromConfig(List<string> stillExts)
+			List<string> MotionFromConfig(List<string> stillExtensions)
 			{
 				if (_motionExt != null)
 				{
-					if (stillExts == null) return _motionExt;
+					if (stillExtensions == null) return _motionExt;
 
-					var ext = stillExts.Union(
+					var ext = stillExtensions.Union(
 							_motionExt, (x, y) => string.Compare(x, y, StringComparison.OrdinalIgnoreCase) == 0,
 							x => x.ToLower().GetHashCode())
 						.ToList();
@@ -109,12 +109,12 @@ namespace Rotate.Pictures.Utility
 				if (raw2 == null)
 					Log.Error($"Missing configuration appSettings entry {key2}");
 				else
-					stillExts = stillExts.Union(
+					stillExtensions = stillExtensions.Union(
 							raw2.Split(';').ToList(),
 							(x, y) => string.Compare(x, y, StringComparison.OrdinalIgnoreCase) == 0,
 							x => x.ToLower().GetHashCode())
 						.ToList();
-				return stillExts;
+				return stillExtensions;
 			}
 
 			var defaultExtensions = _defStillExt.Union(
@@ -154,7 +154,7 @@ namespace Rotate.Pictures.Utility
 				return;
 			}
 
-			_stillExt = stillExt?.Split(new[] { ';' }).Where(s => s.StartsWith(".")).ToList();
+			_stillExt = stillExt.Split(new[] { ';' }).Where(s => s.StartsWith(".")).ToList();
 		}
 
 		public List<string> StillPictureExtensions()
@@ -225,7 +225,7 @@ namespace Rotate.Pictures.Utility
 		{
 			const string key = "Image stretch";
 			const string defaultStretch = "Uniform";
-			var allowdStrechedValues = new List<string> { "Fill", "None", "Uniform", "UniformToFill" };
+			var allowedStretchedValues = new List<string> { "Fill", "None", "Uniform", "UniformToFill" };
 			var raw = ReadConfigValue(key);
 			if (raw == null)
 			{
@@ -233,7 +233,7 @@ namespace Rotate.Pictures.Utility
 				return defaultStretch;
 			}
 
-			var stretch = allowdStrechedValues.FirstOrDefault(s => string.Compare(s, raw, StringComparison.CurrentCultureIgnoreCase) == 0);
+			var stretch = allowedStretchedValues.FirstOrDefault(s => string.Compare(s, raw, StringComparison.CurrentCultureIgnoreCase) == 0);
 			return stretch ?? defaultStretch;
 		}
 
@@ -331,7 +331,7 @@ namespace Rotate.Pictures.Utility
 			var raw = ReadConfigValue(key);
 			if (raw == null)
 			{
-				Log.Error($"Missing configuration appsettings entry {key}");
+				Log.Error($"Missing configuration appSettings entry {key}");
 				return defFastForward;
 			}
 

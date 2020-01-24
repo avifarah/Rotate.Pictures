@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+//using System.Reflection;
 
 
 namespace Rotate.Pictures.MessageCommunication
@@ -14,7 +14,7 @@ namespace Rotate.Pictures.MessageCommunication
 
 	public class Messenger<T> : MessageBase where T : IVmCommunication
 	{
-		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+		//private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		private static readonly ConcurrentDictionary<MessengerKey, object> MsgRepository = new ConcurrentDictionary<MessengerKey, object>();
 
@@ -49,26 +49,26 @@ namespace Rotate.Pictures.MessageCommunication
 		private Messenger() { }
 
 		/// <summary>
-		/// Registers a recipient for a type of message T. The sendMessageToRecepientsAction parameter will be executed
+		/// Registers a recipient for a type of message T. The sendMessageToRecipientsAction parameter will be executed
 		/// when a corresponding message is sent.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="recipient"></param>
-		/// <param name="sendMessageToRecepientsAction"></param>
-		public void Register(object recipient, Action<T> sendMessageToRecepientsAction) => Register(recipient, sendMessageToRecepientsAction, null);
+		/// <param name="sendMessageToRecipientsAction"></param>
+		public void Register(object recipient, Action<T> sendMessageToRecipientsAction) => Register(recipient, sendMessageToRecipientsAction, null);
 
 		/// <summary>
-		/// Registers a recipient for a type of message T and a matching context. The sendMessageToRecepientsAction parameter will be executed
+		/// Registers a recipient for a type of message T and a matching context. The sendMessageToRecipientsAction parameter will be executed
 		/// when a corresponding message is sent.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="recipient"></param>
-		/// <param name="sendMessageToRecepientsAction"></param>
+		/// <param name="sendMessageToRecipientsAction"></param>
 		/// <param name="context"></param>
-		public void Register(object recipient, Action<T> sendMessageToRecepientsAction, object context)
+		public void Register(object recipient, Action<T> sendMessageToRecipientsAction, object context)
 		{
 			var key = new MessengerKey(recipient, context);
-			MsgRepository.TryAdd(key, sendMessageToRecepientsAction);
+			MsgRepository.TryAdd(key, sendMessageToRecipientsAction);
 		}
 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace Rotate.Pictures.MessageCommunication
 		public void Unregister(object recipient, object context)
 		{
 			var key = new MessengerKey(recipient, context);
-			MsgRepository.TryRemove(key, out var sendMessageToRecepientsAction);
+			MsgRepository.TryRemove(key, out var sendMessageToRecipientsAction);
 		}
 
 		/// <summary>
@@ -114,8 +114,8 @@ namespace Rotate.Pictures.MessageCommunication
 			}
 
 			var result = MsgRepository.Where(r => MessagePredicate(context, r));
-			foreach (var sendMessageToRecepientsAction in result.Select(x => x.Value).OfType<Action<T>>())
-				sendMessageToRecepientsAction(message);
+			foreach (var sendMessageToRecipientsAction in result.Select(x => x.Value).OfType<Action<T>>())
+				sendMessageToRecipientsAction(message);
 		}
 
 		protected class MessengerKey : IEquatable<MessengerKey>

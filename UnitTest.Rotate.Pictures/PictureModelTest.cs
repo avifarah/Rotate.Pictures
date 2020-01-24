@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
@@ -15,24 +12,13 @@ namespace UnitTest.Rotate.Pictures
 	[TestClass]
 	public class PictureModelTest
 	{
-		public PictureModelTest()
-		{
-			//
-			// TODO: Add constructor logic here
-			//
-		}
-
-		private TestContext _testContextInstance;
+		//public PictureModelTest() { }
 
 		/// <summary>
 		///Gets or sets the test context which provides
 		///information about and functionality for the current test run.
 		///</summary>
-		public TestContext TestContext
-		{
-			get => _testContextInstance;
-			set => _testContextInstance = value;
-		}
+		//public TestContext TestContext { get; set; }
 
 		#region Additional test attributes
 		//
@@ -57,7 +43,7 @@ namespace UnitTest.Rotate.Pictures
 		#endregion
 
 		[TestMethod]
-		public void PictureModelPostiveTest()
+		public void PictureModelPositiveTest()
 		{
 			// Arrange
 			// We need to reset the extensions as they are permanent from previous run 

@@ -1,5 +1,4 @@
 ﻿
-
 namespace Rotate.Pictures.Service
 {
 	public interface IMediaService

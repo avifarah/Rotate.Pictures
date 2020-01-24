@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,7 +21,7 @@ namespace Rotate.Pictures.Model
 		private readonly PictureCollection _picCollection = new PictureCollection();
 
 		/// <summary>When equals True then all pictures are retrieved and set in _picCollection</summary>
-		private volatile int _retreived;
+		private volatile int _retrieved;
 
 		/// <summary>Extensions to consider</summary>
 		private List<string> _extensionList;
@@ -32,11 +31,11 @@ namespace Rotate.Pictures.Model
 		private CancellationTokenSource _cts;
 
 		public event EventHandler<PictureRetrievingEventArgs> PictureRetrievingHandler = delegate {};
-		public string _retrievingNow = null;
+		public string RetrievingNow;
 
 		/// <summary>
 		/// .ctor
-		/// Retrieve pictures asynchrounously
+		/// Retrieve pictures asynchronously
 		/// </summary>
 		public PictureModel() => Restart();
 
@@ -65,7 +64,7 @@ namespace Rotate.Pictures.Model
 
 			_extensionList = ConfigValue.Inst.FileExtensionsToConsider();
 			_cts = new CancellationTokenSource();
-			_taskModel = Task.Run(() => RetrievePictures(), _cts.Token);
+			_taskModel = Task.Run(RetrievePictures, _cts.Token);
 		}
 
 		/// <summary>
@@ -92,7 +91,9 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		private void RetrievePictures()
 		{
-			Interlocked.Exchange(ref _retreived, 0);
+			// Using Interlocked.Exchange is an overkill since _retrieved is an int, for which
+			// assignment is an atomic operation.
+			Interlocked.Exchange(ref _retrieved, 0);
 
 			var dirs = ConfigValue.Inst.InitialPictureDirectories();
 			foreach (var dir in dirs)
@@ -101,7 +102,7 @@ namespace Rotate.Pictures.Model
 					RetrievePictures(dir);
 			}
 
-			Interlocked.Exchange(ref _retreived, 1);
+			Interlocked.Exchange(ref _retrieved, 1);
 		}
 
 		/// <summary>
@@ -110,7 +111,7 @@ namespace Rotate.Pictures.Model
 		/// <param name="dir"></param>
 		private void RetrievePictures(string dir)
 		{
-			_retrievingNow = dir;
+			RetrievingNow = dir;
 			OnPictureRetrieving(dir);
 			var files = Directory.GetFiles(dir);
 
@@ -122,7 +123,7 @@ namespace Rotate.Pictures.Model
 				RetrievePictures(d);
 		}
 
-		public bool IsPicturesRetrieving => _retreived == 0;
+		public bool IsPicturesRetrieving => _retrieved == 0;
 
 		void OnPictureRetrieving(string picDirectory) => PictureRetrievingHandler(this, new PictureRetrievingEventArgs(picDirectory));
 	}

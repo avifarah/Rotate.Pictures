@@ -414,8 +414,12 @@ namespace UnitTest.Rotate.Pictures
 			foreach (var i in Enumerable.Range(0, 10))
 				rs.Add(i.ToString().IsFloatNumeric());
 
-			rs.Add(",".IsFloatNumeric());
-			rs.Add(".".IsFloatNumeric());
+			rs.Add("0.5".IsFloatNumeric());
+			rs.Add("01234567890123".IsFloatNumeric());
+			rs.Add("12,345,6,7".IsFloatNumeric());
+			rs.Add("12,345.".IsFloatNumeric());
+			rs.Add("123,456,789,012.345,67".IsFloatNumeric());
+			rs.Add("123,456,789,012.345,678,901".IsFloatNumeric());
 
 			// Assert
 			foreach (var r in rs)
@@ -429,8 +433,13 @@ namespace UnitTest.Rotate.Pictures
 			List<bool> rs = new List<bool>();
 
 			// Act
+			rs.Add(",".IsFloatNumeric());
+			rs.Add(".".IsFloatNumeric());
 			rs.Add("a".IsFloatNumeric());
 			rs.Add(";".IsFloatNumeric());
+			rs.Add(".0123".IsFloatNumeric());
+			rs.Add("123,456,789,012.345,678,901.".IsFloatNumeric());	// Trailing second period character (".")
+			rs.Add("123,456,789,012.345,678,901,".IsFloatNumeric());	// Trailing comma
 
 			// Assert
 			foreach (var r in rs)

@@ -11,9 +11,9 @@ namespace Rotate.Pictures.Converter
 {
 	public class MotionPictureVisibleConverter : IValueConverter
 	{
-		private static List<string> _motionExts;
+		private static List<string> _motionExtensions;
 
-		public MotionPictureVisibleConverter() => _motionExts = ConfigValue.Inst.MotionPictures();
+		public MotionPictureVisibleConverter() => _motionExtensions = ConfigValue.Inst.MotionPictures();
 
 		#region Implementation of IValueConverter
 
@@ -21,7 +21,7 @@ namespace Rotate.Pictures.Converter
 		{
 			var fn = value as string;
 			if (string.IsNullOrWhiteSpace(fn)) return false;
-			var rc = _motionExts.Any(s => string.Compare(new FileInfo(fn).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
+			var rc = _motionExtensions.Any(s => string.Compare(new FileInfo(fn).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
 			return rc ? "Visible" : "Collapsed";
 		}
 

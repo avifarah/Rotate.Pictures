@@ -16,11 +16,11 @@ namespace Rotate.Pictures.Service
 
 		protected Window WinDialog;
 
-		public DialogService(Func<Window> windowCreate)
+		protected DialogService(Func<Window> windowCreate)
 		{
 			if (windowCreate == null)
 			{
-				Log.Error($"Window creation had a null lambda");
+				Log.Error("Window creation had a null lambda");
 				throw new ArgumentException(@"Window creation lambda cannot be null", nameof(windowCreate));
 			}
 

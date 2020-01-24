@@ -1,5 +1,4 @@
 ﻿
-
 namespace Rotate.Pictures.MessageCommunication
 {
 	/// <summary>

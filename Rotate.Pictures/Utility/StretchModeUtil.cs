@@ -7,26 +7,24 @@ namespace Rotate.Pictures.Utility
 	{
 		public static SelectedStretchMode TextToMode(this string text)
 		{
-			switch (text)
-			{
-				case "Fill": return SelectedStretchMode.Fill;
-				case "None": return SelectedStretchMode.None;
-				case "Uniform": return SelectedStretchMode.Uniform;
-				case "UniformToFill": return SelectedStretchMode.UniformToFill;
-				default: return SelectedStretchMode.Uniform;
-			}
+			return text switch {
+				"Fill" => SelectedStretchMode.Fill,
+				"None" => SelectedStretchMode.None,
+				"Uniform" => SelectedStretchMode.Uniform,
+				"UniformToFill" => SelectedStretchMode.UniformToFill,
+				_ => SelectedStretchMode.Uniform,
+			};
 		}
 
 		public static string ModeToText(this SelectedStretchMode mode)
 		{
-			switch (mode)
-			{
-				case SelectedStretchMode.Fill: return "Fill";
-				case SelectedStretchMode.None: return "None";
-				case SelectedStretchMode.Uniform: return "Uniform";
-				case SelectedStretchMode.UniformToFill: return "UniformToFill";
-				default: throw new ArgumentException(@"Stretch mode is not recognized", nameof(mode));
-			}
+			return mode switch {
+				SelectedStretchMode.Fill => "Fill",
+				SelectedStretchMode.None => "None",
+				SelectedStretchMode.Uniform => "Uniform",
+				SelectedStretchMode.UniformToFill => "UniformToFill",
+				_ => throw new ArgumentException(@"Stretch mode is not recognized", nameof(mode))
+			};
 		}
 	}
 }

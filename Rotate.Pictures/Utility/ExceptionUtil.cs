@@ -7,7 +7,7 @@ namespace Rotate.Pictures.Utility
 {
 	public static class ExceptionUtil
 	{
-		public static string ExeptionMessages(this Exception ex)
+		public static string ExceptionMessages(this Exception ex)
 		{
 			string ExtractMessage(Exception e)
 			{

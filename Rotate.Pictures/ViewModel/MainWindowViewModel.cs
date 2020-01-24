@@ -346,7 +346,7 @@ namespace Rotate.Pictures.ViewModel
 		private void OnSetMetadataAction(SelectedMetadataMessage metadata)
 		{
 			const string pictureFolderKey = "Initial Folders";
-			var pictureFolder = metadata.PictureFlder;
+			var pictureFolder = metadata.PictureFolder;
 			if (!string.IsNullOrWhiteSpace(pictureFolder))
 			{
 				UpdateConfigFile.Inst.UpdateConfig(pictureFolderKey, pictureFolder);
