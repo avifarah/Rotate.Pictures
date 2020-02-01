@@ -38,6 +38,19 @@ namespace Rotate.Pictures.View
 			DataContext = VmFactory.Inst.CreateVm(this);
 		}
 
+		protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+		{
+			base.OnPropertyChanged(e);
+
+			if (e.Property != WindowStateProperty) return;
+
+			var oldState = (WindowState)e.OldValue;
+			OldWindowSizeState.Text = oldState.ToString();
+
+			var newState = (WindowState)e.NewValue;
+			WindowSizeState.Text = newState.ToString();
+		}
+
 		private void MePlayer_OnMediaOpened(object sender, RoutedEventArgs e)
 		{
 			_isDurationSet = false;

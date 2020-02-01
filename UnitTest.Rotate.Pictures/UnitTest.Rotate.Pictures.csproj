@@ -53,6 +53,7 @@
     <Compile Include="LinqExtensionsTest.cs" />
     <Compile Include="PictureCollectionTest.cs" />
     <Compile Include="PictureModelTest.cs" />
+    <Compile Include="PicturesToAvoidCollection.Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SelectionTrackerTest.cs" />
     <Compile Include="StringUtilTest.cs" />

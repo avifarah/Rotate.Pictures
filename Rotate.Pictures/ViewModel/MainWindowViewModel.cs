@@ -406,10 +406,12 @@ namespace Rotate.Pictures.ViewModel
 			StopStartCommand = new CustomCommand(StopStartRotation);
 			BackImageCommand = new CustomCommand(BackImageMove);
 			NextImageCommand = new CustomCommand(NextImageMove);
+			DoNotShowImageCommand = new CustomCommand(DoNotShowImage);
 			SetTimeBetweenPicturesCommand = new CustomCommand(SetTimeBetweenPictures);
 			SetSelectedStrechModeCommand = new CustomCommand(SetSelectedStrechMode);
 			SetPicturesMetaDataCommand = new CustomCommand(SetPicturesMetaData);
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
+			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
 			PalyCommand = new CustomCommand(Play, CanPlay);
 		}
 
@@ -419,6 +421,8 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand NextImageCommand { get; set; }
 
+		public ICommand DoNotShowImageCommand { get; set; }
+
 		public ICommand SetTimeBetweenPicturesCommand { get; set; }
 
 		public ICommand SetSelectedStrechModeCommand { get; set; }
@@ -426,6 +430,8 @@ namespace Rotate.Pictures.ViewModel
 		public ICommand SetPicturesMetaDataCommand { get; set; }
 
 		public ICommand SetPictureBufferDepthCommand { get; set; }
+
+		public ICommand ManageNoDisplayListCommand { get; set; }
 
 		public ICommand PalyCommand { get; set; }
 
@@ -465,6 +471,10 @@ namespace Rotate.Pictures.ViewModel
 			ResetHeartBeat();
 		}
 
+		public void DoNotShowImage(object _)
+		{
+		}
+
 		private void SetTimeBetweenPictures(object _) => _intervalBetweenPicturesService.ShowDetailDialog(IntervalBetweenPictures);
 
 		private void SetSelectedStrechMode(object _)
@@ -492,6 +502,11 @@ namespace Rotate.Pictures.ViewModel
 		{
 			var depth = ConfigValue.Inst.MaxPictureTrackerDepth();
 			_pictureBufferService.ShowDetailDialog(depth);
+		}
+
+		private void ManageNoDisplayList(object _)
+		{
+
 		}
 
 		#endregion

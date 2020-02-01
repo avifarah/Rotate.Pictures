@@ -38,6 +38,7 @@
 				<MenuItem Header="_Pictures meta data..." Command="{Binding SetPicturesMetaDataCommand}" />
 				<MenuItem Header="_Picture buffer depth..." Command="{Binding SetPictureBufferDepthCommand}" />
 				<MenuItem Header="_Rotate pictures on start" IsCheckable="True" IsChecked="{Binding InitialRotationMode}" />
+				<MenuItem Header="_Manage no-display pictures-list..." Command="{Binding ManageNoDisplayListCommand}" />
 			</MenuItem>
 			<MenuItem Header="_Stretch Mode..." Command="{Binding SetSelectedStrechModeCommand}" />
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
@@ -120,38 +121,42 @@
 					<ColumnDefinition Width="18"/>
 					<ColumnDefinition Width="*"/>
 					<ColumnDefinition Width="100"/>
+					<ColumnDefinition Width="22" />
 					<ColumnDefinition Width="22"/>
 					<ColumnDefinition Width="18"/>
 				</Grid.ColumnDefinitions>
+
+				<TextBlock x:Name="WindowSizeState" Grid.Column="0" Text="{Binding WindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
+				<TextBlock x:Name="OldWindowSizeState" Grid.Column="0" Text="{Binding OldWindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
 
 				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding BackImageCommand}" ToolTip="Rotate picture set to previous picture"
 				        ToolTipService.ShowDuration="3000">
 					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 				</Button>
 
-				<TextBlock x:Name="WindowSizeState" Grid.Column="0" Text="{Binding WindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
-				<TextBlock x:Name="OldWindowSizeState" Grid.Column="0" Text="{Binding OldWindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
-
 				<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding CurrentPicture, Mode=OneWay}"
 				         Background="Yellow" Foreground="Black" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
 				         BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True" Grid.Column="1" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"/>
 
 				<ProgressBar Minimum="0" Maximum="{Binding IntervalProgressBarMax, Mode=OneWay}" Visibility="{Binding SliderVisibility}"
-							 Background="Yellow" Foreground="#FFB2B200" Grid.Column="2"
-							 Value="{Binding VisHeartBeatValue, Mode=OneWay}" BorderThickness="1" BorderBrush="Black" Margin="0,0,3,0"/>
-				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3"
-				        Command="{Binding StopStartCommand}">
-					<Button.Content>
-						<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-								 Width="15" Height="15"
-								 Margin="0,0,3,0"
-						         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
-						         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
-						         ToolTipService.ShowDuration="3000" />
-					</Button.Content>
+				             Background="Yellow" Foreground="#FFB2B200" Grid.Column="2"
+				             Value="{Binding VisHeartBeatValue, Mode=OneWay}" BorderThickness="1" BorderBrush="Black" Margin="0,0,3,0"/>
+
+				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3" Command="{Binding DoNotShowImageCommand}">
+					<Image Source="/Rotate.Pictures;component/Images/NoEntry.png"></Image>
 				</Button>
 
-				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding NextImageCommand}" Grid.Column="4"
+				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4"
+				        Command="{Binding StopStartCommand}">
+					<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+					         Width="15" Height="15"
+					         Margin="0,0,3,0"
+					         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
+					         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
+					         ToolTipService.ShowDuration="3000" />
+				</Button>
+
+				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding NextImageCommand}" Grid.Column="5"
 				        ToolTip="Rotate picture set to next picture" ToolTipService.ShowDuration="3000">
 					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Image.LayoutTransform>

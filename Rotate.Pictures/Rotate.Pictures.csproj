@@ -112,11 +112,11 @@
     <Compile Include="Utility\LinqComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
     <Compile Include="Utility\ModelFactory.cs" />
+    <Compile Include="Utility\PicturesToAvoidCollection.cs" />
     <Compile Include="Utility\VmFactory.cs" />
     <Compile Include="ViewModel\MediaPlayerViewModel.cs" />
     <Compile Include="ViewModel\StretchModeViewModel.cs" />
     <Compile Include="ViewModel\ViewModelBase.cs" />
-    <Compile Include="View\MainWindow.p2.cs" />
     <Compile Include="View\MediaPlayerView.xaml.cs">
       <DependentUpon>MediaPlayerView.xaml</DependentUpon>
     </Compile>
@@ -250,6 +250,9 @@
   <ItemGroup>
     <Resource Include="Images\Advance.png" />
     <Resource Include="Images\Rewind.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\NoEntry.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
