@@ -20,6 +20,8 @@ namespace Rotate.Pictures.Model
 		/// <summary>Collection of all pictures in all directories supplied by the user in the configuration file</summary>
 		private readonly PictureCollection _picCollection = new PictureCollection();
 
+		private PicturesToAvoidCollection _avoidCollection = PicturesToAvoidCollection.Default;
+
 		/// <summary>When equals True then all pictures are retrieved and set in _picCollection</summary>
 		private volatile int _retrieved;
 
@@ -81,8 +83,9 @@ namespace Rotate.Pictures.Model
 				return pic1;
 			}
 
-			var index = _rand.Next(cnt);
-			var pic = _picCollection[index];
+			var flatIndex = _rand.Next(cnt);
+			var picIndex = _avoidCollection.GetPictureIndexFromFlatIndex(flatIndex);
+			var pic = _picCollection[picIndex];
 			return pic;
 		}
 

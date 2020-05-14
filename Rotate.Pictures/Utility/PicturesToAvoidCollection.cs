@@ -67,7 +67,7 @@ namespace Rotate.Pictures.Utility
 		///			// Input: freeIndex
 		///			// Output: picIndex
 		///			var picIndex = 0;
-		///			for (var i = 0; i < flatIndex; ++i)
+		///			for (var i = 0; i < flatIndex; ++i)				// close the less than />
 		///			{
 		///				while (_avoidPics.ContainsKey(picIndex)) ++picIndex;
 		///				++picIndex;
@@ -88,7 +88,7 @@ namespace Rotate.Pictures.Utility
 		///				correct picIndex.
 		/// 
 		///		This is getting complicated.  We can improve upon this algorithm as follows:
-		///										// If flatIndex < 3 then picIndex = flatIndex
+		///										// If flatIndex < 3 then picIndex = flatIndex		// close the less than />
 		///			_avoidPics[     3] = 1		// As before; if flatIndex >= 3 and < 9 then picIndex = flatIndex + _avoidPics[3]
 		///			_avoidPics[10 - 1] = 6		// If flatIndex >= 9 (10 - 1) and < 19 (25 - 6) then picIndex = flatIndex + _avoidPics[9]
 		///			_avoidPics[25 - 6] = 7		// If flatIndex >= 19 (25 - 6) then picIndex = flatIndex + _avoidPics[19]
@@ -96,7 +96,7 @@ namespace Rotate.Pictures.Utility
 		///		Now the code to convert flatIndex to picIndex is as follows:
 		///		<code>
 		///			upperSmallestIndex = FindGreatestSmallerIndex(flatIndex);
-		///			if flatIndex is < _avoidPics.SmallestIndex
+		///			if flatIndex is < _avoidPics.SmallestIndex				// close the less than />
 		///				picIndex = flatIndex;
 		///			else
 		///				picIndex = flatIndex + _avoidPics[upperSmallestIndex];

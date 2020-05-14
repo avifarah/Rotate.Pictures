@@ -11,10 +11,6 @@ namespace Rotate.Pictures.Utility
 	{
 		protected SynchronizedCollection<string> PicCollection = new SynchronizedCollection<string>();
 
-		//public PictureCollection() { }
-
-		protected PicturesToAvoidCollection AvoidCollection = PicturesToAvoidCollection.Default; 
-
 		public string this[int index]
 		{
 			get => PicCollection[index];
