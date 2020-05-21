@@ -146,8 +146,7 @@
 					<Image Source="/Rotate.Pictures;component/Images/NoEntry.png"></Image>
 				</Button>
 
-				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4"
-				        Command="{Binding StopStartCommand}">
+				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4" Command="{Binding StopStartCommand}">
 					<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
 					         Width="15" Height="15"
 					         Margin="0,0,3,0"

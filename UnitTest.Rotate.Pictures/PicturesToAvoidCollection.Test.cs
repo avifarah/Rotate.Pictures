@@ -132,9 +132,7 @@ namespace UnitTest.Rotate.Pictures
 			// Assert
 			Assert.AreEqual(expectedIndex.Count, picN - picIndicesToAvoid.Count);
 			for (var i = 0; i < expectedIndex.Count; ++i)
-			{
 				Assert.AreEqual(expectedIndex[i], pictureIndex[i]);
-			}
 		}
 
 		[TestMethod]
@@ -158,9 +156,7 @@ namespace UnitTest.Rotate.Pictures
 			// Assert
 			Assert.AreEqual(expectedIndex.Count, picN - picIndicesToAvoid.Count);
 			for (var i = 0; i < expectedIndex.Count; ++i)
-			{
 				Assert.AreEqual(expectedIndex[i], pictureIndex[i]);
-			}
 		}
 
 		[TestMethod]
@@ -184,9 +180,7 @@ namespace UnitTest.Rotate.Pictures
 			// Assert
 			Assert.AreEqual(expectedIndex.Count, picN - picIndicesToAvoid.Count);
 			for (var i = 0; i < expectedIndex.Count; ++i)
-			{
 				Assert.AreEqual(expectedIndex[i], pictureIndex[i]);
-			}
 		}
 
 		[TestMethod]
@@ -196,7 +190,7 @@ namespace UnitTest.Rotate.Pictures
 			var picN = 30;
 			var picIndicesToAvoid = new List<int>();
 			for (var i = 0; i < picN; ++i) picIndicesToAvoid.Add(i);
-			var picsToAvoid = new PicturesToAvoidCollection(picIndicesToAvoid);
+			//var picsToAvoid = new PicturesToAvoidCollection(picIndicesToAvoid);
 
 			// Act
 			var avoidedPicturesCount = picIndicesToAvoid.Count;
@@ -230,10 +224,10 @@ namespace UnitTest.Rotate.Pictures
 			// Arrange
 			var picN = 10;
 			var picsToAvoid = PicturesToAvoidCollection.Default;
-
-			// Act
 			picsToAvoid.AddPictureToAvoid(5);
 			var pictureIndex = new List<int>();
+
+			// Act
 			for (var flatIndex = 0; flatIndex < picN - 1; ++flatIndex)
 				pictureIndex.Add(picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex));
 
@@ -251,13 +245,13 @@ namespace UnitTest.Rotate.Pictures
 			// Arrange
 			var picN = 10;
 			var picsToAvoid = PicturesToAvoidCollection.Default;
-
-			// Act
 			picsToAvoid.AddPictureToAvoid(5);
 			picsToAvoid.AddPictureToAvoid(3);
 			picsToAvoid.AddPictureToAvoid(7);
 			var expected = new List<int> { 0, 1, 2, 4, 6, 8, 9 };
 			var pictureIndex = new List<int>();
+
+			// Act
 			for (var flatIndex = 0; flatIndex < picN - 3; ++flatIndex)
 				pictureIndex.Add(picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex));
 
@@ -272,14 +266,14 @@ namespace UnitTest.Rotate.Pictures
 			// Arrange
 			var picN = 10;
 			var picsToAvoid = PicturesToAvoidCollection.Default;
-
-			// Act
 			picsToAvoid.AddPictureToAvoid(5);
 			picsToAvoid.AddPictureToAvoid(3);
 			picsToAvoid.AddPictureToAvoid(7);
 			picsToAvoid.AddPictureToAvoid(4);
 			var expected = new List<int> { 0, 1, 2, 6, 8, 9 };
 			var pictureIndex = new List<int>();
+
+			// Act
 			for (var flatIndex = 0; flatIndex < picN - 4; ++flatIndex)
 				pictureIndex.Add(picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex));
 

@@ -36,3 +36,4 @@ C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Release\UnitTest.Rotat
 C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Release\UnitTest.Rotate.Pictures.csproj.CopyComplete
 C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Release\UnitTest.Rotate.Pictures.dll
 C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Release\UnitTest.Rotate.Pictures.pdb
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Release\UnitTest.Rotate.Pictures.csproj.CoreCompileInputs.cache

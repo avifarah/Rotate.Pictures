@@ -7,8 +7,12 @@ namespace Rotate.Pictures.Utility
 	public class PicturesToAvoidCollection
 	{
 		/// <summary>
-		/// key		:	int, lowerRangeLimit flat index.  The index of the pictures out of the random number generator [0 .. n - avoided-count).
-		/// value	:	int, index of picture collection: [0 .. n)
+		/// key (flatIndex)		:	int, lowerRangeLimit flat index (where the "holes", 
+		///							the missing pictures, are compressed.  The index of 
+		///							the pictures out of the random number generator
+		///							[0 .. n - avoided-count).
+		/// value (picIndex)	:	int, index of picture collection: [0 .. n).  This 
+		///							index includes the pictures that are not to be shown.
 		/// <remarks>
 		/// I contemplated between the name "flatIndex" and "runningIndex" and decided
 		/// to use name "flatIndex" as it indicates that the index has no "holes",
@@ -17,23 +21,26 @@ namespace Rotate.Pictures.Utility
 		/// the picture index.
 		///
 		/// I decided to call the second index the picIndex (Picture Index) which does
-		/// have holes, as per user request.
+		/// have "holes" (pictures not to be used), as per user request.
 		/// </remarks>
 		/// </summary>
 		private readonly Dictionary<int, int> _avoidPics = new Dictionary<int, int>();
 
 		/// <summary>
-		/// The algorithm for avoided pictures relies on the fact that _orderedKeys is in ascending ordered
+		/// The algorithm for avoided pictures relies on the fact that _orderedKeys
+		/// is in an ascending order
 		/// </summary>
 		private List<int> _orderedKeys = new List<int>();
 
 		/// <summary>
 		/// Note calling Default will generate a new empty pictures-To-Avoid list.
+		/// Obviously, the list will be empty.  At which point flatIndex equals
+		/// picIndex
 		/// </summary>
-		public static PicturesToAvoidCollection Default = new PicturesToAvoidCollection(new List<int>());
+		public static readonly PicturesToAvoidCollection Default = new PicturesToAvoidCollection(ConfigValue.Inst.PicturesToAvoidSorted().ToList());
 
 		/// <summary>
-		/// The index of this list is picture index as opposed to flatIndex
+		/// The index of this list is the picIndex as opposed to flatIndex
 		/// </summary>
 		private readonly List<int> _orderedPicturesToAvoid = new List<int>();
 
@@ -51,12 +58,14 @@ namespace Rotate.Pictures.Utility
 		/// Name:	PopulatePicsToAvoid
 		/// Purpose:
 		///		Populates the _avoidPics dictionary
-		///		Thereafter translating the index from a flatIndex to the picIndex we need add the appropriate
-		///		_avoidPics entry, see <see cref="Rotate.Pictures.Utility.PicturesToAvoidCollection.GetPictureIndexFromFlatIndex"/>
+		///		Thereafter, in order to translate the index from a flatIndex to the picIndex
+		///		we need add the appropriate _avoidPics entry, see: 
+		///		<see cref="Rotate.Pictures.Utility.PicturesToAvoidCollection.GetPictureIndexFromFlatIndex"/>
 		/// 
 		///	Nomenclature:
-		///		flatIndex: The one obtained from the random number generator.
-		///		picIndex:  The index into the pictures.
+		///		flatIndex:	The one obtained from the random number generator
+		///					(Range: [0 .. n - avoided-count)).
+		///		picIndex:	The index into the pictures (Range: [0 .. n)).
 		/// 
 		/// Explanation of algorithm:
 		///		Say that total pictures count = 30
@@ -67,7 +76,7 @@ namespace Rotate.Pictures.Utility
 		///			// Input: freeIndex
 		///			// Output: picIndex
 		///			var picIndex = 0;
-		///			for (var i = 0; i < flatIndex; ++i)				// close the less than />
+		///			for (var i = 0; i &lt; flatIndex; ++i)
 		///			{
 		///				while (_avoidPics.ContainsKey(picIndex)) ++picIndex;
 		///				++picIndex;
@@ -76,27 +85,42 @@ namespace Rotate.Pictures.Utility
 		///			return picIndex;
 		///		</code>
 		///
-		///		We can check if an index is in pictures-to-avoid set by setting a dictionary as follows:
-		///			_avoidPics[ 3] = 1			// We cannot have picture-index = 3, therefore skip 3 by adding 1 to flatIndex.
-		///			_avoidPics[10] = 5			// If we encounter picture-index = 10 then skip all range, picture-index = flatIndex + 5 
+		///		We can check if an index is in pictures-to-avoid set by setting a dictionary
+		///		as follows:
+		///			_avoidPics[ 3] = 1			// We cannot have picture-index = 3, therefore 
+		///										// .. skip 3 by adding 1 to flatIndex.
+		///			_avoidPics[10] = 5			// If we encounter picture-index = 10 then skip 
+		///										// .. all range, picture-index = flatIndex + 5 
 		///			_avoidPics[25] = 1
-		///		Then check against _avoidPics.Contains(index).  For this data structure to work we need to introduce a new algorithm.
+		///		Then check against _avoidPics.Contains(index).  For this data structure to work
+		///		we need to introduce a new algorithm.
+		/// 
 		///		This algorithm will need to first find the greatest-small-index
 		///			Explanation of the greatest-small-index:
-		///				looking for flat-index 13, the dictionary contains smaller indices: 3 and 10, but we are looking for the greatest
-		///				of the 2.  Then we need to sum _avoidPics[3] and _avoidPics[10] to the flatIndex in order to come up with the
-		///				correct picIndex.
+		///				looking for flat-index 13, the dictionary contains smaller indices: 3
+		///				and 10, but we are looking for the greatest of the 2.  Then we need to 
+		///				sum _avoidPics[3] and _avoidPics[10] to the flatIndex in order to come
+		///				up with the correct picIndex.
 		/// 
 		///		This is getting complicated.  We can improve upon this algorithm as follows:
-		///										// If flatIndex < 3 then picIndex = flatIndex		// close the less than />
-		///			_avoidPics[     3] = 1		// As before; if flatIndex >= 3 and < 9 then picIndex = flatIndex + _avoidPics[3]
-		///			_avoidPics[10 - 1] = 6		// If flatIndex >= 9 (10 - 1) and < 19 (25 - 6) then picIndex = flatIndex + _avoidPics[9]
-		///			_avoidPics[25 - 6] = 7		// If flatIndex >= 19 (25 - 6) then picIndex = flatIndex + _avoidPics[19]
+		///										// If flatIndex &lt; 3 then picIndex = flatIndex
+		///										// Thereafter we need to add _avoidPics[3] to the
+		///										// next picIndex range.
+		///			_avoidPics[     3] = 1		// if flatIndex >= 3 and &lt; 9 (10 - 1) 
+		///										// .. (where 10 is the original flatIndex and 1
+		///										// .. is the _avoidPics[3]) then
+		///										// .. picIndex = flatIndex + _avoidPics[3]
+		///			_avoidPics[10 - 1] = 6		// If flatIndex >= 9 (10 - 1) and &lt; 19
+		///										// .. (19 = 25 next index in _avoidPics -
+		///										// .. new _avoidPics[10]: 25 - 6)
+		///										// .. then picIndex = flatIndex + _avoidPics[9]
+		///			_avoidPics[25 - 6] = 7		// If flatIndex >= 19 (25 - 6) then
+		///										// .. picIndex = flatIndex + _avoidPics[19]
 		///
 		///		Now the code to convert flatIndex to picIndex is as follows:
 		///		<code>
 		///			upperSmallestIndex = FindGreatestSmallerIndex(flatIndex);
-		///			if flatIndex is < _avoidPics.SmallestIndex				// close the less than />
+		///			if flatIndex is &lt; _avoidPics.SmallestIndex
 		///				picIndex = flatIndex;
 		///			else
 		///				picIndex = flatIndex + _avoidPics[upperSmallestIndex];
@@ -107,14 +131,11 @@ namespace Rotate.Pictures.Utility
 		///		Conclusion: This algorithm avoids the running through all the values 0 .. flatIndex
 		///		in order to find out the value of the picIndex.
 		///
-		///		Discussion: This is nice though in real life of questionable consequences since it
-		///		is not a rea-time application where the cycling through a few 1,000s of pictures or
-		///		even 10s of 1,000s of pictures, is a big deal for each time interval between pictures.
-		///		Nevertheless, it is simple enough to implement and I felt that it was worth the extra
-		///		effort.
-		///
-		///		Curiously enough, This algorithm of avoiding the flat running through the flatIndex,
-		///		that seemed intuitively obvious, took more effort thank I expected.
+		///		Discussion: This is nice, though in real life, it is of questionable consequences
+		///		since it is not a real-time application where the cycling through a few 1,000s of
+		///		pictures or even 10s of 1,000s of pictures, is not a big deal for each time
+		///		interval between pictures.  Nevertheless, it is simple enough to implement and I
+		///		felt that it was worth the extra effort.
 		/// </summary>
 		private void PopulatePicsToAvoid()
 		{
@@ -136,6 +157,7 @@ namespace Rotate.Pictures.Utility
 			_orderedPicturesToAvoid.Sort();
 			_avoidPics.Clear();
 			PopulatePicsToAvoid();
+			ConfigValue.Inst.UpdatePicturesToAvoid(_orderedPicturesToAvoid);
 
 			return true;
 		}

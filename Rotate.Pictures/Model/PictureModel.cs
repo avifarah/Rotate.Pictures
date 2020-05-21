@@ -20,7 +20,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>Collection of all pictures in all directories supplied by the user in the configuration file</summary>
 		private readonly PictureCollection _picCollection = new PictureCollection();
 
-		private PicturesToAvoidCollection _avoidCollection = PicturesToAvoidCollection.Default;
+		private readonly PicturesToAvoidCollection _avoidCollection = PicturesToAvoidCollection.Default;
 
 		/// <summary>When equals True then all pictures are retrieved and set in _picCollection</summary>
 		private volatile int _retrieved;
@@ -34,6 +34,9 @@ namespace Rotate.Pictures.Model
 
 		public event EventHandler<PictureRetrievingEventArgs> PictureRetrievingHandler = delegate {};
 		public string RetrievingNow;
+
+		/// <summary>The current Picture Index/// </summary>
+		public int CurrentPicIndex { get; set; }
 
 		/// <summary>
 		/// .ctor
@@ -84,10 +87,12 @@ namespace Rotate.Pictures.Model
 			}
 
 			var flatIndex = _rand.Next(cnt);
-			var picIndex = _avoidCollection.GetPictureIndexFromFlatIndex(flatIndex);
-			var pic = _picCollection[picIndex];
+			CurrentPicIndex = _avoidCollection.GetPictureIndexFromFlatIndex(flatIndex);
+			var pic = _picCollection[CurrentPicIndex];
 			return pic;
 		}
+
+		public void AddPictureToAvoid(int picToAvoid) => _avoidCollection.AddPictureToAvoid(picToAvoid);
 
 		/// <summary>
 		/// Retrieve all pictures from all directories

@@ -208,8 +208,7 @@ namespace Rotate.Pictures.ViewModel
 			set
 			{
 				_initialRotationMode = value;
-				var key = "On start image rotating";
-				UpdateConfigFile.Inst.UpdateConfig(key, _initialRotationMode.ToString());
+				ConfigValue.Inst.UpdateOnStartRotatingPicture(_initialRotationMode);
 				OnPropertyChanged();
 			}
 		}
@@ -327,45 +326,38 @@ namespace Rotate.Pictures.ViewModel
 			var interval = intervalMsg.SetInterval;
 			IntervalBetweenPictures = interval;
 
-			const string key = "Timespan between pictures [Seconds]";
-			UpdateConfigFile.Inst.UpdateConfig(key, (IntervalBetweenPictures / 1000.0F).ToString(CultureInfo.CurrentCulture));
+			ConfigValue.Inst.UpdateIntervalBetweenPictures(IntervalBetweenPictures);
 		}
 
 		private void OnCloseStretchMode(CloseDialog obj) => _stretchSvc.CloseDetailDialog();
 
-		private void OnSetStretchMode(SelectedStretchModeMessage stretchMode)
-		{
-			ImageStretch = stretchMode.Mode.ToString();
-
-			const string key = "Image stretch";
-			UpdateConfigFile.Inst.UpdateConfig(key, ImageStretch);
-		}
+		private void OnSetStretchMode(SelectedStretchModeMessage stretchMode) => ConfigValue.Inst.UpdateImageToStretch(stretchMode.Mode);
 
 		private void OnCancelFileTypes(CloseDialog obj) => _pictureMetadataService.CloseDetailDialog();
 
+		/// <summary>
+		/// TODO: review this method, in a glance it is not clear to me what I had done
+		/// </summary>
+		/// <param name="metadata"></param>
 		private void OnSetMetadataAction(SelectedMetadataMessage metadata)
 		{
-			const string pictureFolderKey = "Initial Folders";
 			var pictureFolder = metadata.PictureFolder;
 			if (!string.IsNullOrWhiteSpace(pictureFolder))
 			{
-				UpdateConfigFile.Inst.UpdateConfig(pictureFolderKey, pictureFolder);
+				ConfigValue.Inst.UpdateInitialPictureDirectories(pictureFolder);
 				ConfigValue.Inst.SetInitialPictureDirectories(pictureFolder);
 			}
 
-			const string firstPictureKey = "First picture to display";
 			var firstPicture = metadata.FirstPictureToDisplay;
-			UpdateConfigFile.Inst.UpdateConfig(firstPictureKey, firstPicture);
+			ConfigValue.Inst.UpdateFirstPictureToDisplay(firstPicture);
 			ConfigValue.Inst.SetFirstPic(firstPicture);
 
-			const string stillExtKey = "Still pictures";
 			var stillExt = metadata.StillPictureExtensions;
-			UpdateConfigFile.Inst.UpdateConfig(stillExtKey, stillExt);
+			ConfigValue.Inst.UpdateStillPictureExtensions(stillExt);
 			ConfigValue.Inst.SetStillExtension(stillExt);
 
-			const string motionExtKey = "Motion pictures";
 			var motionExt = metadata.MotionPictureExtensions;
-			UpdateConfigFile.Inst.UpdateConfig(motionExtKey, motionExt);
+			ConfigValue.Inst.UpdateMotionPictures(motionExt);
 			ConfigValue.Inst.SetMotionExtension(motionExt);
 
 			// Restart the system
@@ -388,10 +380,9 @@ namespace Rotate.Pictures.ViewModel
 		private void OnBufferDepthAction(BufferDepthMessage bufferDepth)
 		{
 			var depth = bufferDepth.BufferDepth;
-			const string bufferDepthKey = "Timespan between pictures [Seconds]";
 			if (depth <= 0) return;
 
-			UpdateConfigFile.Inst.UpdateConfig(bufferDepthKey, depth.ToString());
+			ConfigValue.Inst.UpdateMaxPictureTrackerDepth(depth);
 			ConfigValue.Inst.SetMaxTrackingDepth(depth);
 		}
 
@@ -471,9 +462,7 @@ namespace Rotate.Pictures.ViewModel
 			ResetHeartBeat();
 		}
 
-		public void DoNotShowImage(object _)
-		{
-		}
+		public void DoNotShowImage(object _) => _model.AddPictureToAvoid(_model.CurrentPicIndex);
 
 		private void SetTimeBetweenPictures(object _) => _intervalBetweenPicturesService.ShowDetailDialog(IntervalBetweenPictures);
 

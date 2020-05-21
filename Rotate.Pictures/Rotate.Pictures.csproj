@@ -163,7 +163,6 @@
     <Compile Include="Utility\SelectionTracker.cs" />
     <Compile Include="Utility\StretchModeUtil.cs" />
     <Compile Include="Utility\StringUtil.cs" />
-    <Compile Include="Utility\UpdateConfigFile.cs" />
     <Compile Include="ViewModel\BufferDepthViewModel.cs" />
     <Compile Include="ViewModel\FileTypesToRotateViewModel.cs" />
     <Compile Include="ViewModel\IntervalBetweenPicturesViewModel.cs" />

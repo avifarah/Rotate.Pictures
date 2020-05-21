@@ -5,6 +5,8 @@ using System.Reflection;
 using log4net;
 using System.Configuration;
 using System.Globalization;
+using System.Windows.Forms;
+using System.Windows.Navigation;
 
 
 namespace Rotate.Pictures.Utility
@@ -33,22 +35,25 @@ namespace Rotate.Pictures.Utility
 			_initialPictureDirectories = dirs.Split(new[] { ';' });
 		}
 
+		private const string InitialPictureDirectoriesKey = "Initial Folders";
+
 		public string[] InitialPictureDirectories()
 		{
 			if (_initialPictureDirectories != null) return _initialPictureDirectories;
 
-			const string key = "Initial Folders";
 			string[] defaultFolder = { @"G:\Pictures" };
-			var rawConfig = ReadConfigValue(key);
+			var rawConfig = ReadConfigValue(InitialPictureDirectoriesKey);
 			if (rawConfig == null)
 			{
-				Log.Error($"Configuration appSettings entry \"{key}\" is missing.");
+				Log.Error($"Configuration appSettings entry \"{InitialPictureDirectoriesKey}\" is missing.");
 				return defaultFolder;
 			}
 
 			_initialPictureDirectories = rawConfig.Split(';');
 			return _initialPictureDirectories;
 		}
+
+		public void UpdateInitialPictureDirectories(string directory) => WriteConfigValue(InitialPictureDirectoriesKey, directory);
 
 		private const int DefPictureBufferDepth = 1000;
 
@@ -65,22 +70,23 @@ namespace Rotate.Pictures.Utility
 			return _maxTrackingDepth = depth;
 		}
 
+		private const string MaxPictureTrackerDepthKey = "Max picture tracker depth";
+
 		public int MaxPictureTrackerDepth()
 		{
 			if (_maxTrackingDepth > 0) return _maxTrackingDepth;
 
-			const string key = "Max picture tracker depth";
-			var raw = ReadConfigValue(key);
+			var raw = ReadConfigValue(MaxPictureTrackerDepthKey);
 			if (raw == null)
 			{
-				Log.Error($"Missing configuration appSettings entry {key}");
+				Log.Error($"Missing configuration appSettings entry {MaxPictureTrackerDepthKey}");
 				return DefPictureBufferDepth;
 			}
 
 			var rc = int.TryParse(raw, out int depth);
 			if (!rc)
 			{
-				Log.Error($"Configuration appSettings entry {key}'s value is not a valid integer");
+				Log.Error($"Configuration appSettings entry {MaxPictureTrackerDepthKey}'s value is not a valid integer");
 				_maxTrackingDepth = DefPictureBufferDepth;
 			}
 			else
@@ -88,6 +94,8 @@ namespace Rotate.Pictures.Utility
 
 			return _maxTrackingDepth;
 		}
+
+		public void UpdateMaxPictureTrackerDepth(int depth) => WriteConfigValue(MaxPictureTrackerDepthKey, depth.ToString());
 
 		public List<string> FileExtensionsToConsider()
 		{
@@ -104,10 +112,9 @@ namespace Rotate.Pictures.Utility
 					return ext;
 				}
 
-				const string key2 = "Motion pictures";
-				var raw2 = ReadConfigValue(key2);
+				var raw2 = ReadConfigValue(MotionPictureExtensionsKey);
 				if (raw2 == null)
-					Log.Error($"Missing configuration appSettings entry {key2}");
+					Log.Error($"Missing configuration appSettings entry {MotionPictureExtensionsKey}");
 				else
 					stillExtensions = stillExtensions.Union(
 							raw2.Split(';').ToList(),
@@ -127,10 +134,9 @@ namespace Rotate.Pictures.Utility
 				extensions = _stillExt;
 			else
 			{
-				const string key1 = "Still pictures";
-				var raw1 = ReadConfigValue(key1);
+				var raw1 = ReadConfigValue(StillPictureExtensionsKey);
 				if (raw1 == null)
-					Log.Error($"Missing configuration appSettings entry {key1}");
+					Log.Error($"Missing configuration appSettings entry {StillPictureExtensionsKey}");
 				else
 					extensions = raw1.Split(';').ToList();
 			}
@@ -157,21 +163,25 @@ namespace Rotate.Pictures.Utility
 			_stillExt = stillExt.Split(new[] { ';' }).Where(s => s.StartsWith(".")).ToList();
 		}
 
+
+		private const string StillPictureExtensionsKey = "Still pictures";
+
 		public List<string> StillPictureExtensions()
 		{
 			if (_stillExt != null) return _stillExt;
 
-			const string key = "Still pictures";
-			var raw = ReadConfigValue(key);
+			var raw = ReadConfigValue(StillPictureExtensionsKey);
 			if (raw == null)
 			{
-				Log.Error($"Missing configuration appSettings entry {key}");
+				Log.Error($"Missing configuration appSettings entry {StillPictureExtensionsKey}");
 				return _defStillExt;
 			}
 
 			_stillExt = raw.Split(';').ToList();
 			return _stillExt;
 		}
+
+		public void UpdateStillPictureExtensions(string stillPictureExt) => WriteConfigValue(StillPictureExtensionsKey, stillPictureExt);
 
 		private readonly List<string> _defMotionExt = new List<string> { ".mov", ".avi", ".mpg", ".mp4", ".wmv", ".3gp" };
 
@@ -200,15 +210,16 @@ namespace Rotate.Pictures.Utility
 				.ToList();
 		}
 
+		private const string MotionPictureExtensionsKey = "Motion pictures";
+
 		public List<string> MotionPictures()
 		{
 			if (_motionExt != null) return _motionExt;
 
-			const string key = "Motion pictures";
-			var raw = ReadConfigValue(key);
+			var raw = ReadConfigValue(MotionPictureExtensionsKey);
 			if (raw == null)
 			{
-				Log.Error($"Missing configuration appSettings entry {key}");
+				Log.Error($"Missing configuration appSettings entry {MotionPictureExtensionsKey}");
 				return _defMotionExt;
 			}
 
@@ -218,18 +229,23 @@ namespace Rotate.Pictures.Utility
 					(x, y) => string.Compare(x, y, StringComparison.OrdinalIgnoreCase) == 0,
 					x => x.ToLower().GetHashCode())
 				.ToList();
+
 			return _motionExt;
 		}
 
+		public void UpdateMotionPictures(string motionPicExt) => WriteConfigValue(MotionPictureExtensionsKey, motionPicExt);
+
+
+		private const string ImageToStretchKey = "Image stretch";
+
 		public string ImageStretch()
 		{
-			const string key = "Image stretch";
 			const string defaultStretch = "Uniform";
 			var allowedStretchedValues = new List<string> { "Fill", "None", "Uniform", "UniformToFill" };
-			var raw = ReadConfigValue(key);
+			var raw = ReadConfigValue(ImageToStretchKey);
 			if (raw == null)
 			{
-				Log.Error($"Missing configuration appSettings entry {key}");
+				Log.Error($"Missing configuration appSettings entry {ImageToStretchKey}");
 				return defaultStretch;
 			}
 
@@ -237,7 +253,12 @@ namespace Rotate.Pictures.Utility
 			return stretch ?? defaultStretch;
 		}
 
+		public void UpdateImageToStretch(SelectedStretchMode mode) => WriteConfigValue(ImageToStretchKey, mode.ToString());
+
+
 		private int _intervalBetweenPics = -1;
+
+		private const string IntervalBetweenPicturesKey = "Timespan between pictures [Seconds]";
 
 		/// <summary>
 		/// Output in milliseconds
@@ -247,19 +268,18 @@ namespace Rotate.Pictures.Utility
 		{
 			if (_intervalBetweenPics > 0) return _intervalBetweenPics;
 
-			const string key = "Timespan between pictures [Seconds]";
 			const int defInterval = 10_000;
-			var raw = ReadConfigValue(key);
+			var raw = ReadConfigValue(IntervalBetweenPicturesKey);
 			if (raw == null)
 			{
-				Log.Error($"Missing configuration appSettings entry {key}");
+				Log.Error($"Missing configuration appSettings entry {IntervalBetweenPicturesKey}");
 				return defInterval;
 			}
 
 			var rc = double.TryParse(raw, out double dblIntervalSec);
 			if (!rc)
 			{
-				Log.Error($"Configuration appSettings entry {key}'s value is not a valid number");
+				Log.Error($"Configuration appSettings entry {IntervalBetweenPicturesKey}'s value is not a valid number");
 				_intervalBetweenPics = defInterval;
 			}
 			else
@@ -267,37 +287,50 @@ namespace Rotate.Pictures.Utility
 			return _intervalBetweenPics;
 		}
 
+		public void UpdateIntervalBetweenPictures(int intervalBetweenPics)
+		{
+			var val = (intervalBetweenPics / 1000.0F).ToString(CultureInfo.CurrentCulture);
+			WriteConfigValue(IntervalBetweenPicturesKey, val);
+		}
+
 		private string _firstPic;
 
 		public void SetFirstPic(string firstPic) => _firstPic = string.IsNullOrWhiteSpace(firstPic) ? null : firstPic;
+
+		private const string FirstPictureToDisplayKey = "First picture to display";
 
 		public string FirstPictureToDisplay()
 		{
 			if (!string.IsNullOrWhiteSpace(_firstPic)) return _firstPic;
 
-			const string key = "First picture to display";
-			var raw = ReadConfigValue(key);
-			if (raw == null) Log.Error($"Missing configuration appSettings entry {key}");
+			var raw = ReadConfigValue(FirstPictureToDisplayKey);
+			if (raw == null) Log.Error($"Missing configuration appSettings entry {FirstPictureToDisplayKey}");
 			_firstPic = raw;
 			return _firstPic;
 		}
 
+		public void UpdateFirstPictureToDisplay(string firstPicture) => WriteConfigValue(FirstPictureToDisplayKey, firstPicture);
+
+
+		private const string RotatingInitKey = "On start image rotating";
+
 		public bool RotatingPicturesInit()
 		{
-			const string key = "On start image rotating";
 			const bool defRotateInit = true;
-			var raw = ReadConfigValue(key);
+			var raw = ReadConfigValue(RotatingInitKey);
 			if (raw == null)
 			{
-				Log.Error($"Missing configuration appSettings entry {key}");
+				Log.Error($"Missing configuration appSettings entry {RotatingInitKey}");
 				return defRotateInit;
 			}
 
 			if (raw.IsTrue()) return true;
 			if (raw.IsFalse()) return false;
-			Log.Error($"Configuration value for \"{key}\": \"{raw}\", is neither true nor false.  The default value of \"{defRotateInit}\" will be used");
+			Log.Error($"Configuration value for \"{RotatingInitKey}\": \"{raw}\", is neither true nor false.  The default value of \"{defRotateInit}\" will be used");
 			return defRotateInit;
 		}
+
+		public void UpdateOnStartRotatingPicture(bool initialRotatingMode) => WriteConfigValue(RotatingInitKey, initialRotatingMode.ToString());
 
 		public int VisualHeartbeat()
 		{
@@ -349,11 +382,62 @@ namespace Rotate.Pictures.Utility
 			return mff;
 		}
 
+		private const string PicturesToAvoidKey = "Pictures Indices To Avoid.  Comma separated";
+
+		public IEnumerable<int> PicturesToAvoidSorted()
+		{
+			var raw = ReadConfigValue(PicturesToAvoidKey);
+			if (raw == null)
+			{
+				Log.Error($"Missing configuration appSettings entry {PicturesToAvoidKey}");
+				return new int[] {};
+			}
+
+			return StringToIntArray(raw);
+		}
+
+		public void UpdatePicturesToAvoid(IEnumerable<int> picsToAvoid)
+		{
+			var sPics = string.Join(",", picsToAvoid.Select(p => $"{p}"));
+			WriteConfigValue(PicturesToAvoidKey, sPics);
+		}
+
 		private string ReadConfigValue(string key)
 		{
 			if (!_configValues.ContainsKey(key)) return null;
 
 			return _configValues[key];
+		}
+
+		private void WriteConfigValue(string key, string value)
+		{
+			Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+			var entry = config.AppSettings.Settings[key];
+			if (entry == null)
+				config.AppSettings.Settings.Add(PicturesToAvoidKey, value);
+			else
+				entry.Value = value;
+
+			config.Save(ConfigurationSaveMode.Modified);
+
+			// No need to re-read the configuration file
+			//ConfigurationManager.RefreshSection("appSettings");
+		}
+
+		private IEnumerable<int> StringToIntArray(string raw)
+		{
+			var sPictureIndices = raw.Split(new[] { ',', '.', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+			// Use HashSet in order to eliminate duplicate values
+			var picInxs = new HashSet<int>();
+			foreach (var sInx in sPictureIndices)
+			{
+				const NumberStyles ns = NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite;
+				var rc = int.TryParse(sInx, ns, CultureInfo.CurrentCulture, out var iInx);
+				if (rc) picInxs.Add(iInx);
+			}
+
+			return picInxs.ToList().OrderBy(p => p);
 		}
 	}
 }
