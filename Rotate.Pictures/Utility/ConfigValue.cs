@@ -32,7 +32,7 @@ namespace Rotate.Pictures.Utility
 				return;
 			}
 
-			_initialPictureDirectories = dirs.Split(new[] { ';' });
+			_initialPictureDirectories = dirs.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 		}
 
 		private const string InitialPictureDirectoriesKey = "Initial Folders";
@@ -407,8 +407,7 @@ namespace Rotate.Pictures.Utility
 
 			config.Save(ConfigurationSaveMode.Modified);
 
-			// No need to re-read the configuration file
-			//ConfigurationManager.RefreshSection("appSettings");
+			ConfigurationManager.RefreshSection("appSettings");
 		}
 
 		private IEnumerable<int> StringToIntArray(string raw)

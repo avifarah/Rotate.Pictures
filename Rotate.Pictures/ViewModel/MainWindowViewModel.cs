@@ -335,10 +335,6 @@ namespace Rotate.Pictures.ViewModel
 
 		private void OnCancelFileTypes(CloseDialog obj) => _pictureMetadataService.CloseDetailDialog();
 
-		/// <summary>
-		/// TODO: review this method, in a glance it is not clear to me what I had done
-		/// </summary>
-		/// <param name="metadata"></param>
 		private void OnSetMetadataAction(SelectedMetadataMessage metadata)
 		{
 			var pictureFolder = metadata.PictureFolder;
