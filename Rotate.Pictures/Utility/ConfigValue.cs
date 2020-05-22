@@ -152,16 +152,7 @@ namespace Rotate.Pictures.Utility
 
 		private List<string> _stillExt;
 
-		public void SetStillExtension(string stillExt)
-		{
-			if (string.IsNullOrWhiteSpace(stillExt))
-			{
-				_stillExt = new List<string>();
-				return;
-			}
-
-			_stillExt = stillExt.Split(new[] { ';' }).Where(s => s.StartsWith(".")).ToList();
-		}
+		public void SetStillExtension(string stillExt) => _stillExt = StringToExtensionArray(stillExt).ToList();
 
 
 		private const string StillPictureExtensionsKey = "Still pictures";
@@ -177,7 +168,7 @@ namespace Rotate.Pictures.Utility
 				return _defStillExt;
 			}
 
-			_stillExt = raw.Split(';').ToList();
+			_stillExt = StringToExtensionArray(raw).ToList();
 			return _stillExt;
 		}
 
@@ -197,12 +188,14 @@ namespace Rotate.Pictures.Utility
 				return;
 			}
 
-			_motionExt = motionExt.Split(new[] { ';' }).Where(m => m.StartsWith(".")).ToList();
+			_motionExt = StringToExtensionArray(motionExt).ToList();
 			if (_motionExt == null || _motionExt.Count == 0) return;
 
 			var stillExt = StillPictureExtensions();
 			if (stillExt == null) return;
 
+			// If an extension appears in both **Still pictures** and in **Motion pictures**
+			// then the extension will be considered to appear in **Still pictures** only.
 			_motionExt = _motionExt.Except(
 					stillExt,
 					(x, y) => string.Compare(x, y, StringComparison.OrdinalIgnoreCase) == 0,
@@ -223,13 +216,7 @@ namespace Rotate.Pictures.Utility
 				return _defMotionExt;
 			}
 
-			var motionPics = raw.Split(';').ToList();
-			_motionExt = motionPics.Except(
-					StillPictureExtensions(),
-					(x, y) => string.Compare(x, y, StringComparison.OrdinalIgnoreCase) == 0,
-					x => x.ToLower().GetHashCode())
-				.ToList();
-
+			SetMotionExtension(raw);
 			return _motionExt;
 		}
 
@@ -438,6 +425,15 @@ namespace Rotate.Pictures.Utility
 			}
 
 			return picInxs.ToList().OrderBy(p => p);
+		}
+
+		private IEnumerable<string> StringToExtensionArray(string raw)
+		{
+			if (string.IsNullOrWhiteSpace(raw)) return new List<string>();
+
+			return raw
+				.Split(new[] { ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+				.Where(s => s.StartsWith(".")).ToList();
 		}
 	}
 }
