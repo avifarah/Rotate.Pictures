@@ -1,0 +1,73 @@
+﻿<Window x:Class="Rotate.Pictures.View.NoDisplayPictureView"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:Rotate.Pictures.View"
+		mc:Ignorable="d"
+		Title="NoDisplayPictureView" Height="500" Width="800">
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="1*"/>
+			<ColumnDefinition Width="75*"/>
+			<ColumnDefinition Width="1*"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="1*"/>
+			<RowDefinition Height="2*"/>
+			<RowDefinition Height="40*"/>
+			<RowDefinition Height="4*"/>
+			<RowDefinition Height="4*"/>
+			<RowDefinition Height="4*"/>
+			<RowDefinition Height="1*"/>
+		</Grid.RowDefinitions>
+		<TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+		           Text="Change to the contents of the picture repositories deems this picture mapping inaccurate" />
+		<ListBox Grid.Row="2" Grid.Column="1" Name="NoDisplayList" ItemsSource="NoDisplayItems" >
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<Grid Margin="0,0,0,5">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" SharedSizeGroup="Column1"/>
+							<ColumnDefinition Width="Auto" SharedSizeGroup="Column2"/>
+							<ColumnDefinition Width="Auto" SharedSizeGroup="Column3"/>
+							<ColumnDefinition Width="Auto" SharedSizeGroup="Column4"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Text="{Binding ColumnPicIndex}" />
+						<TextBlock Grid.Column="1" Text="{Binding ColumnPath}" />
+						<Image Grid.Column="2" Source="{Binding CurrentPicture, Mode=OneWay}" Stretch="Uniform" />
+						<Button Grid.Column="3" Command="{Binding DeleteCommand}">
+							<Image Source="/Rotate.Pictures;component/Images/Stop.png" />
+						</Button>
+					</Grid>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+		<Grid Grid.Row="3" Grid.Column="1" Margin="5,0,5,0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="15*"/>
+				<ColumnDefinition Width="40*"/>
+				<ColumnDefinition Width="10*" />
+			</Grid.ColumnDefinitions>
+			<TextBlock Text="Add to collection of NoDisplay" Margin="0,0,5,0" VerticalAlignment="Center" />
+			<TextBox Grid.Column="1" Name="tbPicturePath" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+			<Button Grid.Column="2" Content="Add to NoDisplay" Name="btnAddToNoDisplay" Margin="5,0,0,0" VerticalAlignment="Center" />
+		</Grid>
+		<Grid Grid.Row="4" Grid.Column="1" Margin="5" >
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="2*"/>
+				<ColumnDefinition Width="16*"/>
+				<ColumnDefinition Width="3*"/>
+				<ColumnDefinition Width="3*"/>
+			</Grid.ColumnDefinitions>
+			<Label Content="_File path" Target="FilePath" Margin="0,0,5,0" />
+			<TextBox Name="FilePath" HorizontalAlignment="Stretch"  Grid.Column="1" Margin="0,0,5,0" />
+			<Button Content="Read"  Grid.Column="2" Margin="0,0,5,0" />
+			<Button Content="Write"  Grid.Column="3" />
+		</Grid>
+		<StackPanel Grid.Row="5" Grid.Column="1"  Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+			<Button Content="_Clear" Name="btnClear" Width="60" Margin="0,0,5,0"/>
+			<Button Content="E_xit" Name="btnExit" Width="60" Command="{Binding ExitCommand}"/>
+		</StackPanel>
+	</Grid>
+</Window>
