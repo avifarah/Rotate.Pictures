@@ -82,16 +82,16 @@ namespace Rotate.Pictures.View
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void BackImageMove(object sender, System.Windows.Input.ExecutedRoutedEventArgs e) =>
-			Messenger<CommandRequest>.DefaultMessenger.Send(new CommandRequest(), MessageContext.BackImageCommand);
+		private void BackImageMove(object sender, ExecutedRoutedEventArgs e) =>
+			Messenger<CommandRequest>.Instance.Send(new CommandRequest(), MessageContext.BackImageCommand);
 
 		/// <summary>
 		/// Handles keyboard shortcut
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void NextImageMove(object sender, System.Windows.Input.ExecutedRoutedEventArgs e) =>
-			Messenger<CommandRequest>.DefaultMessenger.Send(new CommandRequest(), MessageContext.NextImageCommand);
+		private void NextImageMove(object sender, ExecutedRoutedEventArgs e) =>
+			Messenger<CommandRequest>.Instance.Send(new CommandRequest(), MessageContext.NextImageCommand);
 
 		private void MotionDragStarted(object sender, DragStartedEventArgs e) => _tmr.Stop();
 
@@ -150,10 +150,7 @@ namespace Rotate.Pictures.View
 			}
 
 			var newPosition = MePlayer.Position + TimeSpan.FromSeconds(ConfigValue.Inst.MediaFastForward());
-			if (newPosition.TotalSeconds <= MePlayer.NaturalDuration.TimeSpan.TotalSeconds)
-				MePlayer.Position = newPosition;
-			else
-				MePlayer.Position = MePlayer.NaturalDuration.TimeSpan;
+			MePlayer.Position = newPosition.TotalSeconds <= MePlayer.NaturalDuration.TimeSpan.TotalSeconds ? newPosition : MePlayer.NaturalDuration.TimeSpan;
 		}
 
 		private void MediaCanRewind(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
@@ -161,11 +158,8 @@ namespace Rotate.Pictures.View
 		private void MediaRewind(object sender, ExecutedRoutedEventArgs e)
 		{
 			MePlayer.LoadedBehavior = MediaState.Manual;
-			var newPostion = MePlayer.Position - TimeSpan.FromSeconds(ConfigValue.Inst.MediaFastForward());
-			if (newPostion.TotalSeconds >= 0)
-				MePlayer.Position = newPostion;
-			else
-				MePlayer.Position = TimeSpan.FromSeconds(0.0);
+			var newPosition = MePlayer.Position - TimeSpan.FromSeconds(ConfigValue.Inst.MediaFastForward());
+			MePlayer.Position = newPosition.TotalSeconds >= 0 ? newPosition : TimeSpan.FromSeconds(0.0);
 		}
 
 		private void MediaToggleVolume(object sender, ExecutedRoutedEventArgs e)
@@ -196,6 +190,7 @@ namespace Rotate.Pictures.View
 			MePlayer.Position = TimeSpan.FromSeconds(MeSliderPosition.Value);
 		}
 
+#if DEBUG
 		private void LogMePlayer([CallerMemberName] string methodName = null)
 		{
 			try
@@ -221,20 +216,16 @@ namespace Rotate.Pictures.View
 					playerInfo.AppendLine($"\tMePlayer.Clock.Controller, CurrentGlobalSpeed: {MePlayer.Clock.CurrentGlobalSpeed},  CurrentIteration: {MePlayer.Clock.CurrentIteration},  CurrentIteration: {MePlayer.Clock.CurrentIteration}");
 					playerInfo.AppendLine($"\tCurrentProgress: {MePlayer.Clock.CurrentProgress}, CurrentState: {MePlayer.Clock.CurrentState}, CurrentTime: {(MePlayer.Clock.CurrentTime.HasValue ? MePlayer.Clock.CurrentTime.Value.TotalSeconds.ToString(CultureInfo.CurrentUICulture) : "null")},");
 					playerInfo.AppendLine($"\tMePlayer.Clock.Dispatcher, HasControllableRoot: {MePlayer.Clock.HasControllableRoot}, IsPaused: {MePlayer.Clock.IsPaused}, NaturalDuration: {MePlayer.Clock.NaturalDuration.TimeSpan.TotalSeconds},");
-					playerInfo.AppendLine($"\tMePlayer.Clock.Parent,");
+					playerInfo.AppendLine("\tMePlayer.Clock.Parent,");
 				}
 				playerInfo.AppendLine($"DownloadProgress: {MePlayer.DownloadProgress}, HasAudio: {MePlayer.HasAudio}, HasVideo: {MePlayer.HasVideo}, IsBuffering: {MePlayer.IsBuffering}, IsMuted: {MePlayer.IsMuted}");
 
-				if (MePlayer.NaturalDuration.HasTimeSpan)
-					playerInfo.Append($"Duration: {MePlayer.NaturalDuration.TimeSpan.TotalSeconds}.  ");
-				else
-					playerInfo.Append("Duration has no timespan  ");
-				playerInfo.AppendLine($"LoadedBehavior: {MePlayer.LoadedBehavior}.  VideoHeight: {MePlayer.NaturalVideoHeight}.  ScurbbingEnabled: {MePlayer.ScrubbingEnabled}");
+				playerInfo.Append(MePlayer.NaturalDuration.HasTimeSpan
+					? $"Duration: {MePlayer.NaturalDuration.TimeSpan.TotalSeconds}.  "
+					: "Duration has no timespan  ");
+				playerInfo.AppendLine($"LoadedBehavior: {MePlayer.LoadedBehavior}.  VideoHeight: {MePlayer.NaturalVideoHeight}.  ScrubbingEnabled: {MePlayer.ScrubbingEnabled}");
 
-				if (MePlayer.Source == null)
-					playerInfo.Append("MePlayer.Source is null.  ");
-				else
-					playerInfo.Append($"Source: \"{MePlayer.Source.LocalPath}\".  ");
+				playerInfo.Append(MePlayer.Source == null ? "MePlayer.Source is null.  " : $"Source: \"{MePlayer.Source.LocalPath}\".  ");
 
 				playerInfo.AppendLine($"SpeedRatio: {MePlayer.SpeedRatio}.");
 				playerInfo.AppendLine($"Width: {MePlayer.NaturalVideoWidth}.");
@@ -249,5 +240,6 @@ namespace Rotate.Pictures.View
 				Log.Error("LogMePlayer logging failed", e);
 			}
 		}
+#endif
 	}
 }

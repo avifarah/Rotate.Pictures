@@ -2,30 +2,35 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-//using System.Reflection;
+using System.Reflection;
 
 
 namespace Rotate.Pictures.MessageCommunication
 {
-	public class MessageBase
+	public abstract class MessageBase
 	{
 		protected static readonly object SyncLock = new object();
 	}
 
-	public class Messenger<T> : MessageBase where T : IVmCommunication
+	/// <summary>
+	/// Purpose:
+	///		Communicate through Messenger
+	/// </summary>
+	/// <typeparam name="TPayload">This is the payload of the message</typeparam>
+	public class Messenger<TPayload> : MessageBase where TPayload : IVmCommunication
 	{
-		//private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		private static readonly ConcurrentDictionary<MessengerKey, object> MsgRepository = new ConcurrentDictionary<MessengerKey, object>();
 
-		#region DefaultMessenger property
+		private readonly object _internalContext = new object();
 
-		private static volatile Messenger<T> _instance;
+		#region Instance property
 
-		/// <summary>
-		/// Gets the single instance of the Messenger.
-		/// </summary>
-		public static Messenger<T> DefaultMessenger
+		private static volatile Messenger<TPayload> _instance;
+
+		/// <summary>Gets the single instance of the Messenger.</summary>
+		public static Messenger<TPayload> Instance
 		{
 			get
 			{
@@ -34,7 +39,7 @@ namespace Rotate.Pictures.MessageCommunication
 				lock (SyncLock)
 				{
 					if (_instance != null) return _instance;
-					_instance = new Messenger<T>();
+					_instance = new Messenger<TPayload>();
 				}
 
 				return _instance;
@@ -43,29 +48,34 @@ namespace Rotate.Pictures.MessageCommunication
 
 		#endregion
 
-		/// <summary>
-		/// Initializes a new instance of the Messenger class.
-		/// </summary>
+		/// <summary>Initializes a new instance of the Messenger class.</summary>
 		private Messenger() { }
 
-		/// <summary>
-		/// Registers a recipient for a type of message T. The sendMessageToRecipientsAction parameter will be executed
-		/// when a corresponding message is sent.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="recipient"></param>
-		/// <param name="sendMessageToRecipientsAction"></param>
-		public void Register(object recipient, Action<T> sendMessageToRecipientsAction) => Register(recipient, sendMessageToRecipientsAction, null);
+		public void Register(object recipient, Action sendMessageToRecipientsAction)
+			=> Register(recipient, _ => sendMessageToRecipientsAction(), _internalContext);
 
 		/// <summary>
-		/// Registers a recipient for a type of message T and a matching context. The sendMessageToRecipientsAction parameter will be executed
+		/// Registers a recipient for a type of message T.
+		/// The sendMessageToRecipientsAction parameter will be executed
+		/// when a corresponding message is sent.
+		/// <see cref="Register(object, Action{TPayload}, object)"/>
+		/// </summary>
+		public void Register(object recipient, Action<TPayload> sendMessageToRecipientsAction)
+			=> Register(recipient, sendMessageToRecipientsAction, _internalContext);
+
+		public void Register(object recipient, Action sendMessageToRecipientsAction, object context)
+			=> Register(recipient, _ => sendMessageToRecipientsAction(), context);
+
+		/// <summary>
+		/// Registers a recipient for a type of message T and a matching context.
+		/// The sendMessageToRecipientsAction parameter will be executed
 		/// when a corresponding message is sent.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="recipient"></param>
-		/// <param name="sendMessageToRecipientsAction"></param>
-		/// <param name="context"></param>
-		public void Register(object recipient, Action<T> sendMessageToRecipientsAction, object context)
+		/// <typeparam name="TPayload">Type of message</typeparam>
+		/// <param name="recipient">In many cases the recipient is the "this" reference.  This is the recipient who implements the action.</param>
+		/// <param name="sendMessageToRecipientsAction">Action to be taken with the message</param>
+		/// <param name="context">Allows for the messages to be part of a context</param>
+		public void Register(object recipient, Action<TPayload> sendMessageToRecipientsAction, object context)
 		{
 			var key = new MessengerKey(recipient, context);
 			MsgRepository.TryAdd(key, sendMessageToRecipientsAction);
@@ -74,38 +84,37 @@ namespace Rotate.Pictures.MessageCommunication
 		/// <summary>
 		/// Unregisters a messenger recipient completely. After this method is executed, the recipient will
 		/// no longer receive any messages.
+		/// <see cref="Unregister(object, object)"/>
 		/// </summary>
-		/// <param name="recipient"></param>
-		public void Unregister(object recipient) => Unregister(recipient, null);
+		public void Unregister(object recipient) => Unregister(recipient, _internalContext);
 
 		/// <summary>
 		/// Unregisters a messenger recipient with a matching context completely. After this method is executed, the recipient will
 		/// no longer receive any messages.
 		/// </summary>
-		/// <param name="recipient"></param>
-		/// <param name="context"></param>
+		/// <param name="recipient">The same recipient who was given during the registration</param>
+		/// <param name="context">The same context that was given during registration</param>
 		public void Unregister(object recipient, object context)
 		{
 			var key = new MessengerKey(recipient, context);
-			MsgRepository.TryRemove(key, out var sendMessageToRecipientsAction);
+			MsgRepository.TryRemove(key, out _);
 		}
 
 		/// <summary>
 		/// Sends a message to registered recipients. The message will reach all recipients that are
 		/// registered for this message type.
+		/// <see cref="Send(TPayload,object)"/>
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="message"></param>
-		public void Send(T message) => Send(message, null);
+		public void Send(TPayload message) => Send(message, _internalContext);
 
 		/// <summary>
 		/// Sends a message to registered recipients. The message will reach all recipients that are
 		/// registered for this message type and matching context.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="message"></param>
-		/// <param name="context"></param>
-		public void Send(T message, object context)
+		/// <typeparam name="TPayload">The type of the message to send</typeparam>
+		/// <param name="message">The message itself</param>
+		/// <param name="context">Same context as per registration</param>
+		public void Send(TPayload message, object context)
 		{
 			bool MessagePredicate(object cxt, KeyValuePair<MessengerKey, object> keyValue)
 			{
@@ -114,41 +123,35 @@ namespace Rotate.Pictures.MessageCommunication
 			}
 
 			var result = MsgRepository.Where(r => MessagePredicate(context, r));
-			foreach (var sendMessageToRecipientsAction in result.Select(x => x.Value).OfType<Action<T>>())
-				sendMessageToRecipientsAction(message);
+			var sendMessagesActions = result.Select(x => x.Value).OfType<Action<TPayload>>();
+			sendMessagesActions.ToList().ForEach(act => act(message));
 		}
 
 		protected class MessengerKey : IEquatable<MessengerKey>
 		{
+			/// <summary>Recipient is the object containing the action</summary>
 			public object Recipient { get; }
 
+			/// <summary>
+			/// Context is a separator for messages.
+			/// Context allows more than one message name to be routed to the correct recipient where
+			/// the distinction between the recipient destinations is the context.
+			/// </summary>
 			public object Context { get; }
 
-			/// <summary>
-			/// Initializes a new instance of the MessengerKey class.
-			/// </summary>
-			/// <param name="recipient"></param>
-			/// <param name="context"></param>
+			/// <summary>Initializes a new instance of the MessengerKey class.</summary>
 			public MessengerKey(object recipient, object context)
 			{
 				Recipient = recipient;
 				Context = context;
 			}
 
-			/// <summary>
-			/// Determines whether the specified MessengerKey is equal to the current MessengerKey.
-			/// </summary>
-			/// <param name="other"></param>
-			/// <returns></returns>
+			/// <summary>Determines whether the specified MessengerKey is equal to the current MessengerKey.</summary>
 			protected bool Equals(MessengerKey other) => Equals(Recipient, other.Recipient) && Equals(Context, other.Context);
 
 			bool IEquatable<MessengerKey>.Equals(MessengerKey other) => Equals(other);
 
-			/// <summary>
-			/// Determines whether the specified MessengerKey is equal to the current MessengerKey.
-			/// </summary>
-			/// <param name="obj"></param>
-			/// <returns></returns>
+			/// <summary>Determines whether the specified MessengerKey is equal to the current MessengerKey.</summary>
 			public override bool Equals(object obj)
 			{
 				if (ReferenceEquals(null, obj)) return false;
@@ -158,16 +161,12 @@ namespace Rotate.Pictures.MessageCommunication
 				return Equals((MessengerKey)obj);
 			}
 
-			/// <summary>
-			/// Serves as a hash function for a particular type. 
-			/// </summary>
-			/// <returns></returns>
+			/// <summary>Serves as a hash function for a particular type.</summary>
 			public override int GetHashCode()
 			{
-				unchecked
-				{
-					return ((Recipient != null ? Recipient.GetHashCode() : 0) * 397) ^ (Context != null ? Context.GetHashCode() : 0);
-				}
+				var rHash = Recipient?.GetHashCode() ?? 0;
+				var cHash = Context?.GetHashCode() ?? 0;
+				unchecked { return (rHash * 397) ^ cHash; }
 			}
 		}
 	}

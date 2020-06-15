@@ -3,15 +3,24 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Data;
 using Rotate.Pictures.Utility;
 
 
 namespace Rotate.Pictures.Converter
 {
+	/// <summary>
+	/// Purpose:
+	///		Allow XAML to determine if picture is a still picture
+	/// </summary>
 	public sealed class IsStillPictureConverter : IValueConverter
 	{
-		private static readonly List<string> _stillPictures = ConfigValue.Inst.StillPictureExtensions();
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+		private readonly List<string> _stillPictures;
+
+		public IsStillPictureConverter() => _stillPictures = ConfigValue.Inst.StillPictureExtensions();
 
 		#region Implementation of IValueConverter
 
@@ -26,7 +35,11 @@ namespace Rotate.Pictures.Converter
 			return _stillPictures.Any(s => string.Compare(new FileInfo(fileNm).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			Log.Error($"{nameof(ConvertBack)} is not implemented for {nameof(IsStillPictureConverter)}");
+			throw new NotImplementedException();
+		}
 
 		#endregion
 	}

@@ -2,35 +2,39 @@
 namespace Rotate.Pictures.MessageCommunication
 {
 	/// <summary>
-	/// Message Context the suffix of the message is the recepient
-	/// See Register message:
-	///			Messenger.DefaultMessenger.Register<message-type>(this /* usually = recepient */, message-instance, context /* entry in this class */);		//</message-type>
-	/// and
-	///			Messenter.DefaultMessenger.Send(message-instance, context /* matching the one in the Register counterpart */);
+	/// Purpose:
+	///		Message Context is to the suffix of the message distinguishing between different recipients subscribing to the
+	///		same message delivery content.
 	/// 
+	///		See Register message:
+	///			Messenger.Instance.Register{message-type}(this/*recipient*/, message-instance, context/*entry in this class*/);
+	///		and
+	///			Messenger.Instance.Send(message-instance, context/*matching the one in the Register counterpart*/);
+	///
 	/// <remarks>
-	///		I prefer to use the context for all message transmission because there can only be one message registered to a recepient with context == null.
+	///		The MessageContext may be any object.
 	/// </remarks>
 	/// </summary>
 	public static class MessageContext
 	{
-		public static readonly string CloseBufferDepth = "CloseBufferDepth MainViewModel";
-		public static readonly string CloseFileTypes = "CloseFileTypes MainViewModel";
-		public static readonly string CloseIntervalBetweenPictures = "CloseIntervalBetweenPictureMessage MainViewModel";
-		public static readonly string CloseStretchMode = "CloseStretchMode MainViewModel";
-		public static readonly string SetStretchMode = "SetStretchMode MainViewModel";
-		public static readonly string SetIntervalBetweenPictures = "SetIntervalBetweenPictures MainViewModel";
-		public static readonly string SetMetadata = "SelectedBufferDepth MainViewModel";
-		public static readonly string BufferDepth = "BufferDepth MainViewModel";
-		public static readonly string BackImageCommand = "BackImageCommand MainViewModel";
-		public static readonly string NextImageCommand = "NextImageCommand MainViewModel";
-		public static readonly string MotionValueChanged = "MotionValueChanged MainViewModel";
-		public static readonly string DragMotionStarted = "DragMotionStarted MainViewModel";
-		public static readonly string DragMotionCompleted = "DragMotionCompleted MainViewModel";
+		public static readonly object CloseBufferDepth = "CloseBufferDepth MainViewModel";
+		public static readonly object CloseFileTypes = "CloseFileTypes MainViewModel";
+		public static readonly object CloseIntervalBetweenPictures = "CloseIntervalBetweenPictureMessage MainViewModel";
+		public static readonly object CloseStretchMode = "CloseStretchMode MainViewModel";
+		public static readonly object SetStretchMode = "SetStretchMode MainViewModel";
+		public static readonly object SetIntervalBetweenPictures = "SetIntervalBetweenPictures MainViewModel";
+		public static readonly object SetMetadata = "SelectedBufferDepth MainViewModel";
+		public static readonly object BufferDepth = "BufferDepth MainViewModel";
+		public static readonly object BackImageCommand = "BackImageCommand MainViewModel";
+		public static readonly object NextImageCommand = "NextImageCommand MainViewModel";
+		public static readonly object NoDisplayPicture = "NoDisplayPicture MainVewModel";
+		public static readonly object DeleteFromDoNotDisplay = "DoNotDisplayMessage";
+		public static readonly object FromMainToDoNotDisplay = "FromMainToDoNotDisplay";
+		public static readonly object MainWindowViewModel = "MainWindowViewModel";
 
-		public static readonly string SelectedBufferDepth = "BufferDepth PictureBufferDepthService";
-		public static readonly string SelectedMetadataViewModel = "SelectedBufferDepth FileTypesToRotateViewModel";
-		public static readonly string SelectedIntervalViewModel = "SelectedInterval IntervalBetweenPicturesViewModel";
-		public static readonly string SelectedStretchModeViewModel = "SelectedStretchMode StretchDialogViewModel";
+		public static readonly object SelectedBufferDepth = "BufferDepth PictureBufferDepthService";
+		public static readonly object SelectedMetadataViewModel = "SelectedBufferDepth FileTypesToRotateViewModel";
+		public static readonly object SelectedIntervalViewModel = "SelectedInterval IntervalBetweenPicturesViewModel";
+		public static readonly object SelectedStretchModeViewModel = "SelectedStretchMode StretchDialogViewModel";
 	}
 }

@@ -5,44 +5,79 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.Utility;
 
 
 namespace Rotate.Pictures.Model
 {
 	/// <summary>
-	/// Repository is a file repository
+	/// Repository for picture collection
 	/// </summary>
 	public class PictureModel
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-		/// <summary>Collection of all pictures in all directories supplied by the user in the configuration file</summary>
+		/// <summary>
+		/// Collection of all pictures in all directories supplied by the user in the configuration file
+		/// </summary>
 		private readonly PictureCollection _picCollection = new PictureCollection();
 
+		/// <summary>
+		/// Collection of pictures to avoid
+		/// </summary>
 		private readonly PicturesToAvoidCollection _avoidCollection = PicturesToAvoidCollection.Default;
 
-		/// <summary>When equals True then all pictures are retrieved and set in _picCollection</summary>
+		private readonly SelectionTracker _selectionTracker;
+
+		/// <summary>
+		/// When equals True then all pictures are retrieved and set in _picCollection
+		/// </summary>
 		private volatile int _retrieved;
 
-		/// <summary>Extensions to consider</summary>
+		/// <summary>
+		/// File extensions to consider
+		/// </summary>
 		private List<string> _extensionList;
 
 		private readonly Random _rand = new Random();
 		private Task _taskModel;
 		private CancellationTokenSource _cts;
 
-		public event EventHandler<PictureRetrievingEventArgs> PictureRetrievingHandler = delegate {};
+		public event EventHandler<PictureRetrievingEventArgs> PictureRetrievingHandler = delegate { };
 		public string RetrievingNow;
 
-		/// <summary>The current Picture Index/// </summary>
+		/// <summary>
+		/// The current Picture Index
+		/// 
+		/// Unlike the MainWindowViewModel.CurrentPicture this CurrentPicIndex represents the model's
+		/// state of the current picture.
+		///
+		/// The ViewModel (MainWindowViewModel), may go back and forth in the picture historic stack.  So
+		/// when the ViewModel traverses back and forth through the historic stack (forward before it reaches
+		/// the model.CurrentPicIndex) then the model.CurrentPicIndex is not pointing to the same picture
+		/// as the ViewModel.CurrentPicture.
+		/// </summary>
 		public int CurrentPicIndex { get; set; }
+
+		public IReadOnlyList<int> PicturesToAvoid => _avoidCollection.PicturesToAvoid;
+
+		public string PicIndexToPath(int picIndex) => _picCollection[picIndex];
+
+		public int PicPathToIndex(string path) => _picCollection[path];
+
+		public bool IsPictureToAvoid(int index) => _avoidCollection.IsPictureToAvoid(index);
 
 		/// <summary>
 		/// .ctor
 		/// Retrieve pictures asynchronously
 		/// </summary>
-		public PictureModel() => Restart();
+		public PictureModel()
+		{
+			_selectionTracker = new SelectionTracker(this);
+			Restart();
+		}
 
 		public void Restart()
 		{
@@ -66,11 +101,14 @@ namespace Rotate.Pictures.Model
 			// configuration's key="Initial Folders" while SelectionTracker is responsible for tracking
 			// pictures that were previously displayed.
 			_picCollection.Clear();
+			_selectionTracker.ClearTracker();
 
 			_extensionList = ConfigValue.Inst.FileExtensionsToConsider();
 			_cts = new CancellationTokenSource();
 			_taskModel = Task.Run(RetrievePictures, _cts.Token);
 		}
+
+		public void ClearDoNotDisplayCollection() => _avoidCollection.ClearPicsToAvoid();
 
 		/// <summary>
 		/// Retrieve next picture randomly
@@ -89,10 +127,45 @@ namespace Rotate.Pictures.Model
 			var flatIndex = _rand.Next(cnt);
 			CurrentPicIndex = _avoidCollection.GetPictureIndexFromFlatIndex(flatIndex);
 			var pic = _picCollection[CurrentPicIndex];
-			return pic;
+			try
+			{
+				if (string.IsNullOrWhiteSpace(pic) || !File.Exists(pic))
+				{
+					Log.Error($"Picture {pic} does not represent an existing file.");
+					return null;
+				}
+				return pic;
+			}
+			catch (Exception e)
+			{
+				Log.Error($"Picture {pic} does not represent an existing file.", e);
+				return null;
+			}
 		}
 
 		public void AddPictureToAvoid(int picToAvoid) => _avoidCollection.AddPictureToAvoid(picToAvoid);
+
+		public void RemovePictureToAvoid(int picToAvoid) => _avoidCollection.RemovePictureToAvoid(picToAvoid);
+
+		public bool IsPicturesRetrieving => _retrieved == 0;
+
+		public int Count => _picCollection.Count;
+
+		#region SelectionTracker
+
+		public void SelectionTrackerAppend(string pic) => _selectionTracker.Append(pic);
+
+		public void SelectionTrackerSetMaxPictureDepth(int depth) => _selectionTracker.SetMaxPictureDepth(depth);
+
+		public bool SelectionTrackerAtHead => _selectionTracker.AtHead;
+
+		public bool SelectionTrackerAtTail => _selectionTracker.AtTail;
+
+		public string SelectionTrackerPrev() => _selectionTracker.Prev();
+
+		public string SelectionTrackerNext() => _selectionTracker.Next();
+
+		#endregion
 
 		/// <summary>
 		/// Retrieve all pictures from all directories
@@ -102,6 +175,7 @@ namespace Rotate.Pictures.Model
 			// Using Interlocked.Exchange is an overkill since _retrieved is an int, for which
 			// assignment is an atomic operation.
 			Interlocked.Exchange(ref _retrieved, 0);
+			CustomEventAggregator.Inst.Publish(new PictureLoadingDoneEventArgs(false));
 
 			var dirs = ConfigValue.Inst.InitialPictureDirectories();
 			foreach (var dir in dirs)
@@ -111,28 +185,34 @@ namespace Rotate.Pictures.Model
 			}
 
 			Interlocked.Exchange(ref _retrieved, 1);
+			CustomEventAggregator.Inst.Publish(new PictureLoadingDoneEventArgs(true));
+
+			if (_picCollection.Count == 0)
+			{
+				const string errMsg = "No picture could be retrieved.  Please check configuration file for error";
+				Log.Error(errMsg);
+				MessageBox.Show(errMsg, "Rotating.Pictures Model");
+			}
 		}
 
 		/// <summary>
 		/// Retrieve pictures in a specific directory
 		/// </summary>
-		/// <param name="dir"></param>
 		private void RetrievePictures(string dir)
 		{
 			RetrievingNow = dir;
 			OnPictureRetrieving(dir);
 			var files = Directory.GetFiles(dir);
 
-			var rightFiles = files.Where(fl => _extensionList.Any(e => fl.EndsWith(e, StringComparison.CurrentCultureIgnoreCase))).ToList();
-			_picCollection.AddRange(rightFiles);
+			var rightFiles = files.Where(fl => _extensionList.Any(e => fl.EndsWith(e, StringComparison.CurrentCultureIgnoreCase)));
+			var rightFormatted = rightFiles.Where(f => f.IsPictureValidFormat()).ToList();
+			_picCollection.AddRange(rightFormatted);
 
 			var dirs = Directory.GetDirectories(dir);
 			foreach (var d in dirs)
 				RetrievePictures(d);
 		}
 
-		public bool IsPicturesRetrieving => _retrieved == 0;
-
-		void OnPictureRetrieving(string picDirectory) => PictureRetrievingHandler(this, new PictureRetrievingEventArgs(picDirectory));
+		private void OnPictureRetrieving(string picDirectory) => PictureRetrievingHandler(this, new PictureRetrievingEventArgs(picDirectory));
 	}
 }

@@ -31,7 +31,7 @@ namespace Rotate.Pictures.ViewModel
 		#region RegisterMessages
 
 		private void RegisterMessages() => 
-			Messenger<SelectedIntervalMessage>.DefaultMessenger.Register(this, OnSelectedIntervalBetweenPictures, MessageContext.SelectedIntervalViewModel);
+			Messenger<SelectedIntervalMessage>.Instance.Register(this, OnSelectedIntervalBetweenPictures, MessageContext.SelectedIntervalViewModel);
 
 		private void OnSelectedIntervalBetweenPictures(SelectedIntervalMessage selectedInterval) => SetIntervalBetweenPictures = selectedInterval.SelectedInterval;
 
@@ -49,16 +49,16 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand OkCommand { get; set; }
 
-		private void CancelAct(object _)
+		private void CancelAct()
 		{
-			Messenger<SelectedIntervalMessage>.DefaultMessenger.Unregister(this, MessageContext.SelectedIntervalViewModel);
-			Messenger<CloseDialog>.DefaultMessenger.Send(new CloseDialog(), MessageContext.CloseIntervalBetweenPictures);
+			Messenger<SelectedIntervalMessage>.Instance.Unregister(this, MessageContext.SelectedIntervalViewModel);
+			Messenger<CloseDialog>.Instance.Send(new CloseDialog(), MessageContext.CloseIntervalBetweenPictures);
 		}
 
-		private void OkAct(object _)
+		private void OkAct()
 		{
-			Messenger<SetIntervalMessage>.DefaultMessenger.Send(new SetIntervalMessage(SetIntervalBetweenPictures), MessageContext.SetIntervalBetweenPictures);
-			CancelAct(null);
+			Messenger<SetIntervalMessage>.Instance.Send(new SetIntervalMessage(SetIntervalBetweenPictures), MessageContext.SetIntervalBetweenPictures);
+			CancelAct();
 		}
 
 		#endregion

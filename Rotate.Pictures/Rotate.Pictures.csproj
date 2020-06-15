@@ -58,6 +58,9 @@
     <ApplicationIcon>Rotate.Pictures.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="C1.WPF.4.5.2, Version=4.5.20201.697, Culture=neutral, PublicKeyToken=2aa4ec5576d6c3ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\C1.Xaml.WPF.4.5.20201.697\lib\net452\C1.WPF.4.5.2.dll</HintPath>
+    </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
@@ -97,28 +100,42 @@
     </ApplicationDefinition>
     <Compile Include="Converter\MotionPictureVisibleConverter.cs" />
     <Compile Include="Converter\WindowSizeStateConverter.cs" />
+    <Compile Include="EventAggregator\IEventAggregator.cs" />
+    <Compile Include="EventAggregator\ISubscriber.cs" />
+    <Compile Include="EventAggregator\PictureLoadingDoneEventArgs.cs" />
+    <Compile Include="EventAggregator\CustomEventAggregator.cs" />
     <Compile Include="MessageCommunication\BufferDepthMessage.cs" />
+    <Compile Include="MessageCommunication\ClearDoNotDisplayPathMessage.cs" />
     <Compile Include="MessageCommunication\CloseDialog.cs" />
     <Compile Include="MessageCommunication\CommandRequest.cs" />
+    <Compile Include="MessageCommunication\DoNotDisplayMessage.cs" />
+    <Compile Include="MessageCommunication\DoNotDisplayPathMessage.cs" />
     <Compile Include="MessageCommunication\IVmCommunication.cs" />
+    <Compile Include="MessageCommunication\LoadNoDisplayPicturesMessage.cs" />
     <Compile Include="MessageCommunication\MessageContext.cs" />
+    <Compile Include="MessageCommunication\NoDisplayPicturesMessage.cs" />
     <Compile Include="MessageCommunication\SelectedStretchModeMessage.cs" />
     <Compile Include="MessageCommunication\SetIntervalMessage.cs" />
+    <Compile Include="Model\PictureCollection.cs" />
     <Compile Include="Model\PictureRetrievingEventArgs.cs" />
-    <Compile Include="Service\IMediaService.cs" />
+    <Compile Include="Model\PicturesToAvoidCollection.cs" />
+    <Compile Include="Model\SelectionTracker.cs" />
+    <Compile Include="Service\NoDisplayPictureService.cs" />
     <Compile Include="Service\StretchDialogService.cs" />
-    <Compile Include="Utility\ExceptionUtil.cs" />
+    <Compile Include="Utility\DebugStackTrace.cs" />
+    <Compile Include="Utility\ExceptionExt.cs" />
     <Compile Include="Utility\ICommand.cs" />
+    <Compile Include="Utility\ImageExt.cs" />
     <Compile Include="Utility\LinqComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
     <Compile Include="Utility\ModelFactory.cs" />
-    <Compile Include="Utility\PicturesToAvoidCollection.cs" />
     <Compile Include="Utility\VmFactory.cs" />
-    <Compile Include="ViewModel\MediaPlayerViewModel.cs" />
+    <Compile Include="ViewModel\NoDisplayItem.cs" />
+    <Compile Include="ViewModel\NoDisplayPictureViewModel.cs" />
     <Compile Include="ViewModel\StretchModeViewModel.cs" />
     <Compile Include="ViewModel\ViewModelBase.cs" />
-    <Compile Include="View\MediaPlayerView.xaml.cs">
-      <DependentUpon>MediaPlayerView.xaml</DependentUpon>
+    <Compile Include="View\NoDisplayPictureView.xaml.cs">
+      <DependentUpon>NoDisplayPictureView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\StretchModeView.xaml.cs">
       <DependentUpon>StretchModeView.xaml</DependentUpon>
@@ -157,10 +174,8 @@
     <Compile Include="Service\PictureBufferDepthService.cs" />
     <Compile Include="Utility\ConfigValue.cs" />
     <Compile Include="Utility\CustomCommand.cs" />
-    <Compile Include="Utility\PictureCollection.cs" />
     <Compile Include="Utility\PictureMetaDataTransmission.cs" />
     <Compile Include="Utility\SelectedStretchMode.cs" />
-    <Compile Include="Utility\SelectionTracker.cs" />
     <Compile Include="Utility\StretchModeUtil.cs" />
     <Compile Include="Utility\StringUtil.cs" />
     <Compile Include="ViewModel\BufferDepthViewModel.cs" />
@@ -180,9 +195,9 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="View\MediaPlayerView.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="View\NoDisplayPictureView.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="View\StretchModeView.xaml">
       <SubType>Designer</SubType>
@@ -253,5 +268,9 @@
   <ItemGroup>
     <Resource Include="Images\NoEntry.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Delete.png" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

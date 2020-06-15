@@ -3,15 +3,24 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Data;
 using Rotate.Pictures.Utility;
 
 
 namespace Rotate.Pictures.Converter
 {
+	/// <summary>
+	/// Purpose:
+	///		XAML code needs to determine if motion picture is to be displayed or still picture,
+	///		They will both occupy the same space and one will be collapsed.  This class,
+	///		MotionPictureVisibleConverter, will display or collapse the motion picture.
+	/// </summary>
 	public class MotionPictureVisibleConverter : IValueConverter
 	{
-		private static List<string> _motionExtensions;
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+		private readonly List<string> _motionExtensions;
 
 		public MotionPictureVisibleConverter() => _motionExtensions = ConfigValue.Inst.MotionPictures();
 
@@ -25,7 +34,11 @@ namespace Rotate.Pictures.Converter
 			return rc ? "Visible" : "Collapsed";
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			Log.Error($"{nameof(ConvertBack)} is not implemented for {nameof(MotionPictureVisibleConverter)}");
+			throw new NotImplementedException();
+		}
 
 		#endregion
 	}

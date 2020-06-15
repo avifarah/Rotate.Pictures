@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
@@ -17,6 +19,7 @@ namespace Rotate.Pictures.ViewModel
 		}
 
 		private string _pictureFolders;
+		private PictureMetaDataTransmission _originalMetaData = null;
 
 		public string PictureFolders
 		{
@@ -67,7 +70,7 @@ namespace Rotate.Pictures.ViewModel
 		#region Register Messages
 
 		private void RegisterMessages() =>
-			Messenger<SelectedMetadataMessage>.DefaultMessenger.Register(this, OnMetaDataProcess, MessageContext.SelectedMetadataViewModel);
+			Messenger<SelectedMetadataMessage>.Instance.Register(this, OnMetaDataProcess, MessageContext.SelectedMetadataViewModel);
 
 		private void OnMetaDataProcess(SelectedMetadataMessage metadata)
 		{
@@ -77,6 +80,13 @@ namespace Rotate.Pictures.ViewModel
 				FirstPictureToDisplay = ConfigValue.Inst.FirstPictureToDisplay();
 				StillPictureExtensions = string.Join(";", ConfigValue.Inst.StillPictureExtensions().ToArray());
 				MotionPictureExtensions = string.Join(";", ConfigValue.Inst.MotionPictures().ToArray());
+				_originalMetaData = new PictureMetaDataTransmission {
+					PictureFolder = PictureFolders,
+					FirstPictureToDisplay = FirstPictureToDisplay,
+					StillPictureExtensions = StillPictureExtensions,
+					MotionPictureExtensions = MotionPictureExtensions
+				};
+
 				return;
 			}
 
@@ -84,6 +94,12 @@ namespace Rotate.Pictures.ViewModel
 			FirstPictureToDisplay = metadata.FirstPictureToDisplay;
 			StillPictureExtensions = metadata.StillPictureExtensions;
 			MotionPictureExtensions = metadata.MotionPictureExtensions;
+			_originalMetaData = new PictureMetaDataTransmission {
+				PictureFolder = PictureFolders,
+				FirstPictureToDisplay = FirstPictureToDisplay,
+				StillPictureExtensions = StillPictureExtensions,
+				MotionPictureExtensions = MotionPictureExtensions
+			};
 		}
 
 		#endregion
@@ -106,17 +122,13 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand RestoreMotionExtCommand { get; set; }
 
-		private void CancelAction(object _)
+		private void CancelAction()
 		{
-			Messenger<SelectedMetadataMessage>.DefaultMessenger.Unregister(this, MessageContext.SelectedMetadataViewModel);
-			Messenger<CloseDialog>.DefaultMessenger.Send(new CloseDialog(), MessageContext.CloseFileTypes);
+			Messenger<SelectedMetadataMessage>.Instance.Unregister(this, MessageContext.SelectedMetadataViewModel);
+			Messenger<CloseDialog>.Instance.Send(new CloseDialog(), MessageContext.CloseFileTypes);
 		}
 
-		private void RestoreStillExts(object _) => StillPictureExtensions = ConfigValue.Inst.RestoreStillExtensions;
-
-		private void RestoreMotionExt(object _) => MotionPictureExtensions = ConfigValue.Inst.RestoreMotionExtensions;
-
-		private void OkAction(object _)
+		private async void OkAction()
 		{
 			var metadata = new PictureMetaDataTransmission {
 				PictureFolder = PictureFolders,
@@ -124,11 +136,21 @@ namespace Rotate.Pictures.ViewModel
 				StillPictureExtensions = StillPictureExtensions,
 				MotionPictureExtensions = MotionPictureExtensions
 			};
-			Messenger<SelectedMetadataMessage>.DefaultMessenger.Send(new SelectedMetadataMessage(metadata), MessageContext.SetMetadata);
-			CancelAction(null);
+	
+			if (metadata != _originalMetaData)
+				await Task.Run(() => Messenger<SelectedMetadataMessage>.Instance.Send(new SelectedMetadataMessage(metadata), MessageContext.SetMetadata));
+
+			CancelAction();
+	
+			if (metadata != _originalMetaData)
+				MessageBox.Show("Rotation may be frozen for a moment while the meta data updates and pictures are read");
 		}
 
-		private bool CanOk(object _) => !HasErrors;
+		private bool CanOk() => !HasErrors;
+
+		private void RestoreStillExts() => StillPictureExtensions = ConfigValue.Inst.RestoreStillExtensions;
+
+		private void RestoreMotionExt() => MotionPictureExtensions = ConfigValue.Inst.RestoreMotionExtensions;
 
 		#endregion
 

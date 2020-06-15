@@ -9,30 +9,13 @@ namespace UnitTest.Rotate.Pictures
 	[TestClass]
 	public class MessenerTest
 	{
-		public MessenerTest()
-		{
-			//
-			// TODO: Add constructor logic here
-			//
-		}
-
-		private TestContext testContextInstance;
+		//public MessenerTest() { }
 
 		/// <summary>
 		///Gets or sets the test context which provides
 		///information about and functionality for the current test run.
 		///</summary>
-		public TestContext TestContext
-		{
-			get
-			{
-				return testContextInstance;
-			}
-			set
-			{
-				testContextInstance = value;
-			}
-		}
+		public TestContext TestContext { get; set; }
 
 		#region Additional test attributes
 		//
@@ -65,17 +48,17 @@ namespace UnitTest.Rotate.Pictures
 		public void DefaultMessengerTest()
 		{
 			// Arrange
-			Messenger<TestCommunication>.DefaultMessenger.Register(this, OnTestCommunication);
+			Messenger<TestCommunication>.Instance.Register(this, OnTestCommunication);
 
 			// Act
 			var m = new TestCommunication();
-			Messenger<TestCommunication>.DefaultMessenger.Send(m);
+			Messenger<TestCommunication>.Instance.Send(m);
 
 			// Assert
 			Assert.AreEqual(1, m.Test);
 
 			// Cleanup
-			Messenger<TestCommunication>.DefaultMessenger.Unregister(this);
+			Messenger<TestCommunication>.Instance.Unregister(this);
 		}
 
 		private void OnTestCommunication(TestCommunication obj) => ++obj.Test;

@@ -7,24 +7,28 @@
 		mc:Ignorable="d"
 		Title="BufferDepth"
 		WindowStyle="None"
+		ShowInTaskbar="False"
+		ResizeMode="NoResize"
 		Height="120"
 		Width="200"
 >
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition/>
-			<ColumnDefinition/>
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition />
-			<RowDefinition />
-		</Grid.RowDefinitions>
-		<TextBlock Text="Picture Buffer Depth" Grid.ColumnSpan="2" Foreground="Blue" FontSize="14" FontWeight="Bold" TextAlignment="Center" Margin="10"/>
-		<Label Grid.Row="1" Grid.Column="0" Content="Depth:" Margin="3" Target="{Binding ElementName=Depth}"/>
-		<TextBox x:Name="Depth" Margin="6,6,10,6" Grid.Row="1" Grid.Column="1" PreviewTextInput="Depth_PreviewTextInput" Text="{Binding Depth}" />
-		
-		<Button Grid.Row="2" Grid.Column="0" Margin="6,6,10,6" Content="_Cancel" Command="{Binding CancelCommand}" IsCancel="True"/>
-		<Button Grid.Row="2" Grid.Column="1" Margin="6,6,10,6" Content="_OK" Command="{Binding OkCommand}" IsDefault="True"/>
-	</Grid>
+	<Border CornerRadius="10" BorderThickness="4" Background="#FFE8F0EF">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition />
+				<RowDefinition />
+			</Grid.RowDefinitions>
+			<TextBlock Text="Picture Buffer Depth" Grid.ColumnSpan="2" Foreground="Blue" FontSize="14" FontWeight="Bold" TextAlignment="Center" Margin="10"/>
+			<Label Grid.Row="1" Grid.Column="0" Content="Depth:" Margin="3" Target="{Binding ElementName=Depth}"/>
+			<TextBox x:Name="Depth" Margin="6,6,10,6" Grid.Row="1" Grid.Column="1" PreviewTextInput="Depth_PreviewTextInput" Text="{Binding Depth}" />
+
+			<Button Grid.Row="2" Grid.Column="0" Margin="6,6,10,6" Content="_Cancel" Command="{Binding CancelCommand}" IsCancel="True"/>
+			<Button Grid.Row="2" Grid.Column="1" Margin="6,6,10,6" Content="_OK" Command="{Binding OkCommand}" IsDefault="True"/>
+		</Grid>
+	</Border>
 </Window>

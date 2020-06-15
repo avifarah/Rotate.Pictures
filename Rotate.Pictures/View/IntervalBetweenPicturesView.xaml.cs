@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using Rotate.Pictures.Utility;
 
@@ -14,6 +13,7 @@ namespace Rotate.Pictures.View
 		public IntervalBetweenPicturesView()
 		{
 			InitializeComponent();
+			MouseLeftButtonDown += (sender, args) => DragMove();
 
 			WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			Owner = Application.Current.MainWindow;

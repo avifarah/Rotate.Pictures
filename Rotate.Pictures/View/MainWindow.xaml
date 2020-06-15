@@ -4,12 +4,18 @@
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:Rotate.Pictures"
+		xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
 		mc:Ignorable="d"
 		Title="Rotating picture display"
-		Icon="{Binding Source=local.ViewModel.MainWindowViewModel, Path=CurrentPicture, Mode=OneWay}"
 		Height="850"
 		Width="1200"
 >
+	<i:Interaction.Triggers>
+		<i:EventTrigger EventName="Closing">
+			<i:InvokeCommandAction Command="{Binding WindowClosing}" CommandParameter="{Binding}" />
+		</i:EventTrigger>
+	</i:Interaction.Triggers>
+
 	<Window.Resources>
 		<RoutedUICommand x:Key="BackImageCommand" Text="Previous picture" />
 		<RoutedUICommand x:Key="NextImageCommand" Text="Next picture" />
@@ -30,15 +36,15 @@
 		<KeyBinding Key="Left" Command="{StaticResource BackImageCommand}" />
 		<KeyBinding Key="Right" Command="{StaticResource NextImageCommand}" />
 	</Window.InputBindings>
-	
+
 	<DockPanel>
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="_Tools">
 				<MenuItem Header="_Time between pictures..." Command="{Binding SetTimeBetweenPicturesCommand}" />
-				<MenuItem Header="_Pictures meta data..." Command="{Binding SetPicturesMetaDataCommand}" />
+				<MenuItem Header="_Pictures meta data..." Command="{Binding SetPicturesMetaDataCommand}" IsEnabled="{Binding IsModelDoneLoadingPictures}" />
 				<MenuItem Header="_Picture buffer depth..." Command="{Binding SetPictureBufferDepthCommand}" />
 				<MenuItem Header="_Rotate pictures on start" IsCheckable="True" IsChecked="{Binding InitialRotationMode}" />
-				<MenuItem Header="_Manage no-display pictures-list..." Command="{Binding ManageNoDisplayListCommand}" />
+				<MenuItem Header="_Manage no-display pictures-list..." Command="{Binding ManageNoDisplayListCommand}" IsEnabled="{Binding IsModelDoneLoadingPictures}" />
 			</MenuItem>
 			<MenuItem Header="_Stretch Mode..." Command="{Binding SetSelectedStrechModeCommand}" />
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
@@ -108,6 +114,19 @@
 			<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderBrush="Transparent" BorderThickness="0"
 			        Background="Transparent" Command="{Binding StopStartCommand}" IsDefault="True"
 			        ToolTipService.ShowDuration="1000" ToolTip="Selecting the picture or video toggles the stop/start picture rotation">
+				<Button.Style>
+					<Style TargetType="Button">
+						<Style.Triggers>
+							<Trigger Property="Button.IsPressed" Value="true">
+								<Setter Property="RenderTransform" >
+									<Setter.Value>
+										<ScaleTransform ScaleX="0.99" ScaleY="0.99" CenterX="0.5" CenterY="0.5" />
+									</Setter.Value>
+								</Setter>
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</Button.Style>
 				<Grid>
 					<Image Source="{Binding CurrentPicture, Mode=OneWay}" Stretch="{Binding ImageStretch}" IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}" />
 					<MediaElement x:Name="MePlayer" Source="{Binding CurrentPicture, Mode=OneWay}"
@@ -129,8 +148,8 @@
 				<TextBlock x:Name="WindowSizeState" Grid.Column="0" Text="{Binding WindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
 				<TextBlock x:Name="OldWindowSizeState" Grid.Column="0" Text="{Binding OldWindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
 
-				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding BackImageCommand}" ToolTip="Rotate picture set to previous picture"
-				        ToolTipService.ShowDuration="3000">
+				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding BackImageCommand}" Style="{StaticResource ShrinkOnPress}"
+				        ToolTip="Rotate picture set to previous picture" ToolTipService.ShowDuration="3000">
 					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 				</Button>
 
@@ -139,14 +158,16 @@
 				         BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True" Grid.Column="1" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"/>
 
 				<ProgressBar Minimum="0" Maximum="{Binding IntervalProgressBarMax, Mode=OneWay}" Visibility="{Binding SliderVisibility}"
-				             Background="Yellow" Foreground="#FFB2B200" Grid.Column="2"
+				             Background="Yellow" Foreground="#FFB2B200" Grid.Column="2" Name="PrBarTimeToEndOfDisplayOfThisPicture"
 				             Value="{Binding VisHeartBeatValue, Mode=OneWay}" BorderThickness="1" BorderBrush="Black" Margin="0,0,3,0"/>
 
-				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3" Command="{Binding DoNotShowImageCommand}">
+				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3" Style="{StaticResource ShrinkOnPress}"
+				        Name="BtnDoNotShow" Command="{Binding DoNotShowImageCommand}"
+				        ToolTip="Do not show this image again.  See 'Manage no-display pictures-list...' menu entry.">
 					<Image Source="/Rotate.Pictures;component/Images/NoEntry.png"></Image>
 				</Button>
 
-				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4" Command="{Binding StopStartCommand}">
+				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4" Command="{Binding StopStartCommand}" Style="{StaticResource ShrinkOnPress}">
 					<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
 					         Width="15" Height="15"
 					         Margin="0,0,3,0"
@@ -155,7 +176,7 @@
 					         ToolTipService.ShowDuration="3000" />
 				</Button>
 
-				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding NextImageCommand}" Grid.Column="5"
+				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding NextImageCommand}" Grid.Column="5" Style="{StaticResource ShrinkOnPress}"
 				        ToolTip="Rotate picture set to next picture" ToolTipService.ShowDuration="3000">
 					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Image.LayoutTransform>

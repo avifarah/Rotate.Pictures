@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
 
 namespace UnitTest.Rotate.Pictures
@@ -26,11 +27,14 @@ namespace UnitTest.Rotate.Pictures
 		// Use ClassCleanup to run code after all tests in a class have run
 		// [ClassCleanup()]
 		// public static void MyClassCleanup() { }
-		//
+
 		// Use TestInitialize to run code before running each test 
-		// [TestInitialize()]
-		// public void MyTestInitialize() { }
-		//
+		[TestInitialize()]
+		public void MyTestInitialize()
+		{
+			ConfigValue.Inst.UpdatePicturesToAvoid(new List<int>());
+		}
+
 		// Use TestCleanup to run code after each test has run
 		// [TestCleanup()]
 		// public void MyTestCleanup() { }
@@ -223,7 +227,8 @@ namespace UnitTest.Rotate.Pictures
 		{
 			// Arrange
 			var picN = 10;
-			var picsToAvoid = PicturesToAvoidCollection.Default;
+			//var picsToAvoid = PicturesToAvoidCollection.Default;
+			var picsToAvoid = new PicturesToAvoidCollection(new List<int>());
 			picsToAvoid.AddPictureToAvoid(5);
 			var pictureIndex = new List<int>();
 
@@ -244,7 +249,8 @@ namespace UnitTest.Rotate.Pictures
 		{
 			// Arrange
 			var picN = 10;
-			var picsToAvoid = PicturesToAvoidCollection.Default;
+			//var picsToAvoid = PicturesToAvoidCollection.Default;
+			var picsToAvoid = new PicturesToAvoidCollection(new List<int>());
 			picsToAvoid.AddPictureToAvoid(5);
 			picsToAvoid.AddPictureToAvoid(3);
 			picsToAvoid.AddPictureToAvoid(7);
@@ -253,11 +259,18 @@ namespace UnitTest.Rotate.Pictures
 
 			// Act
 			for (var flatIndex = 0; flatIndex < picN - 3; ++flatIndex)
-				pictureIndex.Add(picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex));
+			{
+				var actual = picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex);
+				pictureIndex.Add(actual);
+			}
 
 			// Assert
 			for (var flatIndex = 0; flatIndex < picN - 3; ++flatIndex)
-				Assert.AreEqual(expected[flatIndex], pictureIndex[flatIndex]);
+			{
+				var exp = expected[flatIndex];
+				var act = pictureIndex[flatIndex];
+				Assert.AreEqual(exp, act);
+			}
 		}
 
 		[TestMethod]

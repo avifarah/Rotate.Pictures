@@ -1,19 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
+using System.Reflection;
 using System.Windows.Data;
 using Rotate.Pictures.Utility;
 
 
 namespace Rotate.Pictures.Converter
 {
+	/// <summary>
+	/// Purpose:
+	///		Allow XAML to know if file is a motion picture
+	/// </summary>
 	public class IsMotionPictureConverter : IValueConverter
 	{
-		private static List<string> _motionPictures;
-
-		public IsMotionPictureConverter() => _motionPictures = ConfigValue.Inst.MotionPictures();
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		#region Implementation of IValueConverter
 
@@ -24,11 +24,15 @@ namespace Rotate.Pictures.Converter
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var fileNm = value as string;
-			if (string.IsNullOrWhiteSpace(fileNm)) return false;
-			return _motionPictures.Any(s => string.Compare(new FileInfo(fileNm).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
+			var rc = fileNm.IsMotionPicture();
+			return rc;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			Log.Error($"{nameof(ConvertBack)} is not implemented for {nameof(IsMotionPictureConverter)}");
+			throw new NotImplementedException();
+		}
 
 		#endregion
 	}

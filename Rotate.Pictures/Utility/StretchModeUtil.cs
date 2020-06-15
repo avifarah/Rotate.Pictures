@@ -1,30 +1,28 @@
 ﻿using System;
-
+using System.Collections.Generic;
 
 namespace Rotate.Pictures.Utility
 {
+	/// <summary>
+	/// A "Converter" between SelectedStertchMode and the representative string
+	/// </summary>
 	public static class StretchModeUtil
 	{
-		public static SelectedStretchMode TextToMode(this string text)
+		private static readonly Dictionary<string, SelectedStretchMode> AllValues;
+
+		static StretchModeUtil()
 		{
-			return text switch {
-				"Fill" => SelectedStretchMode.Fill,
-				"None" => SelectedStretchMode.None,
-				"Uniform" => SelectedStretchMode.Uniform,
-				"UniformToFill" => SelectedStretchMode.UniformToFill,
-				_ => SelectedStretchMode.Uniform,
-			};
+			AllValues = new Dictionary<string, SelectedStretchMode>();
+			foreach (SelectedStretchMode sm in Enum.GetValues(typeof(SelectedStretchMode)))
+				AllValues.Add(sm.ToString(), sm);
 		}
 
-		public static string ModeToText(this SelectedStretchMode mode)
+		public static SelectedStretchMode TextToMode(this string text)
 		{
-			return mode switch {
-				SelectedStretchMode.Fill => "Fill",
-				SelectedStretchMode.None => "None",
-				SelectedStretchMode.Uniform => "Uniform",
-				SelectedStretchMode.UniformToFill => "UniformToFill",
-				_ => throw new ArgumentException(@"Stretch mode is not recognized", nameof(mode))
-			};
+			if (AllValues.ContainsKey(text)) return AllValues[text];
+			return SelectedStretchMode.Uniform;
 		}
+
+		public static string ModeToText(this SelectedStretchMode mode) => Enum.GetName(typeof(SelectedStretchMode), mode);
 	}
 }

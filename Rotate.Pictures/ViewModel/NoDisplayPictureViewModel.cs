@@ -1,53 +1,70 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 using System.Windows.Input;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.ViewModel
 {
-	public class NoDisplayPictureViewModel : INotifyPropertyChanged
+	public partial class NoDisplayPictureViewModel : INotifyPropertyChanged
 	{
-		public class NoDisplayItem
-		{
-			public string ColumnPicIndex;
-			public string ColunPath;
-		}
-
-		private IEnumerable<int> _noDisplayPics;
-
-		private IDictionary<int, string> _noDisplayDic;
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		public NoDisplayPictureViewModel()
 		{
+			NoDisplayItems = new ObservableCollection<NoDisplayItem>();
 			LoadCommands();
 			RegisterMessages();
-		}
 
-		private void RegisterMessages()
-		{
-			Messenger<NoDisplayPicturesMessage>.DefaultMessenger.Register(this, OnNoDisplayList, MessageContext.NoDisplayPicture);
-		}
-
-		private void UnregisterMessages()
-		{
-			Messenger<NoDisplayPicturesMessage>.DefaultMessenger.Unregister(this, MessageContext.NoDisplayPicture);
+			RepositoryFilePath = ConfigValue.Inst.FilePathToSavePicturesToAvoid();
 		}
 
 		private void OnNoDisplayList(NoDisplayPicturesMessage noDisplayParam)
 		{
-			_noDisplayPics = noDisplayParam.Param.NoDisplayPics;
-			_noDisplayDic = noDisplayParam.Param.NoDisplayDic;
-			foreach (var item in _noDisplayDic)
-				_noDisplayItems.Add(new NoDisplayItem { ColumnPicIndex = item.Key.ToString(), ColunPath = item.Value });
+			var noDisplayDic = noDisplayParam.Param.NoDisplayDic;
+			_noDisplayItems.Clear();
+
+			foreach (var item in noDisplayDic)
+				_noDisplayItems.Add(new NoDisplayItem { ColumnPicIndex = item.Key.ToString(), ColumnPath = item.Value });
+
+			OnPropertyChanged(nameof(NoDisplayItems));
 		}
 
+		private void OnFromMainToDoNotDisplay(DoNotDisplayMessage obj)
+		{
+			if (obj == null)
+			{
+				Log.Error($"noDisplay cannot be null in OnFromMainToDoNotDisplay(..)");
+				MessageBox.Show("Cannot delete picture from the collection of Do-Not-Display.  Picture ID is not provided.  " +
+						$"You may manually delete the picture from the {Environment.GetCommandLineArgs()[0]}.Config file",
+					"No Display Picture View Model");
+				return;
+			}
 
-		private List<NoDisplayItem> _noDisplayItems = new List<NoDisplayItem>();
+			var pic = NoDisplayItems.FirstOrDefault(p => p.ColumnPicIndex == obj.PicIndex.ToString());
+			if (pic == null) return;
+			NoDisplayItems.Remove(pic);
+			OnPropertyChanged(nameof(NoDisplayItems));
+		}
 
-		public List<NoDisplayItem> NoDisplayItems
+		public string NoDisplayWarning
+		{
+			get => "Change to the contents of the picture repositories deems this picture mapping inaccurate.  "
+			       + "However, saving and retrieving the picture set will overcome this shortcoming.";
+			set { }
+		}
+
+		private ObservableCollection<NoDisplayItem> _noDisplayItems;
+
+		public ObservableCollection<NoDisplayItem> NoDisplayItems
 		{
 			get => _noDisplayItems;
 			set
@@ -57,17 +74,230 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
+		private NoDisplayItem _currentNoDisplayItem;
+
+		public NoDisplayItem CurrentNoDisplayItem
+		{
+			get => _currentNoDisplayItem;
+			set
+			{
+				_currentNoDisplayItem = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private int _currentNoDisplayIndex;
+
+		public int CurrentNoDisplayIndex
+		{
+			get => _currentNoDisplayIndex;
+			set
+			{
+				_currentNoDisplayIndex = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private string _textPicturePath;
+
+		public string TextPicturePath
+		{
+			get => _textPicturePath;
+			set
+			{
+				_textPicturePath = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private string _repositoryFilePath;
+
+		public string RepositoryFilePath
+		{
+			get => _repositoryFilePath;
+			set
+			{
+				_repositoryFilePath = value;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(RepositoryFilePathError));
+			}
+		}
+
+		private string _repositoryFilePathError;
+
+		public string RepositoryFilePathError
+		{
+			get
+			{
+				var (_, msg) = CanSaveErrorString();
+				_repositoryFilePathError = msg;
+				return _repositoryFilePathError;
+			}
+
+			set
+			{
+				_repositoryFilePathError = value;
+				OnPropertyChanged();
+			}
+		}
+
 		private void LoadCommands()
 		{
 			ExitCommand = new CustomCommand(ExitDialog);
+			AddToNoDisplayCommand = new CustomCommand(AddToNoDisplayAction, CanAddToNoDisplay);
+			ClearCommand = new CustomCommand(ClearAction);
+			RetrieveRepositoryCommand = new CustomCommand(RetrieveRepositoryAction, CanRetrieveRepositoryAction);
+			SaveRepositoryCommand = new CustomCommand(SaveRepositoryAction, CanSaveRepositoryAction);
 		}
 
 		public ICommand ExitCommand { get; set; }
 
-		private void ExitDialog(object _)
+		public ICommand AddToNoDisplayCommand { get; set; }
+
+		public ICommand ClearCommand { get; set; }
+
+		public ICommand RetrieveRepositoryCommand { get; set; }
+		
+		public ICommand SaveRepositoryCommand { get; set; }
+
+		private bool CanAddToNoDisplay()
+		{
+			if (string.IsNullOrEmpty(TextPicturePath)) return false;
+			return File.Exists(TextPicturePath);
+		}
+
+		private void AddToNoDisplayAction() => 
+			Messenger<DoNotDisplayPathMessage>.Instance.Send(new DoNotDisplayPathMessage(TextPicturePath), MessageContext.MainWindowViewModel);
+
+		private void ClearAction() =>
+			Messenger<ClearDoNotDisplayPathMessage>.Instance.Send(new ClearDoNotDisplayPathMessage(), MessageContext.MainWindowViewModel);
+
+		/// <summary>
+		/// Repository file must exist
+		/// </summary>
+		private bool CanRetrieveRepositoryAction()
+		{
+			if (string.IsNullOrEmpty(RepositoryFilePath)) return false;
+
+			try
+			{
+				var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
+				var fullFn = Path.GetFullPath(fileName);
+				var rc = File.Exists(fullFn);
+				if (!rc) return false;
+
+				var attrs = File.GetAttributes(fullFn);
+				if (attrs == FileAttributes.Normal) return true;
+				if ((attrs & FileAttributes.Offline) == FileAttributes.Offline)
+				{
+					Log.Error($"File: \"{fullFn}\" is off-line");
+					return false;
+				}
+
+				return true;
+			}
+			catch (Exception e)
+			{
+				Log.Error($"Error in path: \"{RepositoryFilePath}\"", e);
+				return false;
+			}
+		}
+
+		private void RetrieveRepositoryAction()
+		{
+			var picsToAvoid = new List<string>();
+			var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
+			var fullFn = Path.GetFullPath(fileName);
+			using var sr = new StreamReader(fullFn);
+			while (!sr.EndOfStream)
+				picsToAvoid.Add(sr.ReadLine());
+
+			var loadNoDisplay = new LoadNoDisplayPicturesMessage(picsToAvoid);
+			Messenger<LoadNoDisplayPicturesMessage>.Instance.Send(loadNoDisplay, MessageContext.MainWindowViewModel);
+		}
+
+		/// <summary>
+		/// Repository file must be a valid path
+		/// In effect RepositoryFilePath's directory must exist 
+		/// </summary>
+		private bool CanSaveRepositoryAction()
+		{
+			if (string.IsNullOrEmpty(RepositoryFilePath)) return false;
+
+			var (rc, _) = CanSaveErrorString();
+			return rc;
+		}
+
+		private (bool, string) CanSaveErrorString()
+		{
+			try
+			{
+				var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
+				var fullFn = Path.GetFullPath(fileName);
+				var rc = Directory.Exists(fullFn);
+				if (rc) return (false, string.Empty);
+
+				var dir = Path.GetDirectoryName(fullFn);
+				rc = Directory.Exists(dir);
+				if (!rc) return (false, string.Empty);
+
+				// If file exists make sure that we can write to it
+				rc = File.Exists(fullFn);
+				if (!rc) return (true, string.Empty);
+
+				var attrs = File.GetAttributes(fullFn);
+				if (attrs == FileAttributes.Normal) return (true, string.Empty);
+				if ((attrs & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) return (false, "File is read-only");
+				if ((attrs & FileAttributes.Hidden) == FileAttributes.Hidden) return (false, "File is hidden");
+				if ((attrs & FileAttributes.System) == FileAttributes.System) return (false, "File is a system-file");
+				if ((attrs & FileAttributes.Directory) == FileAttributes.Directory) return (false, "File is a directory");
+				if ((attrs & FileAttributes.Offline) == FileAttributes.Offline) return (false, "File is off-line");
+				return (true, string.Empty);
+			}
+			catch (Exception e)
+			{
+				return (false, $"File is invalid.  Internal message: {e.Message}");
+			}
+		}
+
+		private void SaveRepositoryAction()
+		{
+			ConfigValue.Inst.UpdatePicturesToAvoid(RepositoryFilePath);
+			var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
+			var fullFn = Path.GetFullPath(fileName);
+			using var sw = new StreamWriter(fullFn, false);
+			foreach (var item in NoDisplayItems)
+				sw.WriteLine(item.ColumnPath);
+		}
+
+		private void RegisterMessages()
+		{
+			Messenger<NoDisplayPicturesMessage>.Instance.Register(this, OnNoDisplayList, MessageContext.NoDisplayPicture);
+			Messenger<DoNotDisplayMessage>.Instance.Register(this, OnFromMainToDoNotDisplay, MessageContext.FromMainToDoNotDisplay);
+			Messenger<DoNotDisplayPathMessage>.Instance.Register(this, OnDisplayDeletedPath, MessageContext.FromMainToDoNotDisplay);
+			Messenger<ClearDoNotDisplayPathMessage>.Instance.Register(this, OnClearDoNotDisplay, MessageContext.NoDisplayPicture);
+		}
+
+		private void UnregisterMessages()
+		{
+			Messenger<NoDisplayPicturesMessage>.Instance.Unregister(this, MessageContext.NoDisplayPicture);
+			Messenger<DoNotDisplayMessage>.Instance.Unregister(this, MessageContext.FromMainToDoNotDisplay);
+			Messenger<DoNotDisplayPathMessage>.Instance.Unregister(this, MessageContext.FromMainToDoNotDisplay);
+			Messenger<ClearDoNotDisplayPathMessage>.Instance.Unregister(this, MessageContext.NoDisplayPicture);
+		}
+
+		private void OnDisplayDeletedPath(DoNotDisplayPathMessage noDisplay) => TextPicturePath = noDisplay.PicPath;
+
+		private void OnClearDoNotDisplay()
+		{
+			NoDisplayItems.Clear();
+			OnPropertyChanged(nameof(NoDisplayItems));
+		}
+
+		private void ExitDialog()
 		{
 			UnregisterMessages();
-			Messenger<CloseDialog>.DefaultMessenger.Send(new CloseDialog(), MessageContext.NoDisplayPicture);
+			Messenger<CloseDialog>.Instance.Send(new CloseDialog(), MessageContext.NoDisplayPicture);
 		}
 
 		#region INotifyPropertyChanged

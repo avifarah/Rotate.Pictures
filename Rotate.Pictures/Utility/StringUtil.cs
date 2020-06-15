@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 //using System.Reflection;
 using System.Text.RegularExpressions;
@@ -48,9 +49,10 @@ namespace Rotate.Pictures.Utility
 
 		public static bool IsMotionPicture(this string fileName)
 		{
-			var motionConverter = new IsMotionPictureConverter();
-			var rc = motionConverter.Convert(fileName, typeof(bool), null, CultureInfo.CurrentUICulture);
-			return (bool)(rc ?? false);
+			var motionPicExt = ConfigValue.Inst.MotionPictures();
+			if (string.IsNullOrWhiteSpace(fileName)) return false;
+			var rc = motionPicExt.Any(s => string.Compare(new FileInfo(fileName).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
+			return rc;
 		}
 	}
 }

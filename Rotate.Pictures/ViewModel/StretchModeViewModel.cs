@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Rotate.Pictures.Annotations;
@@ -11,6 +12,8 @@ namespace Rotate.Pictures.ViewModel
 {
 	public class StretchModeViewModel : INotifyPropertyChanged
 	{
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
 		private SelectedStretchMode _stretchMode;
 
 		private readonly bool[] _mode;        // 0 - FillRb, 1 - NoneRb, 2 - UniformRb, 3 - UniformToFillRb
@@ -70,7 +73,7 @@ namespace Rotate.Pictures.ViewModel
 		#region Register Messages
 
 		private void RegisterMessages() => 
-			Messenger<SelectedStretchModeMessage>.DefaultMessenger.Register(this, OnStretchMode, MessageContext.SelectedStretchModeViewModel);
+			Messenger<SelectedStretchModeMessage>.Instance.Register(this, OnStretchMode, MessageContext.SelectedStretchModeViewModel);
 
 		private void OnStretchMode(SelectedStretchModeMessage mode)
 		{
@@ -88,6 +91,12 @@ namespace Rotate.Pictures.ViewModel
 				case SelectedStretchMode.UniformToFill:
 					UniformToFillRb = true;
 					break;
+				default:
+				{
+					var errMsg = $"mode ({mode}) is not recognized.  Cannot set Stretching mode";
+					Log.Error(errMsg);
+					throw new Exception(errMsg);
+				}
 			}
 		}
 
@@ -119,22 +128,22 @@ namespace Rotate.Pictures.ViewModel
 
 		private void SetModeUniform(object _) => UniformRb = true;
 
-		private void CancelDialog(object _)
+		private void CancelDialog()
 		{
-			Messenger<SelectedStretchModeMessage>.DefaultMessenger.Unregister(this, MessageContext.SelectedStretchModeViewModel);
-			Messenger<CloseDialog>.DefaultMessenger.Send(new CloseDialog(), MessageContext.CloseStretchMode);
+			Messenger<SelectedStretchModeMessage>.Instance.Unregister(this, MessageContext.SelectedStretchModeViewModel);
+			Messenger<CloseDialog>.Instance.Send(new CloseDialog(), MessageContext.CloseStretchMode);
 		}
 
-		private void SetModeFill(object _) => FillRb = true;
+		private void SetModeFill() => FillRb = true;
 
-		private void SetModeNone(object _) => NoneRb = true;
+		private void SetModeNone() => NoneRb = true;
 
-		private void SetUniformToFill(object _) => UniformToFillRb = true;
+		private void SetUniformToFill() => UniformToFillRb = true;
 
-		private void SaveNewStretchMode(object _)
+		private void SaveNewStretchMode()
 		{
-			Messenger<SelectedStretchModeMessage>.DefaultMessenger.Send(new SelectedStretchModeMessage(_stretchMode), MessageContext.SetStretchMode);
-			CancelDialog(_);
+			Messenger<SelectedStretchModeMessage>.Instance.Send(new SelectedStretchModeMessage(_stretchMode), MessageContext.SetStretchMode);
+			CancelDialog();
 		}
 
 		#endregion

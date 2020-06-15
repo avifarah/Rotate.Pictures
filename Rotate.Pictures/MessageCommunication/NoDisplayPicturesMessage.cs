@@ -5,6 +5,10 @@ namespace Rotate.Pictures.MessageCommunication
 {
 	public class NoDisplayPicturesMessage : IVmCommunication
 	{
+		/// <summary>
+		/// Purpose:
+		///		Communication payload of a single no display picture 
+		/// </summary>
 		public readonly struct NoDisplayParam
 		{
 			public IEnumerable<int> NoDisplayPics { get; }

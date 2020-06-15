@@ -5,8 +5,6 @@ using System.Reflection;
 using log4net;
 using System.Configuration;
 using System.Globalization;
-using System.Windows.Forms;
-using System.Windows.Navigation;
 
 
 namespace Rotate.Pictures.Utility
@@ -41,7 +39,7 @@ namespace Rotate.Pictures.Utility
 		{
 			if (_initialPictureDirectories != null) return _initialPictureDirectories;
 
-			string[] defaultFolder = { @"G:\Pictures" };
+			string[] defaultFolder = { @"C:\Pictures" };
 			var rawConfig = ReadConfigValue(InitialPictureDirectoriesKey);
 			if (rawConfig == null)
 			{
@@ -321,7 +319,7 @@ namespace Rotate.Pictures.Utility
 
 		public int VisualHeartbeat()
 		{
-			const int defHeartbeat = 100;
+			const int defHeartbeat = 400;
 			const string key = "Visual heartbeat";
 			var raw = ReadConfigValue(key);
 			if (raw == null)
@@ -388,6 +386,16 @@ namespace Rotate.Pictures.Utility
 			var sPics = string.Join(",", picsToAvoid.Select(p => $"{p}"));
 			WriteConfigValue(PicturesToAvoidKey, sPics);
 		}
+
+		private const string FilePathToSavePicturesToAvoidKey = "FilePath to save Pictures to avoid";
+
+		public string FilePathToSavePicturesToAvoid()
+		{
+			var filePath = ReadConfigValue(FilePathToSavePicturesToAvoidKey);
+			return filePath;
+		}
+
+		public void UpdatePicturesToAvoid(string filePath) => WriteConfigValue(FilePathToSavePicturesToAvoidKey, filePath);
 
 		private string ReadConfigValue(string key)
 		{

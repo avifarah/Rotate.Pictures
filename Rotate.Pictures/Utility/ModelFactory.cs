@@ -14,8 +14,9 @@ namespace Rotate.Pictures.Utility
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		private static Lazy<ModelFactory> _inst = new Lazy<ModelFactory>(() => new ModelFactory());
-
 		public static readonly ModelFactory Inst = _inst.Value;
+
+		private PictureModel _picModel;
 
 		private ModelFactory() { }
 
@@ -24,7 +25,10 @@ namespace Rotate.Pictures.Utility
 			switch (modelName)
 			{
 				case "PictureFileRepository":
-					return new PictureModel();
+					if (_picModel == null)
+						_picModel = new PictureModel();
+
+					return _picModel;
 
 				default:
 					Log.Error($"{modelName} is not a valid Model");

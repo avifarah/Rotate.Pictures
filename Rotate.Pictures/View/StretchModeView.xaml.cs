@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using Rotate.Pictures.Utility;
 
 
@@ -13,6 +12,7 @@ namespace Rotate.Pictures.View
 		public StretchModeView()
 		{
 			InitializeComponent();
+			MouseLeftButtonDown += (sender, args) => DragMove();
 
 			WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			Owner = Application.Current.MainWindow;
@@ -22,3 +22,4 @@ namespace Rotate.Pictures.View
 		}
 	}
 }
+

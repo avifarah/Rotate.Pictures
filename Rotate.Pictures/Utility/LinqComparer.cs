@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 
 namespace Rotate.Pictures.Utility
@@ -10,13 +11,22 @@ namespace Rotate.Pictures.Utility
 	/// <typeparam name="TSource"></typeparam>
 	public class LinqComparer<TSource> : IEqualityComparer<TSource>
 	{
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
 		private readonly Func<TSource, TSource, bool> _linqCmp;
 		private readonly Func<TSource, int> _hashCode;
 
 		public LinqComparer(Func<TSource, TSource, bool> cmp, Func<TSource, int> hashCode = null)
 		{
-			_linqCmp = cmp ?? throw new ArgumentException(@"comparison function may not be null", nameof(cmp));
-			_hashCode = hashCode ?? (T => 0);
+			if (cmp == null)
+			{
+				var errMsg = $"Comparison ({nameof(cmp)}) function may not be null in LinqComparer(..) ctor.";
+				Log.Error(errMsg);
+				throw new ArgumentException(errMsg, nameof(cmp));
+			}
+
+			_linqCmp = cmp;
+			_hashCode = hashCode ?? (hc => 0);
 		}
 
 		/// <summary>

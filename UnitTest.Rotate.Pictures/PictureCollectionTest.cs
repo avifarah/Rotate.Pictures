@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
 
 
@@ -10,24 +11,13 @@ namespace UnitTest.Rotate.Pictures
 	[TestClass]
 	public class PictureCollectionTest
 	{
-		public PictureCollectionTest()
-		{
-			//
-			// TODO: Add constructor logic here
-			//
-		}
-
-		private TestContext testContextInstance;
+		public PictureCollectionTest() { }
 
 		/// <summary>
 		///Gets or sets the test context which provides
 		///information about and functionality for the current test run.
 		///</summary>
-		public TestContext TestContext
-		{
-			get => testContextInstance;
-			set => testContextInstance = value;
-		}
+		public TestContext TestContext { get; set; }
 
 		#region Additional test attributes
 		//
@@ -66,6 +56,20 @@ namespace UnitTest.Rotate.Pictures
 		}
 
 		[TestMethod]
+		public void ThisTestPathToIndex()
+		{
+			// Arrange
+			var pc = new PictureCollection { "Abc", "Def", "Ghi" };
+			const int expected = 2;
+
+			// Act
+			var actual = pc["Ghi"];
+
+			// Assert
+			Assert.AreEqual(expected, actual);
+		}
+
+		[TestMethod]
 		public void CountTest()
 		{
 			// Arrange
@@ -95,6 +99,9 @@ namespace UnitTest.Rotate.Pictures
 			Assert.AreEqual("Abc 123", pc[0]);
 			Assert.AreEqual("Def 456", pc[1]);
 			Assert.AreEqual("Ghi 789", pc[2]);
+			Assert.AreEqual(0, pc["Abc 123"]);
+			Assert.AreEqual(1, pc["Def 456"]);
+			Assert.AreEqual(2, pc["Ghi 789"]);
 		}
 
 		[TestMethod]

@@ -46,16 +46,20 @@
       <HintPath>..\packages\MSTest.TestFramework.1.1.11\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationTest.cs" />
+    <Compile Include="ImageExtTest.cs" />
     <Compile Include="LinqExtensionsTest.cs" />
+    <Compile Include="MessenerTest.cs" />
     <Compile Include="PictureCollectionTest.cs" />
     <Compile Include="PictureModelTest.cs" />
     <Compile Include="PicturesToAvoidCollection.Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SelectionTrackerTest.cs" />
+    <Compile Include="CustomEventAggregator.Test.cs" />
     <Compile Include="StringUtilTest.cs" />
   </ItemGroup>
   <ItemGroup>

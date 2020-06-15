@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
 {
 	public class PicturesToAvoidCollection
 	{
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
 		/// <summary>
 		/// key (flatIndex)		:	int, lowerRangeLimit flat index (where the "holes", 
 		///							the missing pictures, are compressed.  The index of 
@@ -29,7 +32,7 @@ namespace Rotate.Pictures.Model
 
 		/// <summary>
 		/// The algorithm for avoided pictures relies on the fact that _orderedKeys
-		/// is in an ascending order
+		/// is in an ascending order.
 		/// </summary>
 		private List<int> _orderedKeys = new List<int>();
 
@@ -49,7 +52,13 @@ namespace Rotate.Pictures.Model
 
 		public PicturesToAvoidCollection(List<int> picsToAvoid)
 		{
-			if (picsToAvoid == null) throw new ArgumentException($"{nameof(picsToAvoid)} may not be null", nameof(picsToAvoid));
+			if (picsToAvoid == null)
+			{
+				var errMsg = $"{nameof(picsToAvoid)} may not be null in {nameof(PicturesToAvoid)}";
+				Log.Error(errMsg);
+				throw new ArgumentException(errMsg, nameof(picsToAvoid));
+			}
+
 			picsToAvoid.Sort();
 			_orderedPicturesToAvoid.AddRange(picsToAvoid);
 			PopulatePicsToAvoid();
@@ -150,6 +159,14 @@ namespace Rotate.Pictures.Model
 			_orderedKeys = _avoidPics.Keys.ToList();
 		}
 
+		public void ClearPicsToAvoid()
+		{
+			_avoidPics.Clear();
+			_orderedKeys.Clear();
+			_orderedPicturesToAvoid.Clear();
+			ConfigValue.Inst.UpdatePicturesToAvoid(_orderedPicturesToAvoid);
+		}
+
 		public bool AddPictureToAvoid(int picIndex)
 		{
 			if (_orderedPicturesToAvoid.Contains(picIndex)) return false;
@@ -160,6 +177,22 @@ namespace Rotate.Pictures.Model
 			PopulatePicsToAvoid();
 			ConfigValue.Inst.UpdatePicturesToAvoid(_orderedPicturesToAvoid);
 
+			return true;
+		}
+
+		public bool RemovePictureToAvoid(int picIndex)
+		{
+			if (!_orderedPicturesToAvoid.Contains(picIndex))
+			{
+				Log.Error($"Unexpected picture index:  Need to remove non existent picIndex: {picIndex} from the list ({string.Join(",", _orderedPicturesToAvoid)})");
+				return false;
+			}
+
+			_orderedPicturesToAvoid.Remove(picIndex);
+			_orderedPicturesToAvoid.Sort();
+			_avoidPics.Clear();
+			PopulatePicsToAvoid();
+			ConfigValue.Inst.UpdatePicturesToAvoid(_orderedPicturesToAvoid);
 			return true;
 		}
 
@@ -180,6 +213,8 @@ namespace Rotate.Pictures.Model
 			var index = FindUsi(flatIndex, lowerRangeLimit, upperRangeLimit, midRangePoint);
 			return index;
 		}
+
+		public bool IsPictureToAvoid(int index) => _orderedPicturesToAvoid.Contains(index);
 
 		/// <summary>
 		/// FindUsi : Find Upper Smaller Index

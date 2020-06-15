@@ -1,36 +1,36 @@
 ﻿using System;
 using System.IO;
 using System.ComponentModel;
-using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.Utility;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Model;
 using Rotate.Pictures.Service;
 
-
 namespace Rotate.Pictures.ViewModel
 {
-	public class MainWindowViewModel : INotifyPropertyChanged
+	public class MainWindowViewModel : INotifyPropertyChanged, ISubscriber<PictureLoadingDoneEventArgs>
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		private readonly DispatcherTimer _picChangeTmr;
 		private readonly DispatcherTimer _visualHeartbeatTmr;
 		private readonly PictureModel _model;
-		private bool _userIsDraggingMotionPicSlider;
 
 		private readonly StretchDialogService _stretchSvc;
 		private readonly IntervalBetweenPicturesService _intervalBetweenPicturesService;
 		private readonly FileTypeToRotateService _pictureMetadataService;
 		private readonly PictureBufferDepthService _pictureBufferService;
+		private readonly NoDisplayPictureService _noDisplayPictureService;
+
+		private const int RetryPictureCount = 5;
 
 		public MainWindowViewModel()
 		{
@@ -40,11 +40,25 @@ namespace Rotate.Pictures.ViewModel
 			_intervalBetweenPicturesService = new IntervalBetweenPicturesService();
 			_pictureMetadataService = new FileTypeToRotateService();
 			_pictureBufferService = new PictureBufferDepthService();
+			_noDisplayPictureService = new NoDisplayPictureService();
 
-			_pic = ConfigValue.Inst.FirstPictureToDisplay();
-			_imgStretch = ConfigValue.Inst.ImageStretch();
-			_initialRotationMode = ConfigValue.Inst.RotatingPicturesInit();
-			_rotationRunning = _initialRotationMode;
+			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(ConfigValue.Inst.VisualHeartbeat()), IsEnabled = true };
+			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
+
+			CurrentPicture = ConfigValue.Inst.FirstPictureToDisplay();
+			if (!File.Exists(CurrentPicture))
+			{
+				var errMsg = $"First picture file: {CurrentPicture} cannot be found.  Check configuration file";
+				Log.Error(errMsg);
+				MessageBox.Show(errMsg, "Rotating.Pictures [1]");
+				CurrentPicture = null;
+			}
+			else if (!CurrentPicture.IsPictureValidFormat())
+				CurrentPicture = null;
+
+			ImageStretch = ConfigValue.Inst.ImageStretch();
+			InitialRotationMode = ConfigValue.Inst.RotatingPicturesInit();
+			RotationRunning = InitialRotationMode;
 
 			_picChangeTmr = new DispatcherTimer {
 				Interval = TimeSpan.FromMilliseconds(IntervalBetweenPictures),
@@ -52,12 +66,9 @@ namespace Rotate.Pictures.ViewModel
 			};
 			_picChangeTmr.Tick += (sender, args) => RetrieveNextPicture();
 
-			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(ConfigValue.Inst.VisualHeartbeat()), IsEnabled = true };
-			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
+			_model.SelectionTrackerAppend(CurrentPicture);
 
-			SelectionTracker.Inst.Append(_pic);
-
-			if (_pic == null && !File.Exists(_pic))
+			if (CurrentPicture == null && !File.Exists(CurrentPicture))
 			{
 				bool succeeded = false;
 				for (var i = 0; i < 100 && !succeeded; ++i)
@@ -75,18 +86,26 @@ namespace Rotate.Pictures.ViewModel
 
 			LoadCommands();
 			RegisterMessages();
+
+			CustomEventAggregator.Inst.Subscribe(this);
+
+			// Initialize fields
+			IsModelDoneLoadingPictures = !_model.IsPicturesRetrieving;
 		}
 
-		private string _pic;
+		/// <summary>
+		/// The ViewModel CurrentPicture represents the displayed current picture
+		/// </summary>
+		private string _currentPicture;
 
 		public string CurrentPicture
 		{
-			get => _pic;
+			get => _currentPicture;
 			set
 			{
-				_pic = value;
+				_currentPicture = value;
+				IsMotionRunning = _currentPicture.IsMotionPicture();
 				OnPropertyChanged();
-				IsMotionRunning = _pic.IsMotionPicture();
 			}
 		}
 
@@ -136,7 +155,7 @@ namespace Rotate.Pictures.ViewModel
 			get => _sliderVisibility;
 			set
 			{
-				_sliderVisibility = value;
+				_sliderVisibility = value ?? "visible";
 				OnPropertyChanged();
 			}
 		}
@@ -213,7 +232,7 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		private int _visHeartBeatValue;
+		private int _visHeartBeatValue = ConfigValue.Inst.VisualHeartbeat();
 		private double _intervalBetweenPics;
 
 		public int VisHeartBeatValue
@@ -262,16 +281,38 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		private void ChangePic(object sender, System.Timers.ElapsedEventArgs e) => RetrieveNextPicture();
+		private bool _isModelDoneLoadingPictures;
+
+		public bool IsModelDoneLoadingPictures
+		{
+			get => _isModelDoneLoadingPictures;
+			set
+			{
+				_isModelDoneLoadingPictures = value;
+				OnPropertyChanged();
+			}
+		}
 
 		private void RetrieveNextPicture()
 		{
+			// If window is minimized then do not advance pictures
 			if (WindowSizeState == WindowState.Minimized) return;
 
-			var pic = _model.GetNextPicture();
-			if (pic == null) return;
+			string pic = null;
+			for (var i = 0; i < RetryPictureCount; ++i)
+			{
+				// _model.GetNextPicture() checks for File.Exists(..)
+				pic = _model.GetNextPicture();
+				if (pic == null) continue;
+				if (pic.IsPictureValidFormat()) break;
+			}
+
+			if (pic == null || !pic.IsPictureValidFormat())
+				Log.Error($"File: {pic} cannot be found after {RetryPictureCount}.  Files may have been deleted after the program started");
+
 			CurrentPicture = pic;
-			SelectionTracker.Inst.Append(_pic);
+			_model.SelectionTrackerAppend(CurrentPicture);
+			
 			ResetHeartBeat();
 		}
 
@@ -288,38 +329,59 @@ namespace Rotate.Pictures.ViewModel
 			_visualHeartbeatTmr.Start();
 		}
 
-		public void MotionValueChanged(RoutedPropertyChangedEventArgs<double> e) { }
+		#region ISubscriber<PictureLoadingDoneEventArgs>
 
-		public void MotionDragCompleted(MediaElement mePlayer, Slider meSliderPosition, DragCompletedEventArgs e)
-		{
-			_userIsDraggingMotionPicSlider = false;
-			mePlayer.Position = TimeSpan.FromSeconds(meSliderPosition.Value);
-		}
+		public void OnEvent(PictureLoadingDoneEventArgs e) => IsModelDoneLoadingPictures = e.RetrieveCompleted;
 
-		public void MotionDragStarted(DragStartedEventArgs e) => _userIsDraggingMotionPicSlider = true;
-
-		public void TimeFrameValueChanged(RoutedPropertyChangedEventArgs<double> e) { }
+		#endregion
 
 		#region Inner VM Communication Message Handling
 
 		private void RegisterMessages()
 		{
-			Messenger<CloseDialog>.DefaultMessenger.Register(this, OnCloseStretchMode, MessageContext.CloseStretchMode);
-			Messenger<SelectedStretchModeMessage>.DefaultMessenger.Register(this, OnSetStretchMode, MessageContext.SetStretchMode);
-			Messenger<SetIntervalMessage>.DefaultMessenger.Register(this, OnSetIntervalBetweenPictures, MessageContext.SetIntervalBetweenPictures);
-			Messenger<CloseDialog>.DefaultMessenger.Register(this, OnCloseIntervalBetweenPictures, MessageContext.CloseIntervalBetweenPictures);
-			Messenger<CloseDialog>.DefaultMessenger.Register(this, OnCancelFileTypes, MessageContext.CloseFileTypes);
-			Messenger<SelectedMetadataMessage>.DefaultMessenger.Register(this, OnSetMetadataAction, MessageContext.SetMetadata);
-			Messenger<BufferDepthMessage>.DefaultMessenger.Register(this, OnBufferDepthAction, MessageContext.BufferDepth);
-			Messenger<CloseDialog>.DefaultMessenger.Register(this, OnCloseBufferDepth, MessageContext.CloseBufferDepth);
-			Messenger<CommandRequest>.DefaultMessenger.Register(this, BackImageMove, MessageContext.BackImageCommand);
-			Messenger<CommandRequest>.DefaultMessenger.Register(this, NextImageMove, MessageContext.NextImageCommand);
-			Messenger<PropertyChangedCommandRequest>.DefaultMessenger.Register(this, m => MotionValueChanged(m.PropertyChangedEventArgs), MessageContext.MotionValueChanged);
-			Messenger<DragMotionStartedCommandRequest>.DefaultMessenger.Register(this, m => MotionDragStarted(m.StartedEventArgs), MessageContext.DragMotionStarted);
-			Messenger<DragMotionCompletedCommandRequest>.DefaultMessenger.Register(this, m => MotionDragCompleted(m.MediaPlayer, m.SliderPosition, m.CompletedEventArgs), MessageContext.DragMotionCompleted);
+			Messenger<CloseDialog>.Instance.Register(this, OnCloseStretchMode, MessageContext.CloseStretchMode);
+			Messenger<SelectedStretchModeMessage>.Instance.Register(this, OnSetStretchMode, MessageContext.SetStretchMode);
+			Messenger<SetIntervalMessage>.Instance.Register(this, OnSetIntervalBetweenPictures, MessageContext.SetIntervalBetweenPictures);
+			Messenger<CloseDialog>.Instance.Register(this, OnCloseIntervalBetweenPictures, MessageContext.CloseIntervalBetweenPictures);
+			Messenger<CloseDialog>.Instance.Register(this, OnCancelFileTypes, MessageContext.CloseFileTypes);
+			Messenger<SelectedMetadataMessage>.Instance.Register(this, OnSetMetadataAction, MessageContext.SetMetadata);
+			Messenger<BufferDepthMessage>.Instance.Register(this, OnBufferDepthAction, MessageContext.BufferDepth);
+			Messenger<CloseDialog>.Instance.Register(this, OnCloseBufferDepth, MessageContext.CloseBufferDepth);
+			Messenger<CommandRequest>.Instance.Register(this, BackImageMove, MessageContext.BackImageCommand);
+			Messenger<CommandRequest>.Instance.Register(this, NextImageMove, MessageContext.NextImageCommand);
+			Messenger<CloseDialog>.Instance.Register(this, OnCloseNoDisplayPictures, MessageContext.NoDisplayPicture);
+			Messenger<DoNotDisplayMessage>.Instance.Register(this, OnDeleteFromDoNotDisplay, MessageContext.DeleteFromDoNotDisplay);
+			Messenger<DoNotDisplayPathMessage>.Instance.Register(this, OnAddToDoNotDisplay, MessageContext.MainWindowViewModel);
+			Messenger<ClearDoNotDisplayPathMessage>.Instance.Register(this, OnClearDoNotDisplay, MessageContext.MainWindowViewModel);
+			Messenger<LoadNoDisplayPicturesMessage>.Instance.Register(this, OnLoadNoDisplayPictures, MessageContext.MainWindowViewModel);
 		}
 
-		private void OnCloseIntervalBetweenPictures(CloseDialog obj) => _intervalBetweenPicturesService.CloseDetailDialog();
+		private void UnregisterMessages()
+		{
+			Messenger<CloseDialog>.Instance.Unregister(this, MessageContext.CloseStretchMode);
+			Messenger<SelectedStretchModeMessage>.Instance.Unregister(this, MessageContext.SetStretchMode);
+			Messenger<SetIntervalMessage>.Instance.Unregister(this, MessageContext.SetIntervalBetweenPictures);
+			Messenger<CloseDialog>.Instance.Unregister(this, MessageContext.CloseIntervalBetweenPictures);
+			Messenger<CloseDialog>.Instance.Unregister(this, MessageContext.CloseFileTypes);
+			Messenger<SelectedMetadataMessage>.Instance.Unregister(this, MessageContext.SetMetadata);
+			Messenger<BufferDepthMessage>.Instance.Unregister(this, MessageContext.BufferDepth);
+			Messenger<CloseDialog>.Instance.Unregister(this, MessageContext.CloseBufferDepth);
+			Messenger<CommandRequest>.Instance.Unregister(this, MessageContext.BackImageCommand);
+			Messenger<CommandRequest>.Instance.Unregister(this, MessageContext.NextImageCommand);
+			Messenger<CloseDialog>.Instance.Unregister(this, MessageContext.NoDisplayPicture);
+			Messenger<DoNotDisplayMessage>.Instance.Unregister(this, MessageContext.DeleteFromDoNotDisplay);
+			Messenger<DoNotDisplayPathMessage>.Instance.Unregister(this, MessageContext.MainWindowViewModel);
+			Messenger<ClearDoNotDisplayPathMessage>.Instance.Unregister(this, MessageContext.MainWindowViewModel);
+			Messenger<LoadNoDisplayPicturesMessage>.Instance.Unregister(this, MessageContext.MainWindowViewModel);
+		}
+
+		private void OnCloseStretchMode() => _stretchSvc.CloseDetailDialog();
+
+		private void OnSetStretchMode(SelectedStretchModeMessage stretchMode)
+		{
+			ImageStretch = stretchMode.Mode.ToString();
+			ConfigValue.Inst.UpdateImageToStretch(stretchMode.Mode);
+		}
 
 		private void OnSetIntervalBetweenPictures(SetIntervalMessage intervalMsg)
 		{
@@ -329,11 +391,9 @@ namespace Rotate.Pictures.ViewModel
 			ConfigValue.Inst.UpdateIntervalBetweenPictures(IntervalBetweenPictures);
 		}
 
-		private void OnCloseStretchMode(CloseDialog obj) => _stretchSvc.CloseDetailDialog();
+		private void OnCloseIntervalBetweenPictures() => _intervalBetweenPicturesService.CloseDetailDialog();
 
-		private void OnSetStretchMode(SelectedStretchModeMessage stretchMode) => ConfigValue.Inst.UpdateImageToStretch(stretchMode.Mode);
-
-		private void OnCancelFileTypes(CloseDialog obj) => _pictureMetadataService.CloseDetailDialog();
+		private void OnCancelFileTypes() => _pictureMetadataService.CloseDetailDialog();
 
 		private void OnSetMetadataAction(SelectedMetadataMessage metadata)
 		{
@@ -380,9 +440,56 @@ namespace Rotate.Pictures.ViewModel
 
 			ConfigValue.Inst.UpdateMaxPictureTrackerDepth(depth);
 			ConfigValue.Inst.SetMaxTrackingDepth(depth);
+			_model.SelectionTrackerSetMaxPictureDepth(depth);
 		}
 
-		private void OnCloseBufferDepth(CloseDialog obj) => _pictureBufferService.CloseDetailDialog();
+		private void OnCloseBufferDepth() => _pictureBufferService.CloseDetailDialog();
+
+		private void OnCloseNoDisplayPictures() => _noDisplayPictureService.CloseDetailDialog();
+
+		private void OnDeleteFromDoNotDisplay(DoNotDisplayMessage removeNoDisplayMessage)
+		{
+			var picIndex = removeNoDisplayMessage.PicIndex;
+			_model.RemovePictureToAvoid(picIndex);
+			Messenger<DoNotDisplayMessage>.Instance.Send(new DoNotDisplayMessage(picIndex), MessageContext.FromMainToDoNotDisplay);
+			var path = _model.PicIndexToPath(removeNoDisplayMessage.PicIndex);
+			Messenger<DoNotDisplayPathMessage>.Instance.Send(new DoNotDisplayPathMessage(path), MessageContext.FromMainToDoNotDisplay);
+		}
+
+		private void OnAddToDoNotDisplay(DoNotDisplayPathMessage path)
+		{
+			var inx = _model.PicPathToIndex(path.PicPath);
+			_model.AddPictureToAvoid(inx);
+
+			var picsToAvoid = _model.PicturesToAvoid;
+			var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
+			var parm = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
+			Messenger<NoDisplayPicturesMessage>.Instance.Send(new NoDisplayPicturesMessage(parm), MessageContext.NoDisplayPicture);
+		}
+
+		private void OnClearDoNotDisplay()
+		{
+			_model.ClearDoNotDisplayCollection();
+			Messenger<ClearDoNotDisplayPathMessage>.Instance.Send(new ClearDoNotDisplayPathMessage(), MessageContext.NoDisplayPicture);
+		}
+
+		private void OnLoadNoDisplayPictures(LoadNoDisplayPicturesMessage paths)
+		{
+			// Clear all pictures to avoid
+			_model.ClearDoNotDisplayCollection();
+
+			// Add all pictures from paths
+			foreach (var path in paths.PicturesToAvoid)
+			{
+				var inx = _model.PicPathToIndex(path);
+				_model.AddPictureToAvoid(inx);
+			}
+
+			var picsToAvoid = _model.PicturesToAvoid;
+			var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
+			var parm = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
+			Messenger<NoDisplayPicturesMessage>.Instance.Send(new NoDisplayPicturesMessage(parm), MessageContext.NoDisplayPicture);
+		}
 
 		#endregion
 
@@ -391,7 +498,7 @@ namespace Rotate.Pictures.ViewModel
 		private void LoadCommands()
 		{
 			StopStartCommand = new CustomCommand(StopStartRotation);
-			BackImageCommand = new CustomCommand(BackImageMove);
+			BackImageCommand = new CustomCommand(BackImageMove, CanBackImageMove);
 			NextImageCommand = new CustomCommand(NextImageMove);
 			DoNotShowImageCommand = new CustomCommand(DoNotShowImage);
 			SetTimeBetweenPicturesCommand = new CustomCommand(SetTimeBetweenPictures);
@@ -400,6 +507,7 @@ namespace Rotate.Pictures.ViewModel
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
 			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
 			PalyCommand = new CustomCommand(Play, CanPlay);
+			WindowClosing = new CustomCommand(WindowClosingAction);
 		}
 
 		public ICommand StopStartCommand { get; set; }
@@ -422,15 +530,32 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand PalyCommand { get; set; }
 
-		private void StopStartRotation(object _) => RotationRunning = !RotationRunning;
+		public ICommand WindowClosing { get; set; }
 
-		public void Play(object _) => IsMotionRunning = true;
+		private void StopStartRotation() => RotationRunning = !RotationRunning;
 
-		public bool CanPlay(object _) => !IsMotionRunning;
+		public bool CanPlay() => !IsMotionRunning;
 
-		public void BackImageMove(object _)
+		public void Play() => IsMotionRunning = true;
+
+		private bool CanBackImageMove() => !_model.SelectionTrackerAtHead;
+
+		public void BackImageMove()
 		{
-			CurrentPicture = SelectionTracker.Inst.Prev();
+			for (var i = 0; i < _model.Count; ++i)
+			{
+				var pic = _model.SelectionTrackerPrev();
+				if (!File.Exists(pic))
+					Log.Error($"File: {pic} cannot be found.  File may have been deleted after the program started");
+				else if (pic.IsPictureValidFormat())
+				{
+					CurrentPicture = pic;
+					if (pic.IsPictureValidFormat())
+						break;
+				}
+				// else do not change picture
+			}
+
 			ResetHeartBeat();
 
 			if (!RotationRunning) return;
@@ -442,14 +567,29 @@ namespace Rotate.Pictures.ViewModel
 			ResetHeartBeat();
 		}
 
-		public void NextImageMove(object _)
+		public void NextImageMove()
 		{
-			if (SelectionTracker.Inst.AtTail)
+			if (_model.SelectionTrackerAtTail)
 				RetrieveNextPicture();
 			else
-				CurrentPicture = SelectionTracker.Inst.Next();
+			{
+				for (var i = 0; i < _model.Count; ++i)
+				{
+					var pic = _model.SelectionTrackerNext();
+					if (!File.Exists(pic))
+						Log.Error($"File: {pic} cannot be found.  Picture may have been deleted after program started");
+					else if (pic.IsPictureValidFormat())
+					{
+						CurrentPicture = pic;
+						if (pic.IsPictureValidFormat())
+							break;
+					}
+					// else do not change picture
+				}
+			}
 
 			if (!RotationRunning) return;
+
 			// No need to check minimized state because we cannot select the next-image-button if the window is minimized
 			//if (WindowSizeState == WindowState.Minimized) return;
 
@@ -458,17 +598,22 @@ namespace Rotate.Pictures.ViewModel
 			ResetHeartBeat();
 		}
 
-		public void DoNotShowImage(object _) => _model.AddPictureToAvoid(_model.CurrentPicIndex);
+		public void DoNotShowImage()
+		{
+			var inx = _model.PicPathToIndex(CurrentPicture);
+			_model.AddPictureToAvoid(inx);
+			NextImageMove();
+		}
 
-		private void SetTimeBetweenPictures(object _) => _intervalBetweenPicturesService.ShowDetailDialog(IntervalBetweenPictures);
+		private void SetTimeBetweenPictures() => _intervalBetweenPicturesService.ShowDetailDialog(IntervalBetweenPictures);
 
-		private void SetSelectedStrechMode(object _)
+		private void SetSelectedStrechMode()
 		{
 			var mode = ImageStretch.TextToMode();
 			_stretchSvc.ShowDetailDialog(mode);
 		}
 
-		private void SetPicturesMetaData(object _)
+		private void SetPicturesMetaData()
 		{
 			var picFolder = string.Join(";", ConfigValue.Inst.InitialPictureDirectories());
 			var firstPicture = ConfigValue.Inst.FirstPictureToDisplay();
@@ -483,16 +628,21 @@ namespace Rotate.Pictures.ViewModel
 			_pictureMetadataService.ShowDetailDialog(metaData);
 		}
 
-		private void SetPictureBufferDepth(object _)
+		private void SetPictureBufferDepth()
 		{
 			var depth = ConfigValue.Inst.MaxPictureTrackerDepth();
 			_pictureBufferService.ShowDetailDialog(depth);
 		}
 
-		private void ManageNoDisplayList(object _)
+		private void ManageNoDisplayList()
 		{
-
+			var picsToAvoid = _model.PicturesToAvoid;
+			var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
+			var param = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
+			_noDisplayPictureService.ShowDetailDialog(param);
 		}
+
+		private void WindowClosingAction() => UnregisterMessages();
 
 		#endregion
 

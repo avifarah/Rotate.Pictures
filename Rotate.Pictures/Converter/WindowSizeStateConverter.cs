@@ -5,6 +5,14 @@ using System.Windows.Data;
 
 namespace Rotate.Pictures.Converter
 {
+	/// <summary>
+	/// Purpose:
+	///		This converter will change the string:
+	///		    Normal,
+	///			Minimized,
+	///			Maximized,
+	///		into WindowState type
+	/// </summary>
 	public class WindowSizeStateConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value?.ToString() ?? "Normal";

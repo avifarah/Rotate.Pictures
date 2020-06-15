@@ -14,6 +14,7 @@ namespace Rotate.Pictures.View
 		public BufferDepthView()
 		{
 			InitializeComponent();
+			MouseLeftButtonDown += (sender, args) => DragMove();
 
 			WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			Owner = Application.Current.MainWindow;

@@ -27,17 +27,32 @@ namespace Rotate.Pictures.Service
 			WinCreate = windowCreate;
 		}
 
+		/// <summary>
+		/// When you override this method the first thing that needs to happen is: set WinDialog
+		/// </summary>
 		public virtual void ShowDetailDialog()
 		{
-			WinDialog = WinCreate();
-			WinDialog?.ShowDialog();
+			if (WinDialog == null)
+			{
+				const string errMsg = "WinDialog is expected to be set as first thing in the calling Dialog";
+				Log.Error(errMsg);
+				throw new Exception(errMsg);
+			}
+
+			try
+			{
+				WinDialog?.ShowDialog();
+			}
+			catch (Exception e)
+			{
+				Log.Error("Error while processing File Type dialog", e);
+			}
 		}
 
-		public virtual void ShowDetailDialog(object param)
-		{
-			WinDialog = WinCreate();
-			WinDialog?.ShowDialog();
-		}
+		/// <summary>
+		/// When you override this method the first thing that needs to happen is: set WinDialog
+		/// </summary>
+		public virtual void ShowDetailDialog(object param) => ShowDetailDialog();
 
 		public virtual void CloseDetailDialog() => WinDialog?.Close();
 	}

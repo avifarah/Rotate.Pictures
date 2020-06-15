@@ -3,6 +3,10 @@
 
 namespace Rotate.Pictures.MessageCommunication
 {
+	/// <summary>
+	/// Purpose:
+	///		Communication payload the metadata to the pictures
+	/// </summary>
 	public sealed class SelectedMetadataMessage : IVmCommunication
 	{
 		private readonly PictureMetaDataTransmission _metadata;

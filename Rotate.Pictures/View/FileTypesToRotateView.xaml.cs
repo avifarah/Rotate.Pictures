@@ -13,6 +13,7 @@ namespace Rotate.Pictures.View
 		public FileTypesToRotateView()
 		{
 			InitializeComponent();
+			MouseLeftButtonDown += (sender, args) => DragMove();
 
 			WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			Owner = Application.Current.MainWindow;
