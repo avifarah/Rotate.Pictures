@@ -165,6 +165,8 @@ namespace Rotate.Pictures.Model
 
 		public string SelectionTrackerNext() => _selectionTracker.Next();
 
+		public int SelectionTrackerCount => _selectionTracker.Count;
+
 		#endregion
 
 		/// <summary>

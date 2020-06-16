@@ -542,19 +542,27 @@ namespace Rotate.Pictures.ViewModel
 
 		public void BackImageMove()
 		{
-			for (var i = 0; i < _model.Count; ++i)
+			int i = 0;
+			for (i = 0; i < _model.SelectionTrackerCount; ++i)
 			{
+				// _model.SelectionTrackerPrev() checks for File.Exists(..)
 				var pic = _model.SelectionTrackerPrev();
-				if (!File.Exists(pic))
-					Log.Error($"File: {pic} cannot be found.  File may have been deleted after the program started");
-				else if (pic.IsPictureValidFormat())
+				if (pic.IsPictureValidFormat())
 				{
-					CurrentPicture = pic;
+					if (pic == null)
+					{
+						Log.Error("Cannot move image back");
+						return;
+					}
+
 					if (pic.IsPictureValidFormat())
+					{
+						CurrentPicture = pic;
 						break;
+					}
 				}
-				// else do not change picture
 			}
+			if (i == _model.SelectionTrackerCount) return;
 
 			ResetHeartBeat();
 
@@ -573,19 +581,22 @@ namespace Rotate.Pictures.ViewModel
 				RetrieveNextPicture();
 			else
 			{
-				for (var i = 0; i < _model.Count; ++i)
+				int i;
+				for (i = 0; i < _model.SelectionTrackerCount; ++i)
 				{
 					var pic = _model.SelectionTrackerNext();
-					if (!File.Exists(pic))
-						Log.Error($"File: {pic} cannot be found.  Picture may have been deleted after program started");
-					else if (pic.IsPictureValidFormat())
+					if (pic == null) return;
+					if (pic.IsPictureValidFormat())
 					{
-						CurrentPicture = pic;
 						if (pic.IsPictureValidFormat())
+						{
+							CurrentPicture = pic;
 							break;
+						}
 					}
-					// else do not change picture
 				}
+
+				if (i == _model.SelectionTrackerCount) return;
 			}
 
 			if (!RotationRunning) return;

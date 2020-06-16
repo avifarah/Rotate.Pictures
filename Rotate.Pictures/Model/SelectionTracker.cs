@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
@@ -12,8 +12,7 @@ namespace Rotate.Pictures.Model
 	/// </summary>
 	public class SelectionTracker
 	{
-		//private static readonly Lazy<SelectionTracker> _inst = new Lazy<SelectionTracker>(() => new SelectionTracker());
-		//public static readonly SelectionTracker Inst = _inst.Value;
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		private int _maxTrackerDepth;
 		private readonly List<string> _tracker = new List<string>();
@@ -53,12 +52,18 @@ namespace Rotate.Pictures.Model
 			{
 				_picturePointer = (_picturePointer + 1) % count;
 				var path = _tracker[_picturePointer];
+				if (!File.Exists(path))
+				{
+					Log.Error($"File: {path} cannot be found.  File may have been deleted after the program started");
+					continue;
+				}
+
 				var inx = _parentPicModel.PicPathToIndex(path);
 				if (!_parentPicModel.IsPictureToAvoid(inx)) break;
 				if (i == count)
 				{
-					_picturePointer = 0;
-					break;
+					Log.Error($"Cannot move next");
+					return null;
 				}
 			}
 			return _tracker[_picturePointer];
@@ -82,13 +87,18 @@ namespace Rotate.Pictures.Model
 			{
 				_picturePointer = (_picturePointer - 1 + count) % count;
 				var path = _tracker[_picturePointer];
-				if (!File.Exists(path)) continue;
+				if (!File.Exists(path))
+				{
+					Log.Error($"File: {path} cannot be found.  File may have been deleted after the program started");
+					continue;
+				}
+
 				var inx = _parentPicModel.PicPathToIndex(path);
 				if (!_parentPicModel.IsPictureToAvoid(inx)) break;
 				if (i == count)
 				{
-					_picturePointer = 0;
-					break;
+					Log.Error($"Cannot move previous");
+					return null;
 				}
 			}
 			return _tracker[_picturePointer];
