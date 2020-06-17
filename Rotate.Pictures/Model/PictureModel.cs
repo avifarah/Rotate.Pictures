@@ -102,6 +102,7 @@ namespace Rotate.Pictures.Model
 			// pictures that were previously displayed.
 			_picCollection.Clear();
 			_selectionTracker.ClearTracker();
+			ClearDoNotDisplayCollection();
 
 			_extensionList = ConfigValue.Inst.FileExtensionsToConsider();
 			_cts = new CancellationTokenSource();

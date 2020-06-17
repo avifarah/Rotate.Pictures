@@ -19,7 +19,6 @@ namespace Rotate.Pictures.ViewModel
 		}
 
 		private string _pictureFolders;
-		private PictureMetaDataTransmission _originalMetaData = null;
 
 		public string PictureFolders
 		{
@@ -80,13 +79,6 @@ namespace Rotate.Pictures.ViewModel
 				FirstPictureToDisplay = ConfigValue.Inst.FirstPictureToDisplay();
 				StillPictureExtensions = string.Join(";", ConfigValue.Inst.StillPictureExtensions().ToArray());
 				MotionPictureExtensions = string.Join(";", ConfigValue.Inst.MotionPictures().ToArray());
-				_originalMetaData = new PictureMetaDataTransmission {
-					PictureFolder = PictureFolders,
-					FirstPictureToDisplay = FirstPictureToDisplay,
-					StillPictureExtensions = StillPictureExtensions,
-					MotionPictureExtensions = MotionPictureExtensions
-				};
-
 				return;
 			}
 
@@ -94,12 +86,6 @@ namespace Rotate.Pictures.ViewModel
 			FirstPictureToDisplay = metadata.FirstPictureToDisplay;
 			StillPictureExtensions = metadata.StillPictureExtensions;
 			MotionPictureExtensions = metadata.MotionPictureExtensions;
-			_originalMetaData = new PictureMetaDataTransmission {
-				PictureFolder = PictureFolders,
-				FirstPictureToDisplay = FirstPictureToDisplay,
-				StillPictureExtensions = StillPictureExtensions,
-				MotionPictureExtensions = MotionPictureExtensions
-			};
 		}
 
 		#endregion
@@ -136,14 +122,11 @@ namespace Rotate.Pictures.ViewModel
 				StillPictureExtensions = StillPictureExtensions,
 				MotionPictureExtensions = MotionPictureExtensions
 			};
-	
-			if (metadata != _originalMetaData)
-				await Task.Run(() => Messenger<SelectedMetadataMessage>.Instance.Send(new SelectedMetadataMessage(metadata), MessageContext.SetMetadata));
+			await Task.Run(() => Messenger<SelectedMetadataMessage>.Instance.Send(new SelectedMetadataMessage(metadata), MessageContext.SetMetadata));
 
 			CancelAction();
 	
-			if (metadata != _originalMetaData)
-				MessageBox.Show("Rotation may be frozen for a moment while the meta data updates and pictures are read");
+			MessageBox.Show("Rotation may be frozen for a moment while the meta data updates and pictures are read");
 		}
 
 		private bool CanOk() => !HasErrors;
