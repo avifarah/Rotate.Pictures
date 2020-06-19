@@ -38,6 +38,15 @@ namespace Rotate.Pictures.View
 			DataContext = VmFactory.Inst.CreateVm(this);
 		}
 
+		private void UIElement_OnKeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter)
+			{
+				NextPicture.Focus();
+				e.Handled = true;
+			}
+		}
+
 		protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
 		{
 			base.OnPropertyChanged(e);
@@ -241,5 +250,6 @@ namespace Rotate.Pictures.View
 			}
 		}
 #endif
+
 	}
 }

@@ -137,36 +137,43 @@
 
 			<Grid Grid.Row="1">
 				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="18"/>
+					<ColumnDefinition Width="Auto"/>
 					<ColumnDefinition Width="*"/>
 					<ColumnDefinition Width="100"/>
-					<ColumnDefinition Width="22" />
-					<ColumnDefinition Width="22"/>
-					<ColumnDefinition Width="18"/>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="Auto"/>
 				</Grid.ColumnDefinitions>
 
+				<!-- Hidden control, but their data can be used -->
 				<TextBlock x:Name="WindowSizeState" Grid.Column="0" Text="{Binding WindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
 				<TextBlock x:Name="OldWindowSizeState" Grid.Column="0" Text="{Binding OldWindowSizeState, Mode=TwoWay, Converter={StaticResource LocalWindowSizeStateConverter}}" Visibility="Collapsed" />
 
+				<!-- Left arrow, move back 1 picture in the selection-stack -->
 				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding BackImageCommand}" Style="{StaticResource ShrinkOnPress}"
-				        ToolTip="Rotate picture set to previous picture" ToolTipService.ShowDuration="3000">
+				        Grid.Column="0" ToolTip="Rotate picture set to previous picture" ToolTipService.ShowDuration="3000">
 					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 				</Button>
 
-				<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding CurrentPicture, Mode=OneWay}"
+				<!-- Path of picture -->
+				<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding DisplayCurrentPic}"
 				         Background="Yellow" Foreground="Black" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
-				         BorderBrush="Transparent" BorderThickness="0" IsReadOnly="True" Grid.Column="1" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"/>
+				         BorderBrush="Transparent" BorderThickness="0" Grid.Column="1" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"
+				         KeyDown="UIElement_OnKeyDown"/>
 
+				<!-- Progress bar to end of time for display -->
 				<ProgressBar Minimum="0" Maximum="{Binding IntervalProgressBarMax, Mode=OneWay}" Visibility="{Binding SliderVisibility}"
 				             Background="Yellow" Foreground="#FFB2B200" Grid.Column="2" Name="PrBarTimeToEndOfDisplayOfThisPicture"
 				             Value="{Binding VisHeartBeatValue, Mode=OneWay}" BorderThickness="1" BorderBrush="Black" Margin="0,0,3,0"/>
 
+				<!-- Do now show button -->
 				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3" Style="{StaticResource ShrinkOnPress}"
 				        Name="BtnDoNotShow" Command="{Binding DoNotShowImageCommand}"
 				        ToolTip="Do not show this image again.  See 'Manage no-display pictures-list...' menu entry.">
-					<Image Source="/Rotate.Pictures;component/Images/NoEntry.png"></Image>
+					<Image Source="/Rotate.Pictures;component/Images/NoEntry.png" />
 				</Button>
 
+				<!-- Stop/Start button -->
 				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4" Command="{Binding StopStartCommand}" Style="{StaticResource ShrinkOnPress}">
 					<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
 					         Width="15" Height="15"
@@ -176,8 +183,9 @@
 					         ToolTipService.ShowDuration="3000" />
 				</Button>
 
+				<!-- Right arrow, forward 1 picture in the selection-stack -->
 				<Button HorizontalAlignment="Left" VerticalAlignment="Stretch" Command="{Binding NextImageCommand}" Grid.Column="5" Style="{StaticResource ShrinkOnPress}"
-				        ToolTip="Rotate picture set to next picture" ToolTipService.ShowDuration="3000">
+				        Name="NextPicture" ToolTip="Rotate picture set to next picture" ToolTipService.ShowDuration="3000">
 					<Image Source="/Rotate.Pictures;component/Images/Left.jpg" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Image.LayoutTransform>
 							<ScaleTransform ScaleX="-1"/>

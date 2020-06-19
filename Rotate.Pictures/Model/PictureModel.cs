@@ -69,6 +69,10 @@ namespace Rotate.Pictures.Model
 
 		public bool IsPictureToAvoid(int index) => _avoidCollection.IsPictureToAvoid(index);
 
+		public bool IsPictureToAvoid(string path) => _avoidCollection.IsPictureToAvoid(PicPathToIndex(path));
+
+		public bool IsCollectionContains(string path) => _picCollection.Contains(path);
+
 		/// <summary>
 		/// .ctor
 		/// Retrieve pictures asynchronously

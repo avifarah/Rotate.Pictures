@@ -106,6 +106,27 @@ namespace Rotate.Pictures.ViewModel
 				_currentPicture = value;
 				IsMotionRunning = _currentPicture.IsMotionPicture();
 				OnPropertyChanged();
+				OnPropertyChanged(nameof(DisplayCurrentPic));
+			}
+		}
+
+		public string DisplayCurrentPic
+		{
+			get => _currentPicture;
+			set
+			{
+				var displayPic = value;
+				var isInCollection = _model.IsCollectionContains(displayPic);
+				var isToAvoid = _model.IsPictureToAvoid(displayPic);
+				var isValidFormat = displayPic.IsPictureValidFormat();
+
+				if (isInCollection && !isToAvoid && isValidFormat)
+				{
+					CurrentPicture = displayPic;
+					_model.SelectionTrackerAppend(CurrentPicture);
+
+					ResetHeartBeat();
+				}
 			}
 		}
 
