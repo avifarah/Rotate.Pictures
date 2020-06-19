@@ -93,9 +93,10 @@
 					<RowDefinition Height="6*" />
 				</Grid.RowDefinitions>
 				<Label Grid.RowSpan="2"  Content="Repository _File path" Target="FilePath" Margin="0,0,5,0" />
-				<TextBox Grid.Column="1" Grid.Row="1" Name="FilePath" Text="{Binding RepositoryFilePath, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Margin="0,0,5,0" />
-				<Button Grid.Column="2" Grid.Row="1" Content="_Retrieve" Command="{Binding RetrieveRepositoryCommand}" Margin="0,0,5,0" />
-				<Button Grid.Column="3" Grid.Row="1" Content="_Save" Command="{Binding SaveRepositoryCommand}" />
+				<TextBox Grid.Column="1" Grid.Row="1" Name="FilePath" Text="{Binding RepositoryFilePath, UpdateSourceTrigger=PropertyChanged}"
+				         HorizontalAlignment="Stretch" Margin="0,0,5,0" />
+				<Button Grid.Column="2" Grid.Row="1" Content="_Retrieve" Command="{Binding RetrieveRepositoryCommand}" Margin="0,0,5,0" Style="{StaticResource ShrinkOnPress95}" />
+				<Button Grid.Column="3" Grid.Row="1" Content="_Save" Command="{Binding SaveRepositoryCommand}" Style="{StaticResource ShrinkOnPress95}" />
 			</Grid>
 			<Grid Grid.Row="5" Grid.Column="1" Margin="0,0,0,5">
 				<Grid.ColumnDefinitions>
@@ -106,8 +107,8 @@
 				</Grid.ColumnDefinitions>
 				<Label Content="Repository _File path" Margin="0,0,5,0" Visibility="Hidden" />
 				<TextBlock Grid.Column="1" Text="{Binding RepositoryFilePathError}" Foreground="Red"/>
-				<Button Content="_Clear" Grid.Column="2" Name="BtnClear" Command="{Binding ClearCommand}" Margin="0,0,5,0"/>
-				<Button Content="E_xit" Grid.Column="3" Name="BtnExit" Command="{Binding ExitCommand}"/>
+				<Button Content="_Clear" Grid.Column="2" Name="BtnClear" Command="{Binding ClearCommand}" Margin="0,0,5,0" Style="{StaticResource ShrinkOnPress95}" />
+				<Button Content="E_xit" Grid.Column="3" Name="BtnExit" Command="{Binding ExitCommand}" Style="{StaticResource ShrinkOnPress95}" />
 			</Grid>
 		</Grid>
 	</Border>

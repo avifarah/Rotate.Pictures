@@ -214,6 +214,8 @@ namespace Rotate.Pictures.ViewModel
 
 			var loadNoDisplay = new LoadNoDisplayPicturesMessage(picsToAvoid);
 			Messenger<LoadNoDisplayPicturesMessage>.Instance.Send(loadNoDisplay, MessageContext.MainWindowViewModel);
+
+			MessageBox.Show("Retreived", "Rotating.Pictures");
 		}
 
 		/// <summary>
@@ -268,6 +270,8 @@ namespace Rotate.Pictures.ViewModel
 			using var sw = new StreamWriter(fullFn, false);
 			foreach (var item in NoDisplayItems)
 				sw.WriteLine(item.ColumnPath);
+
+			MessageBox.Show("Saved", "Rotating.Pictures");
 		}
 
 		private void RegisterMessages()
