@@ -18,13 +18,16 @@ namespace Rotate.Pictures.ViewModel
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+		private readonly IConfigValue _configValue;
+
 		public NoDisplayPictureViewModel()
 		{
 			NoDisplayItems = new ObservableCollection<NoDisplayItem>();
 			LoadCommands();
 			RegisterMessages();
 
-			RepositoryFilePath = ConfigValue.Inst.FilePathToSavePicturesToAvoid();
+			_configValue = ConfigValueProvider.Default;
+			RepositoryFilePath = _configValue.FilePathToSavePicturesToAvoid();
 		}
 
 		private void OnNoDisplayList(NoDisplayPicturesMessage noDisplayParam)
@@ -264,7 +267,6 @@ namespace Rotate.Pictures.ViewModel
 
 		private void SaveRepositoryAction()
 		{
-			ConfigValue.Inst.UpdatePicturesToAvoid(RepositoryFilePath);
 			var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
 			var fullFn = Path.GetFullPath(fileName);
 			using var sw = new StreamWriter(fullFn, false);

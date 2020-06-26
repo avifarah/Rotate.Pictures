@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
 
@@ -32,7 +35,7 @@ namespace UnitTest.Rotate.Pictures
 		[TestInitialize()]
 		public void MyTestInitialize()
 		{
-			ConfigValue.Inst.UpdatePicturesToAvoid(new List<int>());
+			ConfigValue.Inst.UpdatePicturesToAvoid(new List<string>());
 		}
 
 		// Use TestCleanup to run code after each test has run
@@ -45,11 +48,27 @@ namespace UnitTest.Rotate.Pictures
 		public void AvoidFirstPictureTest()
 		{
 			// Arrange
+			// TODO: test
+			var mockConfig = new Mock<IConfigValue>();
 			var picN = 10;
-			var picIndicesToAvoid = new List<int> { 0 };
-			var picsToAvoid = new PicturesToAvoidCollection(picIndicesToAvoid);
+			mockConfig.Setup(mc => mc.StillPictureExtensions()).Returns(new List<string> { ".jpg", ".png", ".bmp" });
+			mockConfig.Setup(mc => mc.MotionPictures()).Returns(new List<string> { ".avi", ".jpeg", ".Peggy", ".Ben" });
+			mockConfig.Setup(mc => mc.InitialPictureDirectories()).Returns(new[] { @"C:\dev\Rotating.Pictures\Testing" });
+			mockConfig.Setup(mc => mc.FileExtensionsToConsider()).Returns(new List<string> { ".jpg", ".png", ".bmp", ".avi", ".jpeg", ".Peggy", ".Ben" });
+			mockConfig.Setup(mc => mc.FirstPictureToDisplay()).Returns(@"C:\dev\Rotating.Pictures\Testing\Ben\IMG_0840-1.JPG");
 
-			for (var flatIndex = 0; flatIndex < picN - picIndicesToAvoid.Count; ++flatIndex)
+			// C:\dev\Rotating.Pictures\Testing\2007-02-01-1403-05\IMG_2351.jpg
+			var picToAvoidPath = Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2351.jpg");
+			var picToAvoidPaths = new List<string> { picToAvoidPath };
+			mockConfig.Setup(mc => mc.PicturesToAvoidPaths()).Returns(picToAvoidPaths);
+			mockConfig.Setup(mc => mc.MaxPictureTrackerDepth()).Returns(5);
+			var configValue = mockConfig.Object;
+
+			var model = new PictureModel(configValue);
+			var picsToAvoid = new PicturesToAvoidCollection(model, configValue);
+			picsToAvoid.AddPictureToAvoid(model.PicPathToIndex(picToAvoidPath));
+
+			for (var flatIndex = 0; flatIndex < picN - picToAvoidPaths.Count; ++flatIndex)
 			{
 				// Act
 				var pictureIndex = picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex);
@@ -63,9 +82,14 @@ namespace UnitTest.Rotate.Pictures
 		public void AvoidMiddlePictureTest()
 		{
 			// Arrange
+			// TODO: test
+			var mockConfig = new Mock<IConfigValue>();
 			var picN = 10;
-			var picIndicesToAvoid = new List<int> { 5 };
-			var picsToAvoid = new PicturesToAvoidCollection(picIndicesToAvoid);
+			var picToAvoidPath = Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2355.jpg");
+			var picIndicesToAvoid = new List<string> { picToAvoidPath };
+			var model = new PictureModel(mockConfig.Object);
+			var picsToAvoid = new PicturesToAvoidCollection(model, mockConfig.Object);
+			picsToAvoid.AddPictureToAvoid(model.PicPathToIndex(picToAvoidPath));
 
 			for (var flatIndex = 0; flatIndex < picN - picIndicesToAvoid.Count; ++flatIndex)
 			{
@@ -82,9 +106,14 @@ namespace UnitTest.Rotate.Pictures
 		public void AvoidLastPictureTest()
 		{
 			// Arrange
+			// TODO: test
+			var mockValue = new Mock<IConfigValue>();
 			var picN = 10;
-			var picIndicesToAvoid = new List<int> { 9 };
-			var picsToAvoid = new PicturesToAvoidCollection(picIndicesToAvoid);
+			var picToAvoidPath = Path.GetFullPath(@"..\..\..\..\Testing\2007-02-04-2043-00\IMG_2410_edited-1.jpg");
+			var picIndicesToAvoid = new List<string> { picToAvoidPath };
+			var model = new PictureModel(mockValue.Object);
+			var picsToAvoid = new PicturesToAvoidCollection(model, mockValue.Object);
+			picsToAvoid.AddPictureToAvoid(model.PicPathToIndex(picToAvoidPath));
 
 			for (var flatIndex = 0; flatIndex < picN - picIndicesToAvoid.Count; ++flatIndex)
 			{
@@ -100,21 +129,45 @@ namespace UnitTest.Rotate.Pictures
 		public void AvoidRangeOfPictureTest()
 		{
 			// Arrange
+			// TODO: test
 			var picN = 10;
-			var picIndicesToAvoid = new List<int> { 3, 4, 5, 6 };
-			var picsToAvoid = new PicturesToAvoidCollection(picIndicesToAvoid);
+			var picIndicesToAvoid = new List<string> {
+				Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2352.jpg"),			// Index: 2
+				Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2352_edited-1.jpg"),	// Index: 3
+				Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2353.jpg"),			// Index: 4
+				Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2353_edited-2.jpg")	// Index: 5
+			};
+			var mockValue = new Mock<IConfigValue>();
+			mockValue.Setup(mc => mc.PicturesToAvoidPaths()).Returns(picIndicesToAvoid.ToArray());
+			mockValue.Setup(mc => mc.InitialPictureDirectories()).Returns(new[] { @"C:\dev\Rotating.Pictures\Testing" });
+			mockValue.Setup(mc => mc.FileExtensionsToConsider()).Returns(new List<string> { ".jpg", ".png", ".bmp", ".avi", ".jpeg", ".Peggy", ".Ben" });
+			mockValue.Setup(mc => mc.StillPictureExtensions()).Returns(new List<string> { ".jpg", ".png", ".bmp" });
+			mockValue.Setup(mc => mc.MotionPictures()).Returns(new List<string> { ".avi", ".jpeg", ".Peggy", ".Ben" });
+			mockValue.Setup(mc => mc.FirstPictureToDisplay()).Returns(@"C:\dev\Rotating.Pictures\Testing\Ben\IMG_0840-1.JPG");
+			mockValue.Setup(mc => mc.MaxPictureTrackerDepth()).Returns(5);
+			var configValue = mockValue.Object;
+
+			var model = new PictureModel(configValue);
+			var picsToAvoid = new PicturesToAvoidCollection(model, mockValue.Object);
+			foreach (var pic in picIndicesToAvoid)
+			{
+				Debug.WriteLine($"pic: {pic,80}\t\tmodel.PicPathToIndex(pic): {model.PicPathToIndex(pic)}");
+				picsToAvoid.AddPictureToAvoid(model.PicPathToIndex(pic));
+			}
 
 			for (var flatIndex = 0; flatIndex < picN - picIndicesToAvoid.Count; ++flatIndex)
 			{
 				// Act
 				var pictureIndex = picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex);
+				Debug.WriteLine($"picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex(={flatIndex})): {pictureIndex}");
 
 				// Assert
-				var expected = flatIndex < 3 ? flatIndex : flatIndex + picIndicesToAvoid.Count;
+				var expected = flatIndex < 2 ? flatIndex : flatIndex + picIndicesToAvoid.Count;
 				Assert.AreEqual(expected, pictureIndex);
 			}
 		}
 
+#if false
 		[TestMethod]
 		public void AvoidMultipleRangeOfPicture_StartWithLowestBoundIndex_OutOfOrder_Test()
 		{
@@ -294,5 +347,6 @@ namespace UnitTest.Rotate.Pictures
 			for (var flatIndex = 0; flatIndex < picN - 4; ++flatIndex)
 				Assert.AreEqual(expected[flatIndex], pictureIndex[flatIndex]);
 		}
+		#endif
 	}
 }

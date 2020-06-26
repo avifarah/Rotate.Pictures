@@ -26,12 +26,15 @@ namespace Rotate.Pictures.View
 		private bool _isVolumeGt0 = true;
 		private double _lastVolume;
 		private bool _isDurationSet;
+		private readonly IConfigValue _configValue;
 
 		public MainWindow()
 		{
 			InitializeComponent();
 
-			_tmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(ConfigValue.Inst.VisualHeartbeat()), IsEnabled = true };
+			_configValue = ConfigValueProvider.Default;
+
+			_tmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_configValue.VisualHeartbeat()), IsEnabled = true };
 			_tmr.Tick += VisualTimerTick;
 			_tmr.Start();
 
@@ -158,7 +161,7 @@ namespace Rotate.Pictures.View
 				if (!MePlayer.NaturalDuration.HasTimeSpan) return;
 			}
 
-			var newPosition = MePlayer.Position + TimeSpan.FromSeconds(ConfigValue.Inst.MediaFastForward());
+			var newPosition = MePlayer.Position + TimeSpan.FromSeconds(_configValue.MediaFastForward());
 			MePlayer.Position = newPosition.TotalSeconds <= MePlayer.NaturalDuration.TimeSpan.TotalSeconds ? newPosition : MePlayer.NaturalDuration.TimeSpan;
 		}
 
@@ -167,7 +170,7 @@ namespace Rotate.Pictures.View
 		private void MediaRewind(object sender, ExecutedRoutedEventArgs e)
 		{
 			MePlayer.LoadedBehavior = MediaState.Manual;
-			var newPosition = MePlayer.Position - TimeSpan.FromSeconds(ConfigValue.Inst.MediaFastForward());
+			var newPosition = MePlayer.Position - TimeSpan.FromSeconds(_configValue.MediaFastForward());
 			MePlayer.Position = newPosition.TotalSeconds >= 0 ? newPosition : TimeSpan.FromSeconds(0.0);
 		}
 

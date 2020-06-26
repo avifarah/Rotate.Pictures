@@ -15,7 +15,8 @@ namespace UnitTest.Rotate.Pictures
 			// Arrange
 
 			// Act
-			var dirs = ConfigValue.Inst.InitialPictureDirectories();
+			var configValue = ConfigValueProvider.Default;
+			var dirs = configValue.InitialPictureDirectories();
 
 			// Assert
 			//<add key="Initial Folders" value="M:\Pictures;G:\Pictures;\\xyz\Pic\Pictures\Pics"/>
@@ -32,7 +33,8 @@ namespace UnitTest.Rotate.Pictures
 			int depth;
 
 			// Act
-			depth = ConfigValue.Inst.MaxPictureTrackerDepth();
+			var configValue = ConfigValueProvider.Default;
+			depth = configValue.MaxPictureTrackerDepth();
 
 			// Assert
 			//<add key = "Max picture tracker depth" value="9999"/>
@@ -43,12 +45,13 @@ namespace UnitTest.Rotate.Pictures
 		public void ExtensionsToConsiderTest()
 		{
 			// Arrange
-			ConfigValue.Inst.SetStillExtension(string.Empty);
-			ConfigValue.Inst.SetMotionExtension(string.Empty);
+			var configValue = ConfigValueProvider.Default;
+			configValue.SetStillExtension(string.Empty);
+			configValue.SetMotionExtension(string.Empty);
 			var expected = new List<string>();
 
 			// Act
-			var actual = ConfigValue.Inst.FileExtensionsToConsider();
+			var actual = configValue.FileExtensionsToConsider();
 
 			// Assert
 			Assert.AreEqual(expected.Count, actual.Count);
@@ -60,12 +63,13 @@ namespace UnitTest.Rotate.Pictures
 		public void ExtensionsToConder2Test()
 		{
 			// Arrange
-			ConfigValue.Inst.SetStillExtension(".Abc;.Def;.Ghi");
-			ConfigValue.Inst.SetMotionExtension(".Jkl;.Mno");
+			var configValue = ConfigValueProvider.Default;
+			configValue.SetStillExtension(".Abc;.Def;.Ghi");
+			configValue.SetMotionExtension(".Jkl;.Mno");
 			var expected = new List<string> { ".Abc", ".Def", ".Ghi", ".Jkl", ".Mno" };
 
 			// Act
-			var actual = ConfigValue.Inst.FileExtensionsToConsider();
+			var actual = configValue.FileExtensionsToConsider();
 
 			// Assert
 			Assert.AreEqual(expected.Count, actual.Count);
@@ -77,12 +81,13 @@ namespace UnitTest.Rotate.Pictures
 		public void ExtenstionsToConsider3Test()
 		{
 			// Arrange
-			ConfigValue.Inst.SetStillExtension(".Abc;.Def;.Ghi");
-			ConfigValue.Inst.SetMotionExtension(null);
+			var configValue = ConfigValueProvider.Default;
+			configValue.SetStillExtension(".Abc;.Def;.Ghi");
+			configValue.SetMotionExtension(null);
 			var expected = new List<string> { ".Abc", ".Def", ".Ghi" };
 
 			// Act
-			var actual = ConfigValue.Inst.FileExtensionsToConsider();
+			var actual = configValue.FileExtensionsToConsider();
 
 			// Assert
 			Assert.AreEqual(expected.Count, actual.Count);
@@ -94,13 +99,14 @@ namespace UnitTest.Rotate.Pictures
 		public void ExtenstionsToConsider4Test()
 		{
 			// Arrange
-			ConfigValue.Inst.SetStillExtension(string.Empty);
-			ConfigValue.Inst.SetMotionExtension(".Abc;.Def;.Ghi");
+			var configValue = ConfigValueProvider.Default;
+			configValue.SetStillExtension(string.Empty);
+			configValue.SetMotionExtension(".Abc;.Def;.Ghi");
 			var expected = ".Abc;.Def;.Ghi".Split(new[] { ';' }).ToList();
 			//expected.AddRange(".jpg;.png;.bmp".Split(new[] { ';' }).ToList());
 
 			// Act
-			var actual = ConfigValue.Inst.FileExtensionsToConsider();
+			var actual = configValue.FileExtensionsToConsider();
 
 			// Assert
 			Assert.AreEqual(expected.Count, actual.Count);
@@ -111,9 +117,10 @@ namespace UnitTest.Rotate.Pictures
 		[TestMethod]
 		public void RestoreStillExtensionsTest()
 		{
+			var configValue = ConfigValueProvider.Default;
 			var expected = new List<string> { ".jpg", ".bmp", ".gif", ".png", ".psd", ".tif" };
 
-			var actual = ConfigValue.Inst.RestoreStillExtensions.Split(new[] { ';' }).ToList();
+			var actual = configValue.RestoreStillExtensions.Split(new[] { ';' }).ToList();
 
 			Assert.AreEqual(expected.Count, actual.Count);
 			for (int i = 0; i < actual.Count; ++i)
@@ -123,9 +130,10 @@ namespace UnitTest.Rotate.Pictures
 		[TestMethod]
 		public void RestoreMotionExtensionsTest()
 		{
+			var configValue = ConfigValueProvider.Default;
 			var expected = new List<string> { ".mov", ".avi", ".mpg", ".mp4", ".wmv", ".3gp" };
 
-			var actual = ConfigValue.Inst.RestoreMotionExtensions.Split(new[] { ';' }).ToList();
+			var actual = configValue.RestoreMotionExtensions.Split(new[] { ';' }).ToList();
 
 			Assert.AreEqual(expected.Count, actual.Count);
 			for (int i = 0; i < actual.Count; ++i)
@@ -137,11 +145,12 @@ namespace UnitTest.Rotate.Pictures
 		{
 			// Arrange
 			string actual;
+			var configValue = ConfigValueProvider.Default;
 			//<add key = "Image stretch" value="fILL"/>
 			var expected = "Fill";
 
 			// Act
-			actual = ConfigValue.Inst.ImageStretch();
+			actual = configValue.ImageStretch();
 
 			// Assert
 			Assert.AreEqual(expected, actual);
@@ -152,10 +161,11 @@ namespace UnitTest.Rotate.Pictures
 		{
 			// Arrange
 			var expected = new string[] { "Abc", "Def" };
-			ConfigValue.Inst.SetInitialPictureDirectories("Abc;Def");
+			var configValue = ConfigValueProvider.Default;
+			configValue.SetInitialPictureDirectories("Abc;Def");
 
 			// Act
-			var actual = ConfigValue.Inst.InitialPictureDirectories();
+			var actual = configValue.InitialPictureDirectories();
 
 			// Assert
 			Assert.AreEqual(expected.Length, actual.Length);

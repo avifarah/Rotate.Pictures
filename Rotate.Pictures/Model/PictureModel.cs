@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -27,7 +28,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Collection of pictures to avoid
 		/// </summary>
-		private readonly PicturesToAvoidCollection _avoidCollection = PicturesToAvoidCollection.Default;
+		private readonly PicturesToAvoidCollection _avoidCollection;
 
 		private readonly SelectionTracker _selectionTracker;
 
@@ -37,6 +38,11 @@ namespace Rotate.Pictures.Model
 		private volatile int _retrieved;
 
 		/// <summary>
+		/// RetrievedEvent allows for waiting
+		/// </summary>
+		public ManualResetEvent RetrievedEvent = new ManualResetEvent(false);
+
+		/// <summary>
 		/// File extensions to consider
 		/// </summary>
 		private List<string> _extensionList;
@@ -44,6 +50,8 @@ namespace Rotate.Pictures.Model
 		private readonly Random _rand = new Random();
 		private Task _taskModel;
 		private CancellationTokenSource _cts;
+
+		private readonly IConfigValue _configValue;
 
 		public event EventHandler<PictureRetrievingEventArgs> PictureRetrievingHandler = delegate { };
 		public string RetrievingNow;
@@ -77,9 +85,11 @@ namespace Rotate.Pictures.Model
 		/// .ctor
 		/// Retrieve pictures asynchronously
 		/// </summary>
-		public PictureModel()
+		public PictureModel(IConfigValue configValue)
 		{
-			_selectionTracker = new SelectionTracker(this);
+			_configValue = configValue;
+			_selectionTracker = new SelectionTracker(this, configValue.MaxPictureTrackerDepth());
+			_avoidCollection = new PicturesToAvoidCollection(this, configValue);
 			Restart();
 		}
 
@@ -108,9 +118,9 @@ namespace Rotate.Pictures.Model
 			_selectionTracker.ClearTracker();
 			ClearDoNotDisplayCollection();
 
-			_extensionList = ConfigValue.Inst.FileExtensionsToConsider();
+			_extensionList = _configValue.FileExtensionsToConsider();
 			_cts = new CancellationTokenSource();
-			_taskModel = Task.Run(RetrievePictures, _cts.Token);
+			_taskModel = Task.Run(() => RetrievePictures(_cts.Token), _cts.Token);
 		}
 
 		public void ClearDoNotDisplayCollection() => _avoidCollection.ClearPicsToAvoid();
@@ -124,7 +134,7 @@ namespace Rotate.Pictures.Model
 			var cnt = _picCollection.Count;
 			if (cnt == 0)
 			{
-				var pic1 = ConfigValue.Inst.FirstPictureToDisplay();
+				var pic1 = _configValue.FirstPictureToDisplay();
 				if (string.IsNullOrWhiteSpace(pic1) || !File.Exists(pic1)) return null;
 				return pic1;
 			}
@@ -152,7 +162,14 @@ namespace Rotate.Pictures.Model
 
 		public void RemovePictureToAvoid(int picToAvoid) => _avoidCollection.RemovePictureToAvoid(picToAvoid);
 
-		public bool IsPicturesRetrieving => _retrieved == 0;
+		public bool IsPicturesRetrieving
+		{
+			get
+			{
+				var retrieved = Interlocked.CompareExchange(ref _retrieved, 1, 1);
+				return retrieved == 0;
+			}
+		}
 
 		public int Count => _picCollection.Count;
 
@@ -177,21 +194,23 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Retrieve all pictures from all directories
 		/// </summary>
-		private void RetrievePictures()
+		private void RetrievePictures(CancellationToken ct)
 		{
+			RetrievedEvent.Reset();
 			// Using Interlocked.Exchange is an overkill since _retrieved is an int, for which
 			// assignment is an atomic operation.
 			Interlocked.Exchange(ref _retrieved, 0);
 			CustomEventAggregator.Inst.Publish(new PictureLoadingDoneEventArgs(false));
 
-			var dirs = ConfigValue.Inst.InitialPictureDirectories();
+			var dirs = _configValue.InitialPictureDirectories();
 			foreach (var dir in dirs)
 			{
 				if (Directory.Exists(dir))
-					RetrievePictures(dir);
+					RetrievePictures(dir, ct);
 			}
 
 			Interlocked.Exchange(ref _retrieved, 1);
+			RetrievedEvent.Set();
 			CustomEventAggregator.Inst.Publish(new PictureLoadingDoneEventArgs(true));
 
 			if (_picCollection.Count == 0)
@@ -205,19 +224,32 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Retrieve pictures in a specific directory
 		/// </summary>
-		private void RetrievePictures(string dir)
+		private bool RetrievePictures(string dir, CancellationToken ct)
 		{
+			// Start by checking cancellation token
+			if (ct.IsCancellationRequested) return false;
+
+			// Publish an event to announce RetrievingNow directory
 			RetrievingNow = dir;
 			OnPictureRetrieving(dir);
-			var files = Directory.GetFiles(dir);
 
+			var files = Directory.GetFiles(dir);
 			var rightFiles = files.Where(fl => _extensionList.Any(e => fl.EndsWith(e, StringComparison.CurrentCultureIgnoreCase)));
 			var rightFormatted = rightFiles.Where(f => f.IsPictureValidFormat()).ToList();
+			//Log.Debug(string.Join(Environment.NewLine, rightFormatted.Select((p, i) => $"({i,4}, \"{p}\")")));
 			_picCollection.AddRange(rightFormatted);
+
+			// Done processing local files, check for cancellation token
+			if (ct.IsCancellationRequested) return false;
 
 			var dirs = Directory.GetDirectories(dir);
 			foreach (var d in dirs)
-				RetrievePictures(d);
+			{
+				var rc = RetrievePictures(d, ct);
+				if (!rc) return false;
+			}
+
+			return true;
 		}
 
 		private void OnPictureRetrieving(string picDirectory) => PictureRetrievingHandler(this, new PictureRetrievingEventArgs(picDirectory));

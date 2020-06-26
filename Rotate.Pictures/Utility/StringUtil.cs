@@ -47,9 +47,8 @@ namespace Rotate.Pictures.Utility
 
 		public static bool IsIntNumeric(this string text) => IntNumericRegex.IsMatch(text);
 
-		public static bool IsMotionPicture(this string fileName)
+		public static bool IsMotionPicture(this string fileName, List<string> motionPicExt)
 		{
-			var motionPicExt = ConfigValue.Inst.MotionPictures();
 			if (string.IsNullOrWhiteSpace(fileName)) return false;
 			var rc = motionPicExt.Any(s => string.Compare(new FileInfo(fileName).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
 			return rc;

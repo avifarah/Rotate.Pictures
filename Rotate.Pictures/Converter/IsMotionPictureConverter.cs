@@ -24,7 +24,9 @@ namespace Rotate.Pictures.Converter
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var fileNm = value as string;
-			var rc = fileNm.IsMotionPicture();
+			var configValue = ConfigValueProvider.Default;
+			var motionPicExt = configValue.MotionPictures();
+			var rc = fileNm.IsMotionPicture(motionPicExt);
 			return rc;
 		}
 

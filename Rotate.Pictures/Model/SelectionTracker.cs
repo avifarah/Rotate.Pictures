@@ -19,9 +19,9 @@ namespace Rotate.Pictures.Model
 		private int _picturePointer;
 		private readonly PictureModel _parentPicModel;
 
-		public SelectionTracker(PictureModel parent)
+		public SelectionTracker(PictureModel parent, int maxTrackerDepth)
 		{
-			_maxTrackerDepth = ConfigValue.Inst.MaxPictureTrackerDepth();
+			_maxTrackerDepth = maxTrackerDepth;
 			_picturePointer = 0;
 			_parentPicModel = parent;
 		}

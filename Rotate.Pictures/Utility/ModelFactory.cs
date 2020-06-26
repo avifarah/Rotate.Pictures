@@ -20,13 +20,15 @@ namespace Rotate.Pictures.Utility
 
 		private ModelFactory() { }
 
-		public object Create(string modelName)
+		public object Create(string modelName, IConfigValue configValue)
 		{
 			switch (modelName)
 			{
 				case "PictureFileRepository":
-					if (_picModel == null)
-						_picModel = new PictureModel();
+					if (_picModel != null) return _picModel;
+
+					configValue ??= ConfigValueProvider.Default;
+					_picModel = new PictureModel(configValue);
 
 					return _picModel;
 

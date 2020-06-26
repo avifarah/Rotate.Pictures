@@ -32,9 +32,12 @@ namespace Rotate.Pictures.ViewModel
 
 		private const int RetryPictureCount = 5;
 
+		private readonly IConfigValue _configValue;
+
 		public MainWindowViewModel()
 		{
-			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository");
+			_configValue = ConfigValueProvider.Default;
+			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository", _configValue);
 
 			_stretchSvc = new StretchDialogService();
 			_intervalBetweenPicturesService = new IntervalBetweenPicturesService();
@@ -42,10 +45,13 @@ namespace Rotate.Pictures.ViewModel
 			_pictureBufferService = new PictureBufferDepthService();
 			_noDisplayPictureService = new NoDisplayPictureService();
 
-			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(ConfigValue.Inst.VisualHeartbeat()), IsEnabled = true };
+			_intervalBetweenPictures = _configValue.IntervalBetweenPictures();
+			_visHeartBeatValue = _configValue.VisualHeartbeat();
+
+			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_configValue.VisualHeartbeat()), IsEnabled = true };
 			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
 
-			CurrentPicture = ConfigValue.Inst.FirstPictureToDisplay();
+			CurrentPicture = _configValue.FirstPictureToDisplay();
 			if (!File.Exists(CurrentPicture))
 			{
 				var errMsg = $"First picture file: {CurrentPicture} cannot be found.  Check configuration file";
@@ -56,8 +62,8 @@ namespace Rotate.Pictures.ViewModel
 			else if (!CurrentPicture.IsPictureValidFormat())
 				CurrentPicture = null;
 
-			ImageStretch = ConfigValue.Inst.ImageStretch();
-			InitialRotationMode = ConfigValue.Inst.RotatingPicturesInit();
+			ImageStretch = _configValue.ImageStretch();
+			InitialRotationMode = _configValue.RotatingPicturesInit();
 			RotationRunning = InitialRotationMode;
 
 			_picChangeTmr = new DispatcherTimer {
@@ -104,7 +110,7 @@ namespace Rotate.Pictures.ViewModel
 			set
 			{
 				_currentPicture = value;
-				IsMotionRunning = _currentPicture.IsMotionPicture();
+				IsMotionRunning = _currentPicture.IsMotionPicture(_configValue.MotionPictures());
 				OnPropertyChanged();
 				OnPropertyChanged(nameof(DisplayCurrentPic));
 			}
@@ -219,7 +225,7 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		private int _intervalBetweenPictures = ConfigValue.Inst.IntervalBetweenPictures();
+		private int _intervalBetweenPictures;
 
 		public int IntervalBetweenPictures
 		{
@@ -248,12 +254,12 @@ namespace Rotate.Pictures.ViewModel
 			set
 			{
 				_initialRotationMode = value;
-				ConfigValue.Inst.UpdateOnStartRotatingPicture(_initialRotationMode);
+				_configValue.UpdateOnStartRotatingPicture(_initialRotationMode);
 				OnPropertyChanged();
 			}
 		}
 
-		private int _visHeartBeatValue = ConfigValue.Inst.VisualHeartbeat();
+		private int _visHeartBeatValue;
 		private double _intervalBetweenPics;
 
 		public int VisHeartBeatValue
@@ -339,7 +345,7 @@ namespace Rotate.Pictures.ViewModel
 
 		private void VisualHeartBeatUpdate(object sender, EventArgs e)
 		{
-			var cnt = (double)IntervalBetweenPictures / ConfigValue.Inst.VisualHeartbeat();
+			var cnt = (double)IntervalBetweenPictures / _configValue.VisualHeartbeat();
 			_intervalBetweenPics += (double)_intervalProgressBarMax / (cnt - 1);
 			VisHeartBeatValue = (int)_intervalBetweenPics;
 		}
@@ -401,7 +407,7 @@ namespace Rotate.Pictures.ViewModel
 		private void OnSetStretchMode(SelectedStretchModeMessage stretchMode)
 		{
 			ImageStretch = stretchMode.Mode.ToString();
-			ConfigValue.Inst.UpdateImageToStretch(stretchMode.Mode);
+			_configValue.UpdateImageToStretch(stretchMode.Mode);
 		}
 
 		private void OnSetIntervalBetweenPictures(SetIntervalMessage intervalMsg)
@@ -409,7 +415,7 @@ namespace Rotate.Pictures.ViewModel
 			var interval = intervalMsg.SetInterval;
 			IntervalBetweenPictures = interval;
 
-			ConfigValue.Inst.UpdateIntervalBetweenPictures(IntervalBetweenPictures);
+			_configValue.UpdateIntervalBetweenPictures(IntervalBetweenPictures);
 		}
 
 		private void OnCloseIntervalBetweenPictures() => _intervalBetweenPicturesService.CloseDetailDialog();
@@ -421,21 +427,21 @@ namespace Rotate.Pictures.ViewModel
 			var pictureFolder = metadata.PictureFolder;
 			if (!string.IsNullOrWhiteSpace(pictureFolder))
 			{
-				ConfigValue.Inst.UpdateInitialPictureDirectories(pictureFolder);
-				ConfigValue.Inst.SetInitialPictureDirectories(pictureFolder);
+				_configValue.UpdateInitialPictureDirectories(pictureFolder);
+				_configValue.SetInitialPictureDirectories(pictureFolder);
 			}
 
 			var firstPicture = metadata.FirstPictureToDisplay;
-			ConfigValue.Inst.UpdateFirstPictureToDisplay(firstPicture);
-			ConfigValue.Inst.SetFirstPic(firstPicture);
+			_configValue.UpdateFirstPictureToDisplay(firstPicture);
+			_configValue.SetFirstPic(firstPicture);
 
 			var stillExt = metadata.StillPictureExtensions;
-			ConfigValue.Inst.UpdateStillPictureExtensions(stillExt);
-			ConfigValue.Inst.SetStillExtension(stillExt);
+			_configValue.UpdateStillPictureExtensions(stillExt);
+			_configValue.SetStillExtension(stillExt);
 
 			var motionExt = metadata.MotionPictureExtensions;
-			ConfigValue.Inst.UpdateMotionPictures(motionExt);
-			ConfigValue.Inst.SetMotionExtension(motionExt);
+			_configValue.UpdateMotionPictures(motionExt);
+			_configValue.SetMotionExtension(motionExt);
 
 			// Restart the system
 			ResetPictures();
@@ -459,8 +465,8 @@ namespace Rotate.Pictures.ViewModel
 			var depth = bufferDepth.BufferDepth;
 			if (depth <= 0) return;
 
-			ConfigValue.Inst.UpdateMaxPictureTrackerDepth(depth);
-			ConfigValue.Inst.SetMaxTrackingDepth(depth);
+			_configValue.UpdateMaxPictureTrackerDepth(depth);
+			_configValue.SetMaxTrackingDepth(depth);
 			_model.SelectionTrackerSetMaxPictureDepth(depth);
 		}
 
@@ -647,10 +653,10 @@ namespace Rotate.Pictures.ViewModel
 
 		private void SetPicturesMetaData()
 		{
-			var picFolder = string.Join(";", ConfigValue.Inst.InitialPictureDirectories());
-			var firstPicture = ConfigValue.Inst.FirstPictureToDisplay();
-			var stillExtentions = string.Join(";", ConfigValue.Inst.StillPictureExtensions());
-			var motionExtentions = string.Join(";", ConfigValue.Inst.MotionPictures());
+			var picFolder = string.Join(";", _configValue.InitialPictureDirectories());
+			var firstPicture = _configValue.FirstPictureToDisplay();
+			var stillExtentions = string.Join(";", _configValue.StillPictureExtensions());
+			var motionExtentions = string.Join(";", _configValue.MotionPictures());
 			var metaData = new PictureMetaDataTransmission {
 				PictureFolder = picFolder,
 				FirstPictureToDisplay = firstPicture,
@@ -662,7 +668,7 @@ namespace Rotate.Pictures.ViewModel
 
 		private void SetPictureBufferDepth()
 		{
-			var depth = ConfigValue.Inst.MaxPictureTrackerDepth();
+			var depth = _configValue.MaxPictureTrackerDepth();
 			_pictureBufferService.ShowDetailDialog(depth);
 		}
 

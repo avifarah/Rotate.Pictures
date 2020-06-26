@@ -5,11 +5,12 @@ using System.Reflection;
 using log4net;
 using System.Configuration;
 using System.Globalization;
+using System.IO;
 
 
 namespace Rotate.Pictures.Utility
 {
-	public class ConfigValue
+	public class ConfigValue : IConfigValue
 	{
 		private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -367,24 +368,49 @@ namespace Rotate.Pictures.Utility
 			return mff;
 		}
 
-		private const string PicturesToAvoidKey = "Pictures Indices To Avoid.  Comma separated";
+		//private const string PicturesToAvoidKey = "Pictures Indices To Avoid.  Comma separated";
+		private const string PicturesToAvoidFileName = "Pictures Path To Avoid.lst";
 
-		public IEnumerable<int> PicturesToAvoidSorted()
+		public IEnumerable<string> PicturesToAvoidPaths()
 		{
-			var raw = ReadConfigValue(PicturesToAvoidKey);
-			if (raw == null)
+			var doNotDisplayPicPaths = new List<string>();
+			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
+			if (!File.Exists(doNotDisplayFn)) return doNotDisplayPicPaths;
+
+			using var sr = new StreamReader(doNotDisplayFn);
+			while (!sr.EndOfStream)
 			{
-				Log.Error($"Missing configuration appSettings entry {PicturesToAvoidKey}");
-				return new int[] {};
+				var path = sr.ReadLine();
+				if (!string.IsNullOrEmpty(path))
+					doNotDisplayPicPaths.Add(path);
 			}
 
-			return StringToIntArray(raw);
+			return doNotDisplayPicPaths;
+			//var raw = ReadConfigValue(PicturesToAvoidKey);
+			//if (raw == null)
+			//{
+			//	Log.Error($"Missing configuration appSettings entry {PicturesToAvoidKey}");
+			//	return new List<int>();
+			//}
+
+			//var sIndices = raw.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+			//var inxes = sIndices.Select(si => int.Parse(si));
+			//return inxes.ToList();
 		}
 
-		public void UpdatePicturesToAvoid(IEnumerable<int> picsToAvoid)
+		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid)
 		{
-			var sPics = string.Join(",", picsToAvoid.Select(p => $"{p}"));
-			WriteConfigValue(PicturesToAvoidKey, sPics);
+			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
+
+			if (picsToAvoid == null)
+			{
+				File.WriteAllText(doNotDisplayFn, string.Empty);
+				return;
+			}
+
+			using var sw = new StreamWriter(doNotDisplayFn, false);
+			foreach (var pic in picsToAvoid)
+				sw.WriteLine(pic);
 		}
 
 		private const string FilePathToSavePicturesToAvoidKey = "FilePath to save Pictures to avoid";
@@ -395,8 +421,6 @@ namespace Rotate.Pictures.Utility
 			return filePath;
 		}
 
-		public void UpdatePicturesToAvoid(string filePath) => WriteConfigValue(FilePathToSavePicturesToAvoidKey, filePath);
-
 		private string ReadConfigValue(string key)
 		{
 			if (!_configValues.ContainsKey(key)) return null;
@@ -406,32 +430,15 @@ namespace Rotate.Pictures.Utility
 
 		private void WriteConfigValue(string key, string value)
 		{
-			Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+			var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 			var entry = config.AppSettings.Settings[key];
 			if (entry == null)
-				config.AppSettings.Settings.Add(PicturesToAvoidKey, value);
-			else
-				entry.Value = value;
+				throw new ArgumentException($"key \"{key}\" is not recognized", nameof(key));
 
+			entry.Value = value;
 			config.Save(ConfigurationSaveMode.Modified);
 
 			ConfigurationManager.RefreshSection("appSettings");
-		}
-
-		private IEnumerable<int> StringToIntArray(string raw)
-		{
-			var sPictureIndices = raw.Split(new[] { ',', '.', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-			// Use HashSet in order to eliminate duplicate values
-			var picInxs = new HashSet<int>();
-			foreach (var sInx in sPictureIndices)
-			{
-				const NumberStyles ns = NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite;
-				var rc = int.TryParse(sInx, ns, CultureInfo.CurrentCulture, out var iInx);
-				if (rc) picInxs.Add(iInx);
-			}
-
-			return picInxs.ToList().OrderBy(p => p);
 		}
 
 		private IEnumerable<string> StringToExtensionArray(string raw)

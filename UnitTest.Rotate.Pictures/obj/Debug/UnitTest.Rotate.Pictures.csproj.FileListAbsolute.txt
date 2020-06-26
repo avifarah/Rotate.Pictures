@@ -37,3 +37,12 @@ C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Debug\UnitTest.Rotate.
 C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Debug\UnitTest.Rotate.Pictures.dll
 C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Debug\UnitTest.Rotate.Pictures.pdb
 C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\obj\Debug\UnitTest.Rotate.Pictures.csproj.CoreCompileInputs.cache
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\Document\Rotate picture display.docx
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\Castle.Core.dll
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\Moq.dll
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\System.Threading.Tasks.Extensions.dll
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\Castle.Core.xml
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\Moq.xml
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\dev\Rotating.Pictures\src\UnitTest.Rotate.Pictures\bin\Debug\System.Threading.Tasks.Extensions.xml

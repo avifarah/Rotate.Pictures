@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
 
@@ -49,7 +50,9 @@ namespace UnitTest.Rotate.Pictures
 		public void AppendTest()
 		{
 			// Arrange
-			var selectionTracker = new SelectionTracker(null);
+			// TODO: test
+			var mockConfig = new Mock<IConfigValue>();
+			var selectionTracker = new SelectionTracker(null, 100);
 			selectionTracker.ClearTracker();
 			for (var i = 0; i < 100; ++i)
 				selectionTracker.Append($"{i}.pic");
@@ -65,7 +68,9 @@ namespace UnitTest.Rotate.Pictures
 		public void AppendPassedEndTest()
 		{
 			// Arrange
-			var selectionTracker = new SelectionTracker(null);
+			// TODO: test
+			var mockConfig = new Mock<IConfigValue>();
+			var selectionTracker = new SelectionTracker(null, 5);
 			var max = ConfigValue.Inst.MaxPictureTrackerDepth();
 			for (var i = 0; i < 3 + max; ++i)
 				selectionTracker.Append($"{i}.pic");

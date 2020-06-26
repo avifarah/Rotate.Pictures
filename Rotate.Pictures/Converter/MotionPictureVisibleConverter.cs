@@ -22,7 +22,11 @@ namespace Rotate.Pictures.Converter
 
 		private readonly List<string> _motionExtensions;
 
-		public MotionPictureVisibleConverter() => _motionExtensions = ConfigValue.Inst.MotionPictures();
+		public MotionPictureVisibleConverter()
+		{
+			var configValue = ConfigValueProvider.Default;
+			_motionExtensions = configValue.MotionPictures();
+		}
 
 		#region Implementation of IValueConverter
 

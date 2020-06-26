@@ -122,9 +122,11 @@
     <Compile Include="Model\SelectionTracker.cs" />
     <Compile Include="Service\NoDisplayPictureService.cs" />
     <Compile Include="Service\StretchDialogService.cs" />
+    <Compile Include="Utility\ConfigValueProvider.cs" />
     <Compile Include="Utility\DebugStackTrace.cs" />
     <Compile Include="Utility\ExceptionExt.cs" />
     <Compile Include="Utility\ICommand.cs" />
+    <Compile Include="Utility\IConfigValue.cs" />
     <Compile Include="Utility\ImageExt.cs" />
     <Compile Include="Utility\LinqComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />

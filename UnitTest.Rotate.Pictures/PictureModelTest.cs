@@ -1,8 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
-
 
 namespace UnitTest.Rotate.Pictures
 {
@@ -46,12 +47,17 @@ namespace UnitTest.Rotate.Pictures
 		public void PictureModelPositiveTest()
 		{
 			// Arrange
-			// We need to reset the extensions as they are permanent from previous run 
-			ConfigValue.Inst.SetStillExtension(".jpg;.png;.bmp");
-			ConfigValue.Inst.SetMotionExtension(".avi;.jpeg;.Peggy;.Ben");
-			ConfigValue.Inst.SetInitialPictureDirectories(null);
+			var mockConfig = new Mock<IConfigValue>();
+			mockConfig.Setup(mc => mc.StillPictureExtensions()).Returns(new List<string> { ".jpg", ".png", ".bmp" });
+			mockConfig.Setup(mc => mc.MotionPictures()).Returns(new List<string> { ".avi", ".jpeg", ".Peggy", ".Ben" });
+			mockConfig.Setup(mc => mc.InitialPictureDirectories()).Returns(new [] { @"C:\dev\Rotating.Pictures\Testing" });
+			mockConfig.Setup(mc => mc.FileExtensionsToConsider()).Returns(new List<string> { ".jpg", ".png", ".bmp", ".avi", ".jpeg", ".Peggy", ".Ben" });
+			mockConfig.Setup(mc => mc.FirstPictureToDisplay()).Returns(@"C:\dev\Rotating.Pictures\Testing\Ben\IMG_0840-1.JPG");
+			mockConfig.Setup(mc => mc.PicturesToAvoidPaths()).Returns(new List<string>());
+			mockConfig.Setup(mc => mc.MaxPictureTrackerDepth()).Returns(5);
+			var configValue = mockConfig.Object;
 
-			var model = new PictureModel();
+			var model = new PictureModel(configValue);
 
 			var t = Task.Delay(2000);
 			t.Wait();

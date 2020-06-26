@@ -16,7 +16,8 @@ namespace Rotate.Pictures.ViewModel
 		{
 			RegisterMessages();
 			LoadCommands();
-			_originalDepth = ConfigValue.Inst.MaxPictureTrackerDepth();
+			var configValue = ConfigValueProvider.Default;
+			_originalDepth = configValue.MaxPictureTrackerDepth();
 		}
 
 		private int _depth;

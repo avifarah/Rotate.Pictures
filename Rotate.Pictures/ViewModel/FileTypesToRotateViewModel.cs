@@ -11,11 +11,15 @@ namespace Rotate.Pictures.ViewModel
 {
 	public class FileTypesToRotateViewModel : ViewModelBase
 	{
+		private readonly IConfigValue _configValue;
+
 		public FileTypesToRotateViewModel()
 		{
 			RegisterMessages();
 			LoadCommands();
 			LoadRules();
+
+			_configValue = ConfigValueProvider.Default;
 		}
 
 		private string _pictureFolders;
@@ -75,10 +79,10 @@ namespace Rotate.Pictures.ViewModel
 		{
 			if (metadata == null)
 			{
-				PictureFolders = string.Join(";", ConfigValue.Inst.InitialPictureDirectories());
-				FirstPictureToDisplay = ConfigValue.Inst.FirstPictureToDisplay();
-				StillPictureExtensions = string.Join(";", ConfigValue.Inst.StillPictureExtensions().ToArray());
-				MotionPictureExtensions = string.Join(";", ConfigValue.Inst.MotionPictures().ToArray());
+				PictureFolders = string.Join(";", _configValue.InitialPictureDirectories());
+				FirstPictureToDisplay = _configValue.FirstPictureToDisplay();
+				StillPictureExtensions = string.Join(";", _configValue.StillPictureExtensions().ToArray());
+				MotionPictureExtensions = string.Join(";", _configValue.MotionPictures().ToArray());
 				return;
 			}
 
@@ -131,9 +135,9 @@ namespace Rotate.Pictures.ViewModel
 
 		private bool CanOk() => !HasErrors;
 
-		private void RestoreStillExts() => StillPictureExtensions = ConfigValue.Inst.RestoreStillExtensions;
+		private void RestoreStillExts() => StillPictureExtensions = _configValue.RestoreStillExtensions;
 
-		private void RestoreMotionExt() => MotionPictureExtensions = ConfigValue.Inst.RestoreMotionExtensions;
+		private void RestoreMotionExt() => MotionPictureExtensions = _configValue.RestoreMotionExtensions;
 
 		#endregion
 

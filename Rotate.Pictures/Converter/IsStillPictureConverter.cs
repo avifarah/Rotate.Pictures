@@ -20,7 +20,11 @@ namespace Rotate.Pictures.Converter
 
 		private readonly List<string> _stillPictures;
 
-		public IsStillPictureConverter() => _stillPictures = ConfigValue.Inst.StillPictureExtensions();
+		public IsStillPictureConverter()
+		{
+			var configValue = ConfigValueProvider.Default;
+			_stillPictures = configValue.StillPictureExtensions();
+		}
 
 		#region Implementation of IValueConverter
 
