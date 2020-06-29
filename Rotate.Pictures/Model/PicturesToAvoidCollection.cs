@@ -1,13 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
 {
-	public class PicturesToAvoidCollection
+	public class PicturesToAvoidCollection : ISubscriber<PictureLoadingDoneEventArgs>
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -31,28 +35,33 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		private readonly Dictionary<int, int> _flatToPicIndexMapping = new Dictionary<int, int>();
 
+		/// <summary>
+		/// Avoid paths collection
+		/// </summary>
 		private SynchronizedCollection<string> _avoidPicPaths = new SynchronizedCollection<string>();
 
 		/// <summary>
-		/// The algorithm for avoided pictures relies on the fact that _orderedKeys, pic index list,
+		/// The algorithm for avoided pictures relies on the fact that _orderedKeys, flatIndex list,
 		/// is in an ascending order.
 		/// </summary>
 		private List<int> _orderedKeys = new List<int>();
 
-		/// <summary>
-		/// TODO: Do we need this index?
-		/// The flat index of pictures
-		/// </summary>
+		/// <summary>PicIndex</summary>
 		private readonly List<int> _orderedPicturesToAvoid = new List<int>();
 
-		private readonly PictureModel _parent;
+		private readonly object _populateSync = new object();
 
-		/// <summary>
-		/// Is done loading paths flag
-		/// </summary>
-		private int _isDoneLoading;
+		private readonly IPictureModel _parent;
 
 		private readonly IConfigValue _configValue;
+
+		/// <summary>Is done loading paths flag</summary>
+		private int _isDoneLoading;
+
+		private const int WaitForPicturesToLoad = 100;		// milliseconds
+
+		/// <summary>If a picture to avoid is added before the list of pictures is loaded then the picture to avoid did not take place</summary>
+		private bool _populatePicIndexMappingAndKeysDone = true;
 
 		/// <summary>
 		/// Similar to the flag but allows for a wait
@@ -63,7 +72,7 @@ namespace Rotate.Pictures.Model
 
 		public IReadOnlyList<int> PicturesToAvoid => _orderedPicturesToAvoid;
 
-		public PicturesToAvoidCollection(PictureModel parent, IConfigValue configValue)
+		public PicturesToAvoidCollection(IPictureModel parent, IConfigValue configValue)
 		{
 			_parent = parent;
 			_configValue = configValue;
@@ -71,43 +80,39 @@ namespace Rotate.Pictures.Model
 		}
 
 		/// <summary>
-		/// We need to populate 3 structures:
-		///		_orderedKeys:				A list of pic indices
-		/// 	_avoidPicPaths:				A list of pic paths (initially read from a flat file)
-		/// 
+		/// We need to populate the following structures:
+		/// 	_avoidPicPaths:				A SynchronizedCollection of pic paths (initially read from a flat file)
+		///		_orderedPicturesToAvoid		SynchronizedCollection{int}, pic indices
 		///		_flatToPicIndexMapping		Dictionary{int, int}, flat to pic index mapping
-		///		_avoidPicPaths				SynchronizedCollection{string}, a list of pic paths (initially read from a flat file)
-		///		_orderedKeys				List{int}, 
-		///		_orderedPicturesToAvoid List<int>
+		///		_orderedKeys:				A list of flat indices
 		/// </summary>
 		private void Initialize()
 		{
 			// _avoidPicPaths from a file
-			foreach (var path in _configValue.PicturesToAvoidPaths().Where(p => !_avoidPicPaths.Contains(p)))
-				_avoidPicPaths.Add(path);
+			var picIndices = _configValue.PicturesToAvoidPaths().Where(p => !_avoidPicPaths.Contains(p));
+			foreach (var path in picIndices) _avoidPicPaths.Add(path);
+			Debug.WriteLine($"{nameof(Initialize)}():  _avoidPicPaths [1]: {string.Join(Environment.NewLine, _avoidPicPaths)}");
+			Debug.WriteLine($"{nameof(Initialize)}():  _orderedKeys [1]: {string.Join(", ", _orderedKeys)}");
 
 			// Wait for all paths to be read
 			_parent.RetrievedEvent.WaitOne();
 
+			// _orderedPicturesToAvoid
 			foreach (var picPath in _avoidPicPaths)
 				_orderedPicturesToAvoid.Add(_parent.PicPathToIndex(picPath));
 			_orderedPicturesToAvoid.Sort();
-				
-			PopulatePicIndex();
+
+			Debug.WriteLine($"{nameof(Initialize)}():  _avoidPicPaths [5]: {string.Join(Environment.NewLine, _avoidPicPaths)}");
+			Debug.WriteLine($"{nameof(Initialize)}():  _orderedKeys [5]: {string.Join(", ", _orderedKeys)}");
+			PopulatePicIndexMappingAndKeys();
 
 			// We are done with pictures to avoid.  Announce it!SS
 			IsDoneLoadingEvent.Set();
 			Interlocked.Exchange(ref _isDoneLoading, 1);
+			Debug.WriteLine($"{nameof(Initialize)}():  _orderedKeys [7]: {string.Join(", ", _orderedKeys)}");
 		}
 
-		public bool IsDoneLoading
-		{
-			get
-			{
-				var done = Interlocked.CompareExchange(ref _isDoneLoading, 1, 1);
-				return done == 1;
-			}
-		}
+		public bool IsDoneLoading => Interlocked.CompareExchange(ref _isDoneLoading, 1, 1) == 1;
 
 		public void ClearPicsToAvoid()
 		{
@@ -117,6 +122,18 @@ namespace Rotate.Pictures.Model
 			_configValue.UpdatePicturesToAvoid(null);
 		}
 
+		/// <summary>
+		/// Purpose:
+		///		Add a picture to the list of pictures to avoid
+		///
+		/// Algorithm needs to affect
+		/// 		private readonly Dictionary{int, int} _flatToPicIndexMapping
+		///			private readonly SynchronizedCollection{string} _avoidPicPaths
+		///			private List{int} _orderedKeys
+		///			private readonly SynchronizedCollection{int} _orderedPicturesToAvoid
+		/// </summary>
+		/// <param name="picIndex"></param>
+		/// <returns></returns>
 		public bool AddPictureToAvoid(int picIndex)
 		{
 			if (_orderedPicturesToAvoid.Contains(picIndex)) return false;
@@ -124,7 +141,7 @@ namespace Rotate.Pictures.Model
 			_orderedPicturesToAvoid.Add(picIndex);
 			_orderedPicturesToAvoid.Sort();
 			_avoidPicPaths = RepopulatePicturesPathToAvoid(_orderedPicturesToAvoid);
-			PopulatePicIndex();
+			PopulatePicIndexMappingAndKeys();
 			_configValue.UpdatePicturesToAvoid(_avoidPicPaths);
 
 			return true;
@@ -141,7 +158,7 @@ namespace Rotate.Pictures.Model
 			_orderedPicturesToAvoid.Remove(picIndex);
 			_orderedPicturesToAvoid.Sort();
 			_avoidPicPaths = RepopulatePicturesPathToAvoid(_orderedPicturesToAvoid);
-			PopulatePicIndex();
+			PopulatePicIndexMappingAndKeys();
 			_configValue.UpdatePicturesToAvoid(_avoidPicPaths);
 			return true;
 		}
@@ -166,13 +183,14 @@ namespace Rotate.Pictures.Model
 
 		public bool IsPictureToAvoid(int index) => _orderedPicturesToAvoid.Contains(index);
 
+		private int _populatePictureMappingFlag = 0;
+
 		/// <summary>
-		/// Name:	PopulatePicIndex
+		/// Name:	PopulatePicIndexMappingAndKeys
 		/// Purpose:
-		///		Populates the _flatToPicIndexMapping dictionary
-		///		Thereafter, in order to translate the index from a flatIndex to the picIndex
-		///		we need add the appropriate _flatToPicIndexMapping entry, see: 
-		///		<see cref="GetPictureIndexFromFlatIndex(int)"/>
+		///		Populates the _flatToPicIndexMapping dictionary.  Thereafter, in order to translate 
+		///		the index from a flatIndex to picIndex we need to add the appropriate
+		///		_flatToPicIndexMapping entry, <see cref="GetPictureIndexFromFlatIndex(int)"/>
 		/// 
 		///	Nomenclature:
 		///		flatIndex:	The one obtained from the random number generator
@@ -188,7 +206,7 @@ namespace Rotate.Pictures.Model
 		///			// Input: freeIndex
 		///			// Output: picIndex
 		///			var picIndex = 0;
-		///			for (var i = 0; i &lt; flatIndex; ++i)
+		///			for (var i = 0; i &lt; n - avoided-count; ++i)
 		///			{
 		///				while (_flatToPicIndexMapping.ContainsKey(picIndex)) ++picIndex;
 		///				++picIndex;
@@ -249,21 +267,40 @@ namespace Rotate.Pictures.Model
 		///		interval between pictures.  Nevertheless, it is simple enough to implement and I
 		///		felt that it was worth the extra effort.
 		/// </summary>
-		private void PopulatePicIndex()
+		private void PopulatePicIndexMappingAndKeys()
 		{
+			Debug.WriteLine($"{nameof(PopulatePicIndexMappingAndKeys)}():  _orderedKeys [1]: {string.Join(", ", _orderedKeys)}");
+
 			// Make sure parent is done loading
-			_parent.RetrievedEvent.WaitOne();
-
-			_flatToPicIndexMapping.Clear();
-
-			var inx = 0;
-			foreach (var x in _orderedPicturesToAvoid)
+			var isLoading = Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 1) == 1;
+			var success = _parent.RetrievedEvent.WaitOne(WaitForPicturesToLoad);
+			if (!success || isLoading)
 			{
-				var flatIndex = x - inx;
-				_flatToPicIndexMapping[flatIndex] = ++inx;
+				_populatePicIndexMappingAndKeysDone = false;
+				return;
 			}
 
-			_orderedKeys = _flatToPicIndexMapping.Keys.ToList();
+			Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 0);
+
+			try
+			{
+				_flatToPicIndexMapping.Clear();
+
+				var inx = 0;
+				foreach (var x in _orderedPicturesToAvoid)
+				{
+					var flatIndex = x - inx;
+					_flatToPicIndexMapping[flatIndex] = ++inx;
+				}
+
+				_orderedKeys = _flatToPicIndexMapping.Keys.ToList();
+				_orderedKeys.Sort();
+			}
+			finally
+			{
+				Interlocked.CompareExchange(ref _populatePictureMappingFlag, 0, 1);
+				CustomEventAggregator.Inst.Publish(new PictureLoadingDoneEventArgs(true));
+			}
 		}
 
 		private SynchronizedCollection<string> RepopulatePicturesPathToAvoid(IEnumerable<int> orderedPicturesToAvoid)
@@ -284,6 +321,8 @@ namespace Rotate.Pictures.Model
 		/// <param name="midRangePoint"></param>
 		private int FindUsi(int flatIndex, int lowerRangeLimit, int upperRangeLimit, int midRangePoint)
 		{
+			Debug.WriteLine($"{nameof(FindUsi)}():  _orderedKeys [1]: {string.Join(", ", _orderedKeys)}");
+
 			// If _orderedKeys[midRangePoint] > flatIndex
 			// then the result is in the range of [lowerRangeLimit .. midRangePoint)
 			if (_orderedKeys[midRangePoint] > flatIndex)
@@ -297,6 +336,7 @@ namespace Rotate.Pictures.Model
 				return FindUsi(flatIndex, lowerRangeLimit, midRangePoint, (lowerRangeLimit + midRangePoint) / 2);
 			}
 
+			Debug.WriteLine($"{nameof(FindUsi)}():  _orderedKeys [2]: {string.Join(", ", _orderedKeys)}");
 			if (flatIndex == _orderedKeys[midRangePoint]) return _orderedKeys[midRangePoint];
 
 			// Did we reach the end of recursion?
@@ -304,10 +344,17 @@ namespace Rotate.Pictures.Model
 			// upperRangeLimit is an excluded upper limit therefore the comparison of midRangePoint+1 to upperRangeLimit.
 			if (midRangePoint + 1 >= upperRangeLimit) return _orderedKeys[midRangePoint];
 
+			Debug.WriteLine($"{nameof(FindUsi)}():  _orderedKeys [3]: {string.Join(", ", _orderedKeys)}");
 			// if flatIndex < _orderedKeys[midRangePoint] it does not mean that we eliminated the
 			// _orderedKeys[midRangePoint] as lowerRangeLimit candidate.  Therefore, we use midRangePoint for the lower-bound
 			// (as opposed to setting the next lower-bound to midRangePoint+1)
 			return FindUsi(flatIndex, midRangePoint, upperRangeLimit, (midRangePoint + 1 + upperRangeLimit) / 2);
+		}
+
+		public void OnEvent(PictureLoadingDoneEventArgs e)
+		{
+			if (!_populatePicIndexMappingAndKeysDone)
+				Task.Run(Initialize);
 		}
 	}
 }

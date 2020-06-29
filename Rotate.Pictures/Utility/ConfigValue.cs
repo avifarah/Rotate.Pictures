@@ -368,7 +368,6 @@ namespace Rotate.Pictures.Utility
 			return mff;
 		}
 
-		//private const string PicturesToAvoidKey = "Pictures Indices To Avoid.  Comma separated";
 		private const string PicturesToAvoidFileName = "Pictures Path To Avoid.lst";
 
 		public IEnumerable<string> PicturesToAvoidPaths()
@@ -377,25 +376,17 @@ namespace Rotate.Pictures.Utility
 			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
 			if (!File.Exists(doNotDisplayFn)) return doNotDisplayPicPaths;
 
-			using var sr = new StreamReader(doNotDisplayFn);
-			while (!sr.EndOfStream)
+			using (var sr = new StreamReader(doNotDisplayFn))
 			{
-				var path = sr.ReadLine();
-				if (!string.IsNullOrEmpty(path))
-					doNotDisplayPicPaths.Add(path);
+				while (!sr.EndOfStream)
+				{
+					var path = sr.ReadLine();
+					if (!string.IsNullOrEmpty(path))
+						doNotDisplayPicPaths.Add(path);
+				}
 			}
 
 			return doNotDisplayPicPaths;
-			//var raw = ReadConfigValue(PicturesToAvoidKey);
-			//if (raw == null)
-			//{
-			//	Log.Error($"Missing configuration appSettings entry {PicturesToAvoidKey}");
-			//	return new List<int>();
-			//}
-
-			//var sIndices = raw.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-			//var inxes = sIndices.Select(si => int.Parse(si));
-			//return inxes.ToList();
 		}
 
 		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid)
@@ -408,9 +399,11 @@ namespace Rotate.Pictures.Utility
 				return;
 			}
 
-			using var sw = new StreamWriter(doNotDisplayFn, false);
-			foreach (var pic in picsToAvoid)
-				sw.WriteLine(pic);
+			using (var sw = new StreamWriter(doNotDisplayFn, false))
+			{
+				foreach (var pic in picsToAvoid)
+					sw.WriteLine(pic);
+			}
 		}
 
 		private const string FilePathToSavePicturesToAvoidKey = "FilePath to save Pictures to avoid";

@@ -13,10 +13,19 @@ using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
 {
+	public interface IPictureModel
+	{
+		ManualResetEvent RetrievedEvent { get; }
+
+		int PicPathToIndex(string path);
+
+		string PicIndexToPath(int picIndex);
+	}
+
 	/// <summary>
 	/// Repository for picture collection
 	/// </summary>
-	public class PictureModel
+	public class PictureModel : IPictureModel
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -40,7 +49,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// RetrievedEvent allows for waiting
 		/// </summary>
-		public ManualResetEvent RetrievedEvent = new ManualResetEvent(false);
+		public ManualResetEvent RetrievedEvent => new ManualResetEvent(false);
 
 		/// <summary>
 		/// File extensions to consider

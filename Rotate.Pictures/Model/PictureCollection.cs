@@ -2,7 +2,10 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
@@ -20,7 +23,7 @@ namespace Rotate.Pictures.Model
 		protected SynchronizedCollection<string> PicCollection = new SynchronizedCollection<string>();
 
 		/// <summary>
-		/// The same collection as PicCollection having the path as the key into the index
+		/// The same collection as PicCollection having the path as the key into the picIndex
 		/// </summary>
 		protected ConcurrentDictionary<string, int> PicPathToIndex = new ConcurrentDictionary<string, int>();
 
@@ -33,13 +36,16 @@ namespace Rotate.Pictures.Model
 					Log.Error($"Index is out of bounds.  Index requested: {index}.  PicCollection.Count: {PicCollection.Count}.{Environment.NewLine}" +
 							  $"StackTrace:{Environment.NewLine}" +
 							  $"{DebugStackTrace.GetStackFrameString()}");
-					return PicCollection[PicCollection.Count - 1];
+					var inx = PicCollection.Count - 1; 
+					return PicCollection[inx < 0 ? 0 : inx];
 				}
 
 				return PicCollection[index];
 			}
 			set
 			{
+				Debug.WriteLine($"this[index(={index})] setter: picCollection[{index}] := {value}");
+				Debug.WriteLine($"this[index(={index})] stack trace: {DebugStackTrace.GetStackFrameString()}");
 				PicCollection[index] = value;
 				PicPathToIndex.TryAdd(value, index);
 			}
