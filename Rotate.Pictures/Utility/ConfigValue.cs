@@ -376,14 +376,12 @@ namespace Rotate.Pictures.Utility
 			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
 			if (!File.Exists(doNotDisplayFn)) return doNotDisplayPicPaths;
 
-			using (var sr = new StreamReader(doNotDisplayFn))
+			using var sr = new StreamReader(doNotDisplayFn);
+			while (!sr.EndOfStream)
 			{
-				while (!sr.EndOfStream)
-				{
-					var path = sr.ReadLine();
-					if (!string.IsNullOrEmpty(path))
-						doNotDisplayPicPaths.Add(path);
-				}
+				var path = sr.ReadLine();
+				if (!string.IsNullOrEmpty(path))
+					doNotDisplayPicPaths.Add(path);
 			}
 
 			return doNotDisplayPicPaths;
@@ -399,11 +397,9 @@ namespace Rotate.Pictures.Utility
 				return;
 			}
 
-			using (var sw = new StreamWriter(doNotDisplayFn, false))
-			{
-				foreach (var pic in picsToAvoid)
-					sw.WriteLine(pic);
-			}
+			using var sw = new StreamWriter(doNotDisplayFn, false);
+			foreach (var pic in picsToAvoid)
+				sw.WriteLine(pic);
 		}
 
 		private const string FilePathToSavePicturesToAvoidKey = "FilePath to save Pictures to avoid";
@@ -414,19 +410,14 @@ namespace Rotate.Pictures.Utility
 			return filePath;
 		}
 
-		private string ReadConfigValue(string key)
-		{
-			if (!_configValues.ContainsKey(key)) return null;
-
-			return _configValues[key];
-		}
+		private string ReadConfigValue(string key) => _configValues.ContainsKey(key) ? _configValues[key] : null;
 
 		private void WriteConfigValue(string key, string value)
 		{
 			var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 			var entry = config.AppSettings.Settings[key];
 			if (entry == null)
-				throw new ArgumentException($"key \"{key}\" is not recognized", nameof(key));
+				throw new ArgumentException($@"key ""{key}"" is not recognized", nameof(key));
 
 			entry.Value = value;
 			config.Save(ConfigurationSaveMode.Modified);

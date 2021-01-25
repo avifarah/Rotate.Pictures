@@ -2,10 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
@@ -18,14 +15,17 @@ namespace Rotate.Pictures.Model
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
-		/// A list of pictures allows us to index into the collection by the integer index
+		/// A list of pictures.  Key is the path into the picture.
+		/// Using PicPathToIndex allows us to index into the collection by the integer index.
 		/// </summary>
-		protected SynchronizedCollection<string> PicCollection = new SynchronizedCollection<string>();
+		protected SynchronizedCollection<string> PicCollection = new();
 
 		/// <summary>
-		/// The same collection as PicCollection having the path as the key into the picIndex
+		/// The same collection as PicCollection mapping the path as the key into the picIndex integer.
+		/// Reminder: picIndex is the index as in the PicCollection including "holes"  (holes are pictures that are
+		/// not to be displayed).
 		/// </summary>
-		protected ConcurrentDictionary<string, int> PicPathToIndex = new ConcurrentDictionary<string, int>();
+		protected ConcurrentDictionary<string, int> PicPathToIndex = new();
 
 		public string this[int index]
 		{
@@ -33,11 +33,21 @@ namespace Rotate.Pictures.Model
 			{
 				if (index >= PicCollection.Count)
 				{
-					Log.Error($"Index is out of bounds.  Index requested: {index}.  PicCollection.Count: {PicCollection.Count}.{Environment.NewLine}" +
+					Log.Error($"Index is out of bounds.  Index requested: {index} is too large.  " +
+					          $"PicCollection.Count: {PicCollection.Count}.{Environment.NewLine}" +
 							  $"StackTrace:{Environment.NewLine}" +
 							  $"{DebugStackTrace.GetStackFrameString()}");
-					var inx = PicCollection.Count - 1; 
-					return PicCollection[inx < 0 ? 0 : inx];
+					var inx = index % PicCollection.Count;
+					return PicCollection[inx];
+				}
+
+				if (index < 0)
+				{
+					Log.Error($"Index is out of bounds.  Index requested: {index} is negative.{Environment.NewLine}" +
+					          $"StackTrace:{Environment.NewLine}" +
+					          $"{DebugStackTrace.GetStackFrameString()}");
+					for (var inx = (index + PicCollection.Count) % PicCollection.Count; ; inx = (index + PicCollection.Count) % PicCollection.Count)
+						if (inx > 0) return PicCollection[inx];
 				}
 
 				return PicCollection[index];
@@ -57,6 +67,8 @@ namespace Rotate.Pictures.Model
 				// gets to a point that the previous picture is not part of PicPathToIndex
 				// In which case we do nothing.
 				if (PicPathToIndex.ContainsKey(path)) return PicPathToIndex[path];
+
+				Log.Warn($"Path of picture: \"{path}\" is not found in picture collection");
 				return 0;
 			}
 

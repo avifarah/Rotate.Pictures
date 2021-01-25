@@ -32,7 +32,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Collection of all pictures in all directories supplied by the user in the configuration file
 		/// </summary>
-		protected readonly PictureCollection _picCollection = new PictureCollection();
+		protected readonly PictureCollection _picCollection = new();
 
 		/// <summary>
 		/// Collection of pictures to avoid
@@ -49,14 +49,14 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// RetrievedEvent allows for waiting
 		/// </summary>
-		public ManualResetEvent RetrievedEvent => new ManualResetEvent(false);
+		public ManualResetEvent RetrievedEvent => new(false);
 
 		/// <summary>
 		/// File extensions to consider
 		/// </summary>
 		private List<string> _extensionList;
 
-		private readonly Random _rand = new Random();
+		private readonly Random _rand = new();
 		private Task _taskModel;
 		private CancellationTokenSource _cts;
 
