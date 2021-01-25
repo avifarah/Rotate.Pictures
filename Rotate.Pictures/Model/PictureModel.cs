@@ -27,12 +27,12 @@ namespace Rotate.Pictures.Model
 	/// </summary>
 	public class PictureModel : IPictureModel
 	{
-		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+		protected static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// Collection of all pictures in all directories supplied by the user in the configuration file
 		/// </summary>
-		private readonly PictureCollection _picCollection = new PictureCollection();
+		protected readonly PictureCollection _picCollection = new PictureCollection();
 
 		/// <summary>
 		/// Collection of pictures to avoid
@@ -80,9 +80,15 @@ namespace Rotate.Pictures.Model
 
 		public IReadOnlyList<int> PicturesToAvoid => _avoidCollection.PicturesToAvoid;
 
-		public string PicIndexToPath(int picIndex) => _picCollection[picIndex];
+		/// <summary>
+		/// Mark as virtual in order to be able to unit test
+		/// </summary>
+		public virtual string PicIndexToPath(int picIndex) => _picCollection[picIndex];
 
-		public int PicPathToIndex(string path) => _picCollection[path];
+		/// <summary>
+		/// Mark as virtual in order to be able to unit test
+		/// </summary>
+		public virtual int PicPathToIndex(string path) => _picCollection[path];
 
 		public bool IsPictureToAvoid(int index) => _avoidCollection.IsPictureToAvoid(index);
 
@@ -203,7 +209,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Retrieve all pictures from all directories
 		/// </summary>
-		private void RetrievePictures(CancellationToken ct)
+		protected virtual void RetrievePictures(CancellationToken ct)
 		{
 			RetrievedEvent.Reset();
 			// Using Interlocked.Exchange is an overkill since _retrieved is an int, for which

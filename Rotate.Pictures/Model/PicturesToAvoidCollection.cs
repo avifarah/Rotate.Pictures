@@ -33,7 +33,7 @@ namespace Rotate.Pictures.Model
 		/// have "holes" (pictures not to be used), as per user request.
 		/// </remarks>
 		/// </summary>
-		private readonly Dictionary<int, int> _flatToPicIndexMapping = new Dictionary<int, int>();
+		protected readonly Dictionary<int, int> FlatToPicIndexMapping = new Dictionary<int, int>();
 
 		/// <summary>
 		/// Avoid paths collection
@@ -76,6 +76,7 @@ namespace Rotate.Pictures.Model
 		{
 			_parent = parent;
 			_configValue = configValue;
+			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType.Name}.{MethodBase.GetCurrentMethod().Name}().  _orderedPicturesToAvoid: ({string.Join("; ", _orderedPicturesToAvoid)}){Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
 			Task.Run(Initialize);
 		}
 
@@ -83,7 +84,7 @@ namespace Rotate.Pictures.Model
 		/// We need to populate the following structures:
 		/// 	_avoidPicPaths:				A SynchronizedCollection of pic paths (initially read from a flat file)
 		///		_orderedPicturesToAvoid		SynchronizedCollection{int}, pic indices
-		///		_flatToPicIndexMapping		Dictionary{int, int}, flat to pic index mapping
+		///		FlatToPicIndexMapping		Dictionary{int, int}, flat to pic index mapping
 		///		_orderedKeys:				A list of flat indices
 		/// </summary>
 		private void Initialize()
@@ -91,32 +92,31 @@ namespace Rotate.Pictures.Model
 			// _avoidPicPaths from a file
 			var picIndices = _configValue.PicturesToAvoidPaths().Where(p => !_avoidPicPaths.Contains(p));
 			foreach (var path in picIndices) _avoidPicPaths.Add(path);
-			Debug.WriteLine($"{nameof(Initialize)}():  _avoidPicPaths [1]: {string.Join(Environment.NewLine, _avoidPicPaths)}");
-			Debug.WriteLine($"{nameof(Initialize)}():  _orderedKeys [1]: {string.Join(", ", _orderedKeys)}");
 
 			// Wait for all paths to be read
 			_parent.RetrievedEvent.WaitOne();
 
 			// _orderedPicturesToAvoid
 			foreach (var picPath in _avoidPicPaths)
-				_orderedPicturesToAvoid.Add(_parent.PicPathToIndex(picPath));
+			{
+				var picIndex = _parent.PicPathToIndex(picPath);
+				if (!_orderedPicturesToAvoid.Contains(picIndex))
+					_orderedPicturesToAvoid.Add(picIndex);
+			}
 			_orderedPicturesToAvoid.Sort();
 
-			Debug.WriteLine($"{nameof(Initialize)}():  _avoidPicPaths [5]: {string.Join(Environment.NewLine, _avoidPicPaths)}");
-			Debug.WriteLine($"{nameof(Initialize)}():  _orderedKeys [5]: {string.Join(", ", _orderedKeys)}");
 			PopulatePicIndexMappingAndKeys();
 
 			// We are done with pictures to avoid.  Announce it!SS
 			IsDoneLoadingEvent.Set();
 			Interlocked.Exchange(ref _isDoneLoading, 1);
-			Debug.WriteLine($"{nameof(Initialize)}():  _orderedKeys [7]: {string.Join(", ", _orderedKeys)}");
 		}
 
 		public bool IsDoneLoading => Interlocked.CompareExchange(ref _isDoneLoading, 1, 1) == 1;
 
 		public void ClearPicsToAvoid()
 		{
-			_flatToPicIndexMapping.Clear();
+			FlatToPicIndexMapping.Clear();
 			_orderedKeys.Clear();
 			_orderedPicturesToAvoid.Clear();
 			_configValue.UpdatePicturesToAvoid(null);
@@ -127,7 +127,7 @@ namespace Rotate.Pictures.Model
 		///		Add a picture to the list of pictures to avoid
 		///
 		/// Algorithm needs to affect
-		/// 		private readonly Dictionary{int, int} _flatToPicIndexMapping
+		/// 		private readonly Dictionary{int, int} FlatToPicIndexMapping
 		///			private readonly SynchronizedCollection{string} _avoidPicPaths
 		///			private List{int} _orderedKeys
 		///			private readonly SynchronizedCollection{int} _orderedPicturesToAvoid
@@ -160,15 +160,16 @@ namespace Rotate.Pictures.Model
 			_avoidPicPaths = RepopulatePicturesPathToAvoid(_orderedPicturesToAvoid);
 			PopulatePicIndexMappingAndKeys();
 			_configValue.UpdatePicturesToAvoid(_avoidPicPaths);
+
 			return true;
 		}
 
 		public int GetPictureIndexFromFlatIndex(int flatIndex)
 		{
-			if (_flatToPicIndexMapping.Count == 0) return flatIndex;
+			if (FlatToPicIndexMapping.Count == 0) return flatIndex;
 
 			var upperSmallestIndex = FindGreatestSmallerIndex(flatIndex);
-			return upperSmallestIndex < 0 ? flatIndex : flatIndex + _flatToPicIndexMapping[upperSmallestIndex];
+			return upperSmallestIndex < 0 ? flatIndex : flatIndex + FlatToPicIndexMapping[upperSmallestIndex];
 		}
 
 		public int FindGreatestSmallerIndex(int flatIndex)
@@ -188,9 +189,9 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Name:	PopulatePicIndexMappingAndKeys
 		/// Purpose:
-		///		Populates the _flatToPicIndexMapping dictionary.  Thereafter, in order to translate 
+		///		Populates the FlatToPicIndexMapping dictionary.  Thereafter, in order to translate 
 		///		the index from a flatIndex to picIndex we need to add the appropriate
-		///		_flatToPicIndexMapping entry, <see cref="GetPictureIndexFromFlatIndex(int)"/>
+		///		FlatToPicIndexMapping entry, <see cref="GetPictureIndexFromFlatIndex(int)"/>
 		/// 
 		///	Nomenclature:
 		///		flatIndex:	The one obtained from the random number generator
@@ -208,20 +209,20 @@ namespace Rotate.Pictures.Model
 		///			var picIndex = 0;
 		///			for (var i = 0; i &lt; n - avoided-count; ++i)
 		///			{
-		///				while (_flatToPicIndexMapping.ContainsKey(picIndex)) ++picIndex;
+		///				while (FlatToPicIndexMapping.ContainsKey(picIndex)) ++picIndex;
 		///				++picIndex;
 		///			}
-		///			while (_flatToPicIndexMapping.ContainsKey(picIndex)) ++picIndex;
+		///			while (FlatToPicIndexMapping.ContainsKey(picIndex)) ++picIndex;
 		///			return picIndex;
 		///		</code>
 		///
 		///		We can check if an index is in pictures-to-avoid set by setting a dictionary
 		///		as follows:
-		///			_flatToPicIndexMapping[ 3] = 1		// We cannot have picture-index = 3, therefore 
+		///			FlatToPicIndexMapping[ 3] = 1		// We cannot have picture-index = 3, therefore 
 		///												// .. skip 3 by adding 1 to flatIndex.
-		///			_flatToPicIndexMapping[10] = 5		// If we encounter picture-index = 10 then skip 
+		///			FlatToPicIndexMapping[10] = 5		// If we encounter picture-index = 10 then skip 
 		///												// .. all range, picture-index = flatIndex + 5 
-		///			_flatToPicIndexMapping[25] = 1
+		///			FlatToPicIndexMapping[25] = 1
 		///		Then check against _flatToPicIndexMapping.Contains(index).  For this data structure to work
 		///		we need to introduce a new algorithm.
 		/// 
@@ -229,31 +230,31 @@ namespace Rotate.Pictures.Model
 		///			Explanation of the greatest-small-index:
 		///				looking for flat-index 13, the dictionary contains smaller indices: 3
 		///				and 10, but we are looking for the greatest of the 2.  Then we need to 
-		///				sum _flatToPicIndexMapping[3] and _flatToPicIndexMapping[10] to the flatIndex in order to come
+		///				sum FlatToPicIndexMapping[3] and FlatToPicIndexMapping[10] to the flatIndex in order to come
 		///				up with the correct picIndex.
 		/// 
 		///		This is getting complicated.  We can improve upon this algorithm as follows:
 		///												// If flatIndex &lt; 3 then picIndex = flatIndex
-		///												// Thereafter we need to add _flatToPicIndexMapping[3] to the
+		///												// Thereafter we need to add FlatToPicIndexMapping[3] to the
 		///												// next picIndex range.
-		///			_flatToPicIndexMapping[     3] = 1	// if flatIndex >= 3 and &lt; 9 (10 - 1) 
+		///			FlatToPicIndexMapping[     3] = 1	// if flatIndex >= 3 and &lt; 9 (10 - 1) 
 		///												// .. (where 10 is the original flatIndex and 1
-		///												// .. is the _flatToPicIndexMapping[3]) then
-		///												// .. picIndex = flatIndex + _flatToPicIndexMapping[3]
-		///			_flatToPicIndexMapping[10 - 1] = 6	// If flatIndex >= 9 (10 - 1) and &lt; 19
-		///												// .. (19 = 25 next index in _flatToPicIndexMapping -
-		///												// .. new _flatToPicIndexMapping[10]: 25 - 6)
-		///												// .. then picIndex = flatIndex + _flatToPicIndexMapping[9]
-		///			_flatToPicIndexMapping[25 - 6] = 7	// If flatIndex >= 19 (25 - 6) then
-		///												// .. picIndex = flatIndex + _flatToPicIndexMapping[19]
+		///												// .. is the FlatToPicIndexMapping[3]) then
+		///												// .. picIndex = flatIndex + FlatToPicIndexMapping[3]
+		///			FlatToPicIndexMapping[10 - 1] = 6	// If flatIndex >= 9 (10 - 1) and &lt; 19
+		///												// .. (19 = 25 next index in FlatToPicIndexMapping -
+		///												// .. new FlatToPicIndexMapping[10]: 25 - 6)
+		///												// .. then picIndex = flatIndex + FlatToPicIndexMapping[9]
+		///			FlatToPicIndexMapping[25 - 6] = 7	// If flatIndex >= 19 (25 - 6) then
+		///												// .. picIndex = flatIndex + FlatToPicIndexMapping[19]
 		///
 		///		Now the code to convert flatIndex to picIndex is as follows:
 		///		<code>
 		///			upperSmallestIndex = FindGreatestSmallerIndex(flatIndex);
-		///			if flatIndex is &lt; _flatToPicIndexMapping.SmallestIndex
+		///			if flatIndex is &lt; FlatToPicIndexMapping.SmallestIndex
 		///				picIndex = flatIndex;
 		///			else
-		///				picIndex = flatIndex + _flatToPicIndexMapping[upperSmallestIndex];
+		///				picIndex = flatIndex + FlatToPicIndexMapping[upperSmallestIndex];
 		///		</code>
 		///
 		///		Now the FindGreatestSmallerIndex(..) can be a binary search.
@@ -269,8 +270,6 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		private void PopulatePicIndexMappingAndKeys()
 		{
-			Debug.WriteLine($"{nameof(PopulatePicIndexMappingAndKeys)}():  _orderedKeys [1]: {string.Join(", ", _orderedKeys)}");
-
 			// Make sure parent is done loading
 			var isLoading = Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 1) == 1;
 			var success = _parent.RetrievedEvent.WaitOne(WaitForPicturesToLoad);
@@ -284,16 +283,22 @@ namespace Rotate.Pictures.Model
 
 			try
 			{
-				_flatToPicIndexMapping.Clear();
+				FlatToPicIndexMapping.Clear();
+				if (!_orderedPicturesToAvoid.Any())
+				{
+					FlatToPicIndexMapping.Clear();
+					_orderedKeys.Clear();
+					return;
+				}
 
 				var inx = 0;
 				foreach (var x in _orderedPicturesToAvoid)
 				{
 					var flatIndex = x - inx;
-					_flatToPicIndexMapping[flatIndex] = ++inx;
+					FlatToPicIndexMapping[flatIndex] = ++inx;
 				}
 
-				_orderedKeys = _flatToPicIndexMapping.Keys.ToList();
+				_orderedKeys = FlatToPicIndexMapping.Keys.ToList();
 				_orderedKeys.Sort();
 			}
 			finally
@@ -321,8 +326,6 @@ namespace Rotate.Pictures.Model
 		/// <param name="midRangePoint"></param>
 		private int FindUsi(int flatIndex, int lowerRangeLimit, int upperRangeLimit, int midRangePoint)
 		{
-			Debug.WriteLine($"{nameof(FindUsi)}():  _orderedKeys [1]: {string.Join(", ", _orderedKeys)}");
-
 			// If _orderedKeys[midRangePoint] > flatIndex
 			// then the result is in the range of [lowerRangeLimit .. midRangePoint)
 			if (_orderedKeys[midRangePoint] > flatIndex)
@@ -336,7 +339,6 @@ namespace Rotate.Pictures.Model
 				return FindUsi(flatIndex, lowerRangeLimit, midRangePoint, (lowerRangeLimit + midRangePoint) / 2);
 			}
 
-			Debug.WriteLine($"{nameof(FindUsi)}():  _orderedKeys [2]: {string.Join(", ", _orderedKeys)}");
 			if (flatIndex == _orderedKeys[midRangePoint]) return _orderedKeys[midRangePoint];
 
 			// Did we reach the end of recursion?
@@ -344,7 +346,6 @@ namespace Rotate.Pictures.Model
 			// upperRangeLimit is an excluded upper limit therefore the comparison of midRangePoint+1 to upperRangeLimit.
 			if (midRangePoint + 1 >= upperRangeLimit) return _orderedKeys[midRangePoint];
 
-			Debug.WriteLine($"{nameof(FindUsi)}():  _orderedKeys [3]: {string.Join(", ", _orderedKeys)}");
 			// if flatIndex < _orderedKeys[midRangePoint] it does not mean that we eliminated the
 			// _orderedKeys[midRangePoint] as lowerRangeLimit candidate.  Therefore, we use midRangePoint for the lower-bound
 			// (as opposed to setting the next lower-bound to midRangePoint+1)

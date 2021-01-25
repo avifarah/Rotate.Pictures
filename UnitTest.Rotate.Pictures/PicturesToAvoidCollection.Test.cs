@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -52,21 +53,22 @@ namespace UnitTest.Rotate.Pictures
 			// Arrange
 			var mockConfig = new Mock<IConfigValue>();
 			var picN = 10;
-			mockConfig.Setup(mc => mc.StillPictureExtensions()).Returns(new List<string> { ".jpg", ".png", ".bmp" });
-			mockConfig.Setup(mc => mc.MotionPictures()).Returns(new List<string> { ".avi", ".jpeg", ".Peggy", ".Ben" });
-			mockConfig.Setup(mc => mc.InitialPictureDirectories()).Returns(new[] { @"C:\dev\Rotating.Pictures\Testing" });
-			mockConfig.Setup(mc => mc.FileExtensionsToConsider()).Returns(new List<string> { ".jpg", ".png", ".bmp", ".avi", ".jpeg", ".Peggy", ".Ben" });
-			var path = @"C:\dev\Rotating.Pictures\Testing\Ben\IMG_0840-1.JPG";
+			var path = @"dir\fldr";
+			mockConfig.Setup(mc => mc.StillPictureExtensions()).Returns(new List<string> { ".s1", ".s2" });
+			mockConfig.Setup(mc => mc.MotionPictures()).Returns(new List<string> { ".m1", ".m2" });
+			mockConfig.Setup(mc => mc.InitialPictureDirectories()).Returns(new[] { path });
+			mockConfig.Setup(mc => mc.FileExtensionsToConsider()).Returns(new List<string> { ".s1", ".m1" });
 			mockConfig.Setup(mc => mc.FirstPictureToDisplay()).Returns(path);
 
-			// C:\dev\Rotating.Pictures\Testing\2007-02-01-1403-05\IMG_2351.jpg
-			var picToAvoidPath = Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2351.jpg");
+			var pathToAvoid = @"dir\fldr\a";
+			var picToAvoidPath = pathToAvoid;
 			var picToAvoidPaths = new List<string> { picToAvoidPath };
 			mockConfig.Setup(mc => mc.PicturesToAvoidPaths()).Returns(picToAvoidPaths);
 			mockConfig.Setup(mc => mc.MaxPictureTrackerDepth()).Returns(5);
 			var configValue = mockConfig.Object;
 
-			var model = new MockPicModel(new List<string> { path }, new List<int> { 6 });
+			var model = new MockPicModel(configValue, new List<string> { path }, new List<int> { 0 },
+				configValue.StillPictureExtensions().Union(configValue.MotionPictures()).Union(configValue.FileExtensionsToConsider()));
 			var picsToAvoid = new PicturesToAvoidCollection(model, configValue);
 			picsToAvoid.AddPictureToAvoid(model.PicPathToIndex(picToAvoidPath));
 
@@ -90,9 +92,9 @@ namespace UnitTest.Rotate.Pictures
 			mockConfig.Setup(mc => mc.MotionPictures()).Returns(new List<string> { ".avi", ".jpeg", ".Peggy", ".Ben" });
 			mockConfig.Setup(mc => mc.InitialPictureDirectories()).Returns(new[] { @"C:\dev\Rotating.Pictures\Testing" });
 			mockConfig.Setup(mc => mc.FileExtensionsToConsider()).Returns(new List<string> { ".jpg", ".png", ".bmp", ".avi", ".jpeg", ".Peggy", ".Ben" });
-			mockConfig.Setup(mc => mc.FirstPictureToDisplay()).Returns(@"C:\dev\Rotating.Pictures\Testing\Ben\IMG_0840-1.JPG");
+			mockConfig.Setup(mc => mc.FirstPictureToDisplay()).Returns(@"A");
 
-			var picToAvoidPath = Path.GetFullPath(@"..\..\..\..\Testing\2007-02-01-1403-05\IMG_2355.jpg");		// index: 6
+			var picToAvoidPath = Path.GetFullPath(@"G");		// index: 6
 			var picToAvoidPaths = new List<string> { picToAvoidPath };
 			var model = new PictureModel(mockConfig.Object);
 			mockConfig.Setup(mc => mc.PicturesToAvoidPaths()).Returns(picToAvoidPaths);
@@ -162,16 +164,12 @@ namespace UnitTest.Rotate.Pictures
 			var model = new PictureModel(configValue);
 			var picsToAvoid = new PicturesToAvoidCollection(model, mockValue.Object);
 			foreach (var pic in picIndicesToAvoid)
-			{
-				Debug.WriteLine($"pic: {pic,80}\t\tmodel.PicPathToIndex(pic): {model.PicPathToIndex(pic)}");
 				picsToAvoid.AddPictureToAvoid(model.PicPathToIndex(pic));
-			}
 
 			for (var flatIndex = 0; flatIndex < picN - picIndicesToAvoid.Count; ++flatIndex)
 			{
 				// Act
 				var pictureIndex = picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex);
-				Debug.WriteLine($"picsToAvoid.GetPictureIndexFromFlatIndex(flatIndex(={flatIndex})): {pictureIndex}");
 
 				// Assert
 				var expected = flatIndex < 2 ? flatIndex : flatIndex + picIndicesToAvoid.Count;
@@ -361,25 +359,34 @@ namespace UnitTest.Rotate.Pictures
 		}
 #endif
 
-		class MockPicModel : IPictureModel
+		class MockPicModel : PictureModel
 		{
-			private List<string> _pathsToAvoid;
+			private readonly List<string> _pathsToAvoid;
 
 			private List<int> _indicesToAvoid;
 
-			private int _inx = 0;
+			private Dictionary<string, int> _picInxMapping = new Dictionary<string, int>();
 
-			private string _pathLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+			private int _inx;
 
-			public MockPicModel(List<string> pathsToAvoid, List<int> indicesToAvoid)
+			private string _pathLetters = new string(Enumerable.Range(0, 'Z' - 'A' + 1).Select(i => (char)('A' + i)).ToArray());	// A .. Z
+
+			private List<string> _extensions;
+
+			public MockPicModel(IConfigValue configValue, List<string> pathsToAvoid, List<int> indicesToAvoid, IEnumerable<string> exts)
+				: base(configValue)
 			{
+				_extensions = exts.ToList();
 				_pathsToAvoid = pathsToAvoid;
 				_indicesToAvoid = indicesToAvoid;
+				_inx = 0;
+
+				RetrievePictures();
 			}
 
-			public ManualResetEvent RetrievedEvent => new ManualResetEvent(true);
+			// public ManualResetEvent RetrievedEvent => new ManualResetEvent(true);
 
-			public string PicIndexToPath(int picIndex)
+			public override string PicIndexToPath(int picIndex)
 			{
 				if (picIndex < 0) return picIndex.ToString();
 				if (picIndex == 0) return "A";
@@ -394,17 +401,38 @@ namespace UnitTest.Rotate.Pictures
 				return path.ToString();
 			}
 
-			public int PicPathToIndex(string path)
+			public override int PicPathToIndex(string path)
 			{
-				if (_pathsToAvoid.Contains(path))
-					return _pathsToAvoid.IndexOf(path);
+				var inx = path.ToCharArray().Aggregate(0, (a, l) => a * 26 + char.ToLower(l) - 'a' + 1);
+				return inx - 1;
+			}
 
-				if (!_indicesToAvoid.Contains(_inx)) return _inx++;
+			private void RetrievePictures() => RetrievePictures(CancellationToken.None);
 
-				while (_indicesToAvoid.Contains(_inx))
-					++_inx;
+			protected override void RetrievePictures(CancellationToken ct)
+			{
+				if (_extensions == null || _extensions.Count == 0) return;
 
-				return _inx;
+				var cnt = _extensions.Count;
+				for (int i = 0; i < 100; ++i)
+					_picCollection.Add($"{Num2Path(i)}.{_extensions[i % cnt]}");
+			}
+
+			private string Num2Path(int num)
+			{
+				var cols = new List<char>();
+				var numP = num + 1;
+				do
+				{
+					--numP;
+					var ordCol = numP % 26;
+					var nxtLet = (char)('A' + ordCol);
+					cols.Add(nxtLet);
+					numP = (numP - ordCol) / 26;
+				}
+				while (numP > 0);
+
+				return string.Join(string.Empty, cols.AsEnumerable().Reverse());
 			}
 		}
 	}

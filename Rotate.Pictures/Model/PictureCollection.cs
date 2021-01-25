@@ -44,8 +44,6 @@ namespace Rotate.Pictures.Model
 			}
 			set
 			{
-				Debug.WriteLine($"this[index(={index})] setter: picCollection[{index}] := {value}");
-				Debug.WriteLine($"this[index(={index})] stack trace: {DebugStackTrace.GetStackFrameString()}");
 				PicCollection[index] = value;
 				PicPathToIndex.TryAdd(value, index);
 			}
