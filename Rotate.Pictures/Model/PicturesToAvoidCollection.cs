@@ -33,23 +33,23 @@ namespace Rotate.Pictures.Model
 		/// have "holes" (pictures not to be used), as per user request.
 		/// </remarks>
 		/// </summary>
-		protected readonly Dictionary<int, int> FlatToPicIndexMapping = new Dictionary<int, int>();
+		protected readonly Dictionary<int, int> FlatToPicIndexMapping = new();
 
 		/// <summary>
 		/// Avoid paths collection
 		/// </summary>
-		private SynchronizedCollection<string> _avoidPicPaths = new SynchronizedCollection<string>();
+		private SynchronizedCollection<string> _avoidPicPaths = new();
 
 		/// <summary>
 		/// The algorithm for avoided pictures relies on the fact that _orderedKeys, flatIndex list,
 		/// is in an ascending order.
 		/// </summary>
-		private List<int> _orderedKeys = new List<int>();
+		private List<int> _orderedKeys = new();
 
 		/// <summary>PicIndex</summary>
-		private readonly List<int> _orderedPicturesToAvoid = new List<int>();
+		private readonly List<int> _orderedPicturesToAvoid = new();
 
-		private readonly object _populateSync = new object();
+		//private readonly object _populateSync = new();
 
 		private readonly IPictureModel _parent;
 
@@ -66,7 +66,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Similar to the flag but allows for a wait
 		/// </summary>
-		public ManualResetEvent IsDoneLoadingEvent = new ManualResetEvent(false);
+		public ManualResetEvent IsDoneLoadingEvent = new(false);
 
 		public int Count => _orderedKeys.Count;
 
