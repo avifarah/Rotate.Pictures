@@ -6,7 +6,7 @@ using log4net;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
-
+using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Utility
 {
@@ -393,6 +393,8 @@ namespace Rotate.Pictures.Utility
 
 			if (picsToAvoid == null)
 			{
+				if (!File.Exists(doNotDisplayFn)) return;
+				if (doNotDisplayFn.IsLocked()) return;
 				File.WriteAllText(doNotDisplayFn, string.Empty);
 				return;
 			}
