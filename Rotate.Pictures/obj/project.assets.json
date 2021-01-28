@@ -15,6 +15,12 @@
           "lib/net45/log4net.dll": {}
         }
       },
+      "Microsoft.DotNet.Analyzers.Compatibility/0.2.12-alpha": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.DotNet.Analyzers.Compatibility.targets": {}
+        }
+      },
       "System.Windows.Interactivity.WPF/2.0.20525": {
         "type": "package",
         "compile": {
@@ -39,6 +45,12 @@
         },
         "runtime": {
           "lib/net45/log4net.dll": {}
+        }
+      },
+      "Microsoft.DotNet.Analyzers.Compatibility/0.2.12-alpha": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.DotNet.Analyzers.Compatibility.targets": {}
         }
       },
       "System.Windows.Interactivity.WPF/2.0.20525": {
@@ -67,6 +79,12 @@
           "lib/net45/log4net.dll": {}
         }
       },
+      "Microsoft.DotNet.Analyzers.Compatibility/0.2.12-alpha": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.DotNet.Analyzers.Compatibility.targets": {}
+        }
+      },
       "System.Windows.Interactivity.WPF/2.0.20525": {
         "type": "package",
         "compile": {
@@ -91,6 +109,12 @@
         },
         "runtime": {
           "lib/net45/log4net.dll": {}
+        }
+      },
+      "Microsoft.DotNet.Analyzers.Compatibility/0.2.12-alpha": {
+        "type": "package",
+        "build": {
+          "build/Microsoft.DotNet.Analyzers.Compatibility.targets": {}
         }
       },
       "System.Windows.Interactivity.WPF/2.0.20525": {
@@ -135,6 +159,20 @@
         "package-icon.png"
       ]
     },
+    "Microsoft.DotNet.Analyzers.Compatibility/0.2.12-alpha": {
+      "sha512": "uu3yAa6hQZJoJZfBwXSvh+bN03KO06sWNZXwodxz7J1wva1g1+O4TnWJxX4dmsP6tLDTZtKy8IHiPLOOZIwt9w==",
+      "type": "package",
+      "path": "microsoft.dotnet.analyzers.compatibility/0.2.12-alpha",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "analyzers/dotnet/cs/Microsoft.DotNet.Analyzers.Compatibility.dll",
+        "analyzers/dotnet/cs/Microsoft.DotNet.Csv.dll",
+        "build/Microsoft.DotNet.Analyzers.Compatibility.targets",
+        "microsoft.dotnet.analyzers.compatibility.0.2.12-alpha.nupkg.sha512",
+        "microsoft.dotnet.analyzers.compatibility.nuspec"
+      ]
+    },
     "System.Windows.Interactivity.WPF/2.0.20525": {
       "sha512": "0r+Le4E7hCm4zToUvBzjSUyTcuU3rFeoPa7JyTdWIzR/F7wH6+O/pWkjHIG40hIA0z1wvRdZayvoizA4wcK1dg==",
       "type": "package",
@@ -153,6 +191,7 @@
   },
   "projectFileDependencyGroups": {
     ".NETFramework,Version=v4.8": [
+      "Microsoft.DotNet.Analyzers.Compatibility >= 0.2.12-alpha",
       "System.Windows.Interactivity.WPF >= 2.0.20525",
       "log4net >= 2.0.12"
     ]
@@ -195,6 +234,12 @@
     "frameworks": {
       "net48": {
         "dependencies": {
+          "Microsoft.DotNet.Analyzers.Compatibility": {
+            "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+            "suppressParent": "All",
+            "target": "Package",
+            "version": "[0.2.12-alpha, )"
+          },
           "System.Windows.Interactivity.WPF": {
             "target": "Package",
             "version": "[2.0.20525, )"
