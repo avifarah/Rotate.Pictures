@@ -18,7 +18,7 @@ namespace Rotate.Pictures.Model
 		/// A list of pictures.  Key is the path into the picture.
 		/// Using PicPathToIndex allows us to index into the collection by the integer index.
 		/// </summary>
-		protected SynchronizedCollection<string> PicCollection = new();
+		protected ThreadSafeList<string> PicCollection = new();
 
 		/// <summary>
 		/// The same collection as PicCollection mapping the path as the key into the picIndex integer.
@@ -106,7 +106,7 @@ namespace Rotate.Pictures.Model
 
 		public void Clear()
 		{
-			PicCollection = new SynchronizedCollection<string>();
+			PicCollection = new ThreadSafeList<string>();
 			PicPathToIndex = new ConcurrentDictionary<string, int>();
 		}
 

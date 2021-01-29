@@ -38,7 +38,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Avoid paths collection
 		/// </summary>
-		private SynchronizedCollection<string> _avoidPicPaths = new();
+		private ThreadSafeList<string> _avoidPicPaths = new();
 
 		/// <summary>
 		/// The algorithm for avoided pictures relies on the fact that _orderedKeys, flatIndex list,
@@ -82,8 +82,8 @@ namespace Rotate.Pictures.Model
 
 		/// <summary>
 		/// We need to populate the following structures:
-		/// 	_avoidPicPaths:				A SynchronizedCollection of pic paths (initially read from a flat file)
-		///		_orderedPicturesToAvoid		SynchronizedCollection{int}, pic indices
+		/// 	_avoidPicPaths:				A Collection of pic paths (initially read from a flat file)
+		///		_orderedPicturesToAvoid		Collection{int}, pic indices
 		///		FlatToPicIndexMapping		Dictionary{int, int}, flat to pic index mapping
 		///		_orderedKeys:				A list of flat indices
 		/// </summary>
@@ -128,9 +128,9 @@ namespace Rotate.Pictures.Model
 		///
 		/// Algorithm needs to affect
 		/// 		private readonly Dictionary{int, int} FlatToPicIndexMapping
-		///			private readonly SynchronizedCollection{string} _avoidPicPaths
+		///			private readonly Collection{string} _avoidPicPaths
 		///			private List{int} _orderedKeys
-		///			private readonly SynchronizedCollection{int} _orderedPicturesToAvoid
+		///			private readonly Collection{int} _orderedPicturesToAvoid
 		/// </summary>
 		/// <param name="picIndex"></param>
 		/// <returns></returns>
@@ -308,9 +308,9 @@ namespace Rotate.Pictures.Model
 			}
 		}
 
-		private SynchronizedCollection<string> RepopulatePicturesPathToAvoid(IEnumerable<int> orderedPicturesToAvoid)
+		private ThreadSafeList<string> RepopulatePicturesPathToAvoid(IEnumerable<int> orderedPicturesToAvoid)
 		{
-			var avoidPicPaths = new SynchronizedCollection<string>();
+			var avoidPicPaths = new ThreadSafeList<string>();
 			foreach (var picIndex in orderedPicturesToAvoid)
 				avoidPicPaths.Add(_parent.PicIndexToPath(picIndex));
 

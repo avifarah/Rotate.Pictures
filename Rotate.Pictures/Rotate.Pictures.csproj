@@ -116,6 +116,7 @@
     <Compile Include="Model\PictureRetrievingEventArgs.cs" />
     <Compile Include="Model\PicturesToAvoidCollection.cs" />
     <Compile Include="Model\SelectionTracker.cs" />
+    <Compile Include="Model\ThreadSafeList.cs" />
     <Compile Include="Service\NoDisplayPictureService.cs" />
     <Compile Include="Service\StretchDialogService.cs" />
     <Compile Include="Utility\ConfigValueProvider.cs" />
