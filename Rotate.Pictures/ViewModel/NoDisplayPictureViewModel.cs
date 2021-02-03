@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -266,15 +265,10 @@ namespace Rotate.Pictures.ViewModel
 		}
 
 		private void SaveRepositoryAction()
-		{
-			var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
-			var fullFn = Path.GetFullPath(fileName);
-			using var sw = new StreamWriter(fullFn, false);
-			foreach (var item in NoDisplayItems)
-				sw.WriteLine(item.ColumnPath);
-
-			MessageBox.Show("Saved", "Rotating.Pictures");
-		}
+        {
+            DoNotDisplayUtil.SaveDoNotDisplay(RepositoryFilePath, NoDisplayItems.Select(item => item.ColumnPath));
+            MessageBox.Show("Saved", "Rotating.Pictures");
+        }
 
 		private void RegisterMessages()
 		{

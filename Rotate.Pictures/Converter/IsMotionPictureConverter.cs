@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Windows.Data;
@@ -27,6 +28,7 @@ namespace Rotate.Pictures.Converter
 			var configValue = ConfigValueProvider.Default;
 			var motionPicExt = configValue.MotionPictures();
 			var rc = fileNm.IsMotionPicture(motionPicExt);
+			//Debug.WriteLine($"IsMotionPictureConverter.  Value: {value}");
 			return rc;
 		}
 

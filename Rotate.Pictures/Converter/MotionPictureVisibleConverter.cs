@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -35,6 +36,7 @@ namespace Rotate.Pictures.Converter
 			var fn = value as string;
 			if (string.IsNullOrWhiteSpace(fn)) return false;
 			var rc = _motionExtensions.Any(s => string.Compare(new FileInfo(fn).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
+			//Debug.WriteLine($"MotionPictureVisibleConverter.  Value: {value}");
 			return rc ? "Visible" : "Collapsed";
 		}
 

@@ -102,6 +102,7 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		public PictureModel(IConfigValue configValue)
 		{
+            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = configValue;
 			_selectionTracker = new SelectionTracker(this, configValue.MaxPictureTrackerDepth());
 			_avoidCollection = new PicturesToAvoidCollection(this, configValue);

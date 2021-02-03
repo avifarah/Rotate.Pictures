@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using Rotate.Pictures.Model;
 
@@ -22,6 +23,7 @@ namespace Rotate.Pictures.Utility
 
 		public object Create(string modelName, IConfigValue configValue)
 		{
+            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)  modelName={modelName}");
 			switch (modelName)
 			{
 				case "PictureFileRepository":

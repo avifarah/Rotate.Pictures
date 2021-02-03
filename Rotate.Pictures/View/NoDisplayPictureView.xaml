@@ -58,8 +58,8 @@
 								<Image Source="{Binding ColumnPath, Mode=OneWay}"  Stretch="Uniform"
 							       IsEnabled="{Binding ColumnPath, Converter={StaticResource LocalStillPictureConverter}}" />
 								<MediaElement x:Name="MePlayer" Source="{Binding ColumnPath, Mode=OneWay}"
-							        LoadedBehavior="Play" UnloadedBehavior="Stop"
-							        Stretch="Uniform" IsEnabled="{Binding ColumnPath, Converter={StaticResource LocalMotionPictureConverter}}" Margin="0,3,0,-3"/>
+							        LoadedBehavior="Play" UnloadedBehavior="Stop" Stretch="Uniform" Volume="0"
+                                    IsEnabled="{Binding ColumnPath, Converter={StaticResource LocalMotionPictureConverter}}" Margin="0,3,0,-3"/>
 							</Grid>
 							<TextBlock Grid.Column="2" Text="{Binding ColumnPicIndex}" Margin="0,0,3,3" HorizontalAlignment="Right"/>
 							<TextBlock Grid.Column="3" Text="{Binding ColumnPath}" Margin="0,0,0,3"/>

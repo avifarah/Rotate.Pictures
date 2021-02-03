@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -36,7 +37,9 @@ namespace Rotate.Pictures.Converter
 		{
 			var fileNm = value as string;
 			if (string.IsNullOrWhiteSpace(fileNm)) return false;
-			return _stillPictures.Any(s => string.Compare(new FileInfo(fileNm).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
+			var isStillPic = _stillPictures.Any(s => string.Compare(new FileInfo(fileNm).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
+			//Debug.WriteLine($"IsStillPictureConverter.   Value: {value}");
+			return isStillPic;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

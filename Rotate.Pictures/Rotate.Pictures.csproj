@@ -95,6 +95,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converter\MotionPictureVisibleConverter.cs" />
+    <Compile Include="Converter\StillPictureImageConverter.cs" />
     <Compile Include="Converter\WindowSizeStateConverter.cs" />
     <Compile Include="EventAggregator\IEventAggregator.cs" />
     <Compile Include="EventAggregator\ISubscriber.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Service\StretchDialogService.cs" />
     <Compile Include="Utility\ConfigValueProvider.cs" />
     <Compile Include="Utility\DebugStackTrace.cs" />
+    <Compile Include="Utility\DoNotDisplayUtil.cs" />
     <Compile Include="Utility\ExceptionExt.cs" />
     <Compile Include="Utility\FileExt.cs" />
     <Compile Include="Utility\ICommand.cs" />
@@ -129,6 +131,7 @@
     <Compile Include="Utility\LinqComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
     <Compile Include="Utility\ModelFactory.cs" />
+    <Compile Include="Utility\RotationException.cs" />
     <Compile Include="Utility\VmFactory.cs" />
     <Compile Include="ViewModel\NoDisplayItem.cs" />
     <Compile Include="ViewModel\NoDisplayPictureViewModel.cs" />

@@ -35,7 +35,9 @@
 	<Window.InputBindings>
 		<KeyBinding Key="Left" Command="{StaticResource BackImageCommand}" />
 		<KeyBinding Key="Right" Command="{StaticResource NextImageCommand}" />
-	</Window.InputBindings>
+        <KeyBinding Key="S" Command="{Binding StopStartCommand}"/>
+        <KeyBinding Key="D" Command="{Binding DoNotShowImageCommand}"/>
+    </Window.InputBindings>
 
 	<DockPanel>
 		<Menu DockPanel.Dock="Top">
@@ -128,10 +130,14 @@
 					</Style>
 				</Button.Style>
 				<Grid>
-					<Image Source="{Binding CurrentPicture, Mode=OneWay}" Stretch="{Binding ImageStretch}" IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}" />
+					<Image Source="{Binding CurrentPicture, Converter={StaticResource StillPictureImageConverter}, Mode=OneWay}"
+					       Stretch="{Binding ImageStretch}"
+					       IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}" />
 					<MediaElement x:Name="MePlayer" Source="{Binding CurrentPicture, Mode=OneWay}"
 								  LoadedBehavior="Play" UnloadedBehavior="Stop" MediaOpened="MePlayer_OnMediaOpened"
-								  Stretch="{Binding ImageStretch}" IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}" Margin="0,3,0,-3"/>
+								  Stretch="{Binding ImageStretch}"
+								  IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+								  Margin="0,3,0,-3"/>
 				</Grid>
 			</Button>
 
@@ -166,14 +172,14 @@
 				             Background="Yellow" Foreground="#FFB2B200" Grid.Column="2" Name="PrBarTimeToEndOfDisplayOfThisPicture"
 				             Value="{Binding VisHeartBeatValue, Mode=OneWay}" BorderThickness="1" BorderBrush="Black" Margin="0,0,3,0"/>
 
-				<!-- Do now show button -->
+				<!-- Do now show button (Key shortcut = 'D') -->
 				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="3" Style="{StaticResource ShrinkOnPress}"
 				        Name="BtnDoNotShow" Command="{Binding DoNotShowImageCommand}"
 				        ToolTip="Do not show this image again.  See 'Manage no-display pictures-list...' menu entry.">
 					<Image Source="/Rotate.Pictures;component/Images/NoEntry.png" />
 				</Button>
 
-				<!-- Stop/Start button -->
+				<!-- Stop/Start button (Key shortcut = 'S') -->
 				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4" Command="{Binding StopStartCommand}" Style="{StaticResource ShrinkOnPress}">
 					<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
 					         Width="15" Height="15"

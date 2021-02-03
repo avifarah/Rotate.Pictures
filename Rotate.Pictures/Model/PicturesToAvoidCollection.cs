@@ -74,9 +74,10 @@ namespace Rotate.Pictures.Model
 
 		public PicturesToAvoidCollection(IPictureModel parent, IConfigValue configValue)
 		{
+            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
+            //Debug.WriteLine($"_orderedPicturesToAvoid: ({string.Join("; ", _orderedPicturesToAvoid)}){Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
 			_parent = parent;
 			_configValue = configValue;
-			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType.Name}.{MethodBase.GetCurrentMethod().Name}().  _orderedPicturesToAvoid: ({string.Join("; ", _orderedPicturesToAvoid)}){Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
 			Task.Run(Initialize);
 		}
 
@@ -89,9 +90,11 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		private void Initialize()
 		{
-			// _avoidPicPaths from a file
+            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
+			// _avoidPicPaths from a file, avoid duplicates if they exist
 			var picIndices = _configValue.PicturesToAvoidPaths().Where(p => !_avoidPicPaths.Contains(p));
-			foreach (var path in picIndices) _avoidPicPaths.Add(path);
+			_avoidPicPaths.AddRange(picIndices);
+			//Debug.WriteLine($"{new string('*', 30)}  \"{string.Join(", ", _avoidPicPaths)}\"");
 
 			// Wait for all paths to be read
 			_parent.RetrievedEvent.WaitOne();
@@ -100,6 +103,7 @@ namespace Rotate.Pictures.Model
 			foreach (var picPath in _avoidPicPaths)
 			{
 				var picIndex = _parent.PicPathToIndex(picPath);
+				//Debug.WriteLine($"{new string('*', 30)}  picIndex of: \"{picPath}\" is {picIndex}");
 				if (!_orderedPicturesToAvoid.Contains(picIndex))
 					_orderedPicturesToAvoid.Add(picIndex);
 			}

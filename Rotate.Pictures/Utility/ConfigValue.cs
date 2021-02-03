@@ -6,7 +6,6 @@ using log4net;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
-using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Utility
 {
@@ -14,10 +13,11 @@ namespace Rotate.Pictures.Utility
 	{
 		private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-		private static readonly Lazy<ConfigValue> _inst = new Lazy<ConfigValue>(() => new ConfigValue());
+		private static readonly Lazy<ConfigValue> _inst = new (() => new ConfigValue());
 		public static readonly ConfigValue Inst = _inst.Value;
 
 		private readonly Dictionary<string, string> _configValues;
+		private readonly object _syncUpdatePics = new ();
 
 		private ConfigValue() => _configValues = ConfigurationManager.AppSettings.AllKeys.ToDictionary(key => key, key => ConfigurationManager.AppSettings[key]);
 
@@ -372,36 +372,44 @@ namespace Rotate.Pictures.Utility
 
 		public IEnumerable<string> PicturesToAvoidPaths()
 		{
-			var doNotDisplayPicPaths = new List<string>();
 			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
-			if (!File.Exists(doNotDisplayFn)) return doNotDisplayPicPaths;
-
-			using var sr = new StreamReader(doNotDisplayFn);
-			while (!sr.EndOfStream)
+			lock (_syncUpdatePics)
 			{
-				var path = sr.ReadLine();
-				if (!string.IsNullOrEmpty(path))
-					doNotDisplayPicPaths.Add(path);
-			}
+				var doNotDisplayPicPaths = new List<string>();
+				if (!File.Exists(doNotDisplayFn))
+				{
+					// Empty list returned
+					return doNotDisplayPicPaths;
+				}
 
-			return doNotDisplayPicPaths;
+				try
+				{
+					using var sr = new StreamReader(doNotDisplayFn);
+					while (!sr.EndOfStream)
+					{
+						var path = sr.ReadLine();
+						if (!string.IsNullOrEmpty(path))
+							doNotDisplayPicPaths.Add(path);
+					}
+				}
+				catch (Exception e)
+				{
+					Log.Error("Cannot retrieve pictures not to be displayed.", e);
+				}
+
+				return doNotDisplayPicPaths;
+
+			}
 		}
 
 		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid)
 		{
 			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
 
-			if (picsToAvoid == null)
+			lock (_syncUpdatePics)
 			{
-				if (!File.Exists(doNotDisplayFn)) return;
-				if (doNotDisplayFn.IsLocked()) return;
-				File.WriteAllText(doNotDisplayFn, string.Empty);
-				return;
-			}
 
-			using var sw = new StreamWriter(doNotDisplayFn, false);
-			foreach (var pic in picsToAvoid)
-				sw.WriteLine(pic);
+			}
 		}
 
 		private const string FilePathToSavePicturesToAvoidKey = "FilePath to save Pictures to avoid";

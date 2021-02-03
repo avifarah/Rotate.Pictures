@@ -18,17 +18,21 @@ namespace Rotate.Pictures.Utility
 		public static bool IsLocked(this FileInfo fileInfo)
 		{
 			var filePath = fileInfo.FullName;
-			try
+			for (var i = 0; i < 3; ++i)
 			{
-				var fs = File.OpenWrite(filePath);
-				fs.Close();
-				return false;
+				try
+				{
+					var fs = File.OpenWrite(filePath);
+					fs.Close();
+					return false;
+				}
+				catch (Exception ex)
+				{
+					Log.Info($"Try: {i}.  File: \"{filePath}\" is locked.", ex);
+				}
 			}
-			catch (Exception ex)
-			{
-				Log.Info($"File: \"{filePath}\" is locked.", ex);
-				return true;
-			}
+
+			return true;
 		}
 	}
 }

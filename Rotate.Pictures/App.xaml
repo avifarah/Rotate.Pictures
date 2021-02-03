@@ -12,6 +12,7 @@
 			<converter:StartStopRotateConverter x:Key="LocalStartStopConverter"/>
 			<converter:MotionPictureVisibleConverter x:Key="LocalMotionPictureVisibleConverter"/>
 			<converter:WindowSizeStateConverter x:Key="LocalWindowSizeStateConverter"/>
+			<converter:StillPictureImageConverter x:Key="StillPictureImageConverter"/>
 
 			<Style TargetType="Button" x:Key="ShrinkOnPress">
 				<Style.Triggers>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -36,6 +37,7 @@ namespace Rotate.Pictures.ViewModel
 
 		public MainWindowViewModel()
 		{
+			Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = ConfigValueProvider.Default;
 			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository", _configValue);
 
@@ -640,6 +642,8 @@ namespace Rotate.Pictures.ViewModel
 		{
 			var inx = _model.PicPathToIndex(CurrentPicture);
 			_model.AddPictureToAvoid(inx);
+            DoNotDisplayUtil.SaveDoNotDisplay(ConfigValue.Inst.FilePathToSavePicturesToAvoid(),
+                _model.PicturesToAvoid.Select(pi => _model.PicIndexToPath(pi)));
 			NextImageMove();
 		}
 
