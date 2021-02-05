@@ -382,34 +382,21 @@ namespace Rotate.Pictures.Utility
 					return doNotDisplayPicPaths;
 				}
 
-				try
-				{
-					using var sr = new StreamReader(doNotDisplayFn);
-					while (!sr.EndOfStream)
-					{
-						var path = sr.ReadLine();
-						if (!string.IsNullOrEmpty(path))
-							doNotDisplayPicPaths.Add(path);
-					}
-				}
-				catch (Exception e)
-				{
-					Log.Error("Cannot retrieve pictures not to be displayed.", e);
-				}
-
+                doNotDisplayPicPaths.AddRange(DoNotDisplayUtil.RetrieveDoNotDisplay(doNotDisplayFn));
 				return doNotDisplayPicPaths;
 
 			}
 		}
 
-		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid)
+		// TODO: Complete
+		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null)
 		{
 			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
 
 			lock (_syncUpdatePics)
-			{
-
-			}
+            {
+                DoNotDisplayUtil.SaveDoNotDisplay(picsToAvoid, doNotDisplayFn);
+            }
 		}
 
 		private const string FilePathToSavePicturesToAvoidKey = "FilePath to save Pictures to avoid";

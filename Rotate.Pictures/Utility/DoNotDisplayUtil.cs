@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,27 +14,12 @@ namespace Rotate.Pictures.Utility
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static bool SaveDoNotDisplay(string repositoryFilePath, IEnumerable<string> noDisplayItems)
+        public static bool SaveDoNotDisplay(IEnumerable<string> noDisplayItems, string repositoryFilePath = null)
         {
-            // TODO: Write a Verify function
-            if (repositoryFilePath == null)
-            {
-                var msg = $"Argument \"{nameof(repositoryFilePath)}\" is passed erroneously";
-                Log.Error(msg);
-                MessageBox.Show(msg, "DoNotDisplay Save");
-                throw new ArgumentException($@"{nameof(repositoryFilePath)} argument may not be null", nameof(repositoryFilePath));
-            }
-
-            if (noDisplayItems == null)
-            {
-                var msg = $"Argument \"{nameof(noDisplayItems)}\" is passed erroneously";
-                Log.Error(msg);
-                MessageBox.Show(msg, "DoNotDisplay Save");
-                throw new ArgumentException($@"{nameof(noDisplayItems)} argument may not be null", nameof(noDisplayItems));
-            }
+            noDisplayItems ??= new List<string>();
 
             var fileName = repositoryFilePath == null
-                ? ConfigValue.Inst.FilePathToSavePicturesToAvoid()
+                ? Environment.ExpandEnvironmentVariables(ConfigValue.Inst.FilePathToSavePicturesToAvoid())
                 : Environment.ExpandEnvironmentVariables(repositoryFilePath);
             try
             {
@@ -47,14 +33,36 @@ namespace Rotate.Pictures.Utility
             {
                 const string msg = "Could not save pictures to avoid";
                 Log.Error(msg, e);
-                MessageBox.Show(msg, "DoNotDisplay Save");
+                MessageBox.Show(msg, @"DoNotDisplay Save");
                 return false;
             }
         }
 
         public static IEnumerable<string> RetrieveDoNotDisplay(string repositoryFilePath)
         {
-            return null;
+            var items = new List<string>();
+            var fileName = repositoryFilePath == null
+                ? Environment.ExpandEnvironmentVariables(ConfigValue.Inst.FilePathToSavePicturesToAvoid())
+                : Environment.ExpandEnvironmentVariables(repositoryFilePath);
+            try
+            {
+                var fullFn = Path.GetFullPath(fileName);
+                using var sr = new StreamReader(fullFn);
+                while (!sr.EndOfStream)
+                {
+                    var item = sr.ReadLine();
+                    if (item != null && item.Trim() != string.Empty)
+                        items.Add(item);
+                }
+                return items;
+            }
+            catch (Exception e)
+            {
+                const string msg = "Could not retrieve pictures to avoid";
+                Log.Error(msg, e);
+                MessageBox.Show(msg, @"DoNotDisplay Retrieve");
+                return items;
+            }
         }
     }
 }

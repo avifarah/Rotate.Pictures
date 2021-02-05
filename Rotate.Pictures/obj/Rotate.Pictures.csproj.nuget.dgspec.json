@@ -44,6 +44,10 @@
               "target": "Package",
               "version": "[0.2.12-alpha, )"
             },
+            "System.Diagnostics.Contracts": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
             "System.Windows.Interactivity.WPF": {
               "target": "Package",
               "version": "[2.0.20525, )"

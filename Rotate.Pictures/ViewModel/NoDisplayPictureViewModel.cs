@@ -207,17 +207,12 @@ namespace Rotate.Pictures.ViewModel
 
 		private void RetrieveRepositoryAction()
 		{
-			var picsToAvoid = new List<string>();
 			var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
-			var fullFn = Path.GetFullPath(fileName);
-			using var sr = new StreamReader(fullFn);
-			while (!sr.EndOfStream)
-				picsToAvoid.Add(sr.ReadLine());
-
+            var picsToAvoid = DoNotDisplayUtil.RetrieveDoNotDisplay(fileName);
 			var loadNoDisplay = new LoadNoDisplayPicturesMessage(picsToAvoid);
 			Messenger<LoadNoDisplayPicturesMessage>.Instance.Send(loadNoDisplay, MessageContext.MainWindowViewModel);
 
-			MessageBox.Show("Retreived", "Rotating.Pictures");
+			MessageBox.Show(@"Retrieved", @"Rotating.Pictures");
 		}
 
 		/// <summary>
@@ -233,8 +228,11 @@ namespace Rotate.Pictures.ViewModel
 		}
 
 		private (bool, string) CanSaveErrorString()
-		{
-			try
+        {
+			// None of the attributes == 0 there fore there is no need to check against this possibility, (x & 0 == 0 --always!).
+            bool AttrBitCheck(FileAttributes fileAttributes, FileAttributes check) => (fileAttributes & check) == check;
+
+            try
 			{
 				var fileName = Environment.ExpandEnvironmentVariables(RepositoryFilePath);
 				var fullFn = Path.GetFullPath(fileName);
@@ -250,12 +248,12 @@ namespace Rotate.Pictures.ViewModel
 				if (!rc) return (true, string.Empty);
 
 				var attrs = File.GetAttributes(fullFn);
-				if (attrs == FileAttributes.Normal) return (true, string.Empty);
-				if ((attrs & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) return (false, "File is read-only");
-				if ((attrs & FileAttributes.Hidden) == FileAttributes.Hidden) return (false, "File is hidden");
-				if ((attrs & FileAttributes.System) == FileAttributes.System) return (false, "File is a system-file");
-				if ((attrs & FileAttributes.Directory) == FileAttributes.Directory) return (false, "File is a directory");
-				if ((attrs & FileAttributes.Offline) == FileAttributes.Offline) return (false, "File is off-line");
+				if (AttrBitCheck(attrs, FileAttributes.Normal)) return (true, string.Empty);
+				if (AttrBitCheck(attrs, FileAttributes.ReadOnly)) return (false, "File is read-only");
+				if (AttrBitCheck(attrs, FileAttributes.Hidden)) return (false, "File is hidden");
+				if (AttrBitCheck(attrs, FileAttributes.System)) return (false, "File is a system-file");
+				if (AttrBitCheck(attrs, FileAttributes.Directory)) return (false, "File is a directory");
+				if (AttrBitCheck(attrs, FileAttributes.Offline)) return (false, "File is off-line");
 				return (true, string.Empty);
 			}
 			catch (Exception e)
@@ -266,7 +264,7 @@ namespace Rotate.Pictures.ViewModel
 
 		private void SaveRepositoryAction()
         {
-            DoNotDisplayUtil.SaveDoNotDisplay(RepositoryFilePath, NoDisplayItems.Select(item => item.ColumnPath));
+            DoNotDisplayUtil.SaveDoNotDisplay(NoDisplayItems.Select(item => item.ColumnPath), RepositoryFilePath);
             MessageBox.Show("Saved", "Rotating.Pictures");
         }
 
@@ -300,13 +298,13 @@ namespace Rotate.Pictures.ViewModel
 			Messenger<CloseDialog>.Instance.Send(new CloseDialog(), MessageContext.NoDisplayPicture);
 		}
 
-		#region INotifyPropertyChanged
+#region INotifyPropertyChanged
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-		#endregion
+#endregion
 	}
 }
