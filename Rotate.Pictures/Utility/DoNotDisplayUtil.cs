@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Rotate.Pictures.Utility
@@ -21,6 +17,10 @@ namespace Rotate.Pictures.Utility
             var fileName = repositoryFilePath == null
                 ? Environment.ExpandEnvironmentVariables(ConfigValue.Inst.FilePathToSavePicturesToAvoid())
                 : Environment.ExpandEnvironmentVariables(repositoryFilePath);
+
+            // If neither repositoryFilePath is passed in nor is it provided in the configuration file then return;
+            if (string.IsNullOrWhiteSpace(fileName)) return true;
+
             try
             {
                 var fullFn = Path.GetFullPath(fileName);
@@ -38,12 +38,16 @@ namespace Rotate.Pictures.Utility
             }
         }
 
-        public static IEnumerable<string> RetrieveDoNotDisplay(string repositoryFilePath)
+        public static IEnumerable<string> RetrieveDoNotDisplay(string repositoryFilePath = null)
         {
             var items = new List<string>();
             var fileName = repositoryFilePath == null
                 ? Environment.ExpandEnvironmentVariables(ConfigValue.Inst.FilePathToSavePicturesToAvoid())
                 : Environment.ExpandEnvironmentVariables(repositoryFilePath);
+
+            // If neither repositoryFilePath is passed in nor is it provided in the configuration file then return;
+            if (string.IsNullOrWhiteSpace(fileName)) return items;
+
             try
             {
                 var fullFn = Path.GetFullPath(fileName);

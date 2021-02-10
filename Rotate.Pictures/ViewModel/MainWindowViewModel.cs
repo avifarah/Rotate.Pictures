@@ -37,7 +37,7 @@ namespace Rotate.Pictures.ViewModel
 
 		public MainWindowViewModel()
 		{
-			Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
+			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = ConfigValueProvider.Default;
 			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository", _configValue);
 

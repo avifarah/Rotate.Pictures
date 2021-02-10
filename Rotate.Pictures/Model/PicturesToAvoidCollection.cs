@@ -123,7 +123,7 @@ namespace Rotate.Pictures.Model
 			FlatToPicIndexMapping.Clear();
 			_orderedKeys.Clear();
 			_orderedPicturesToAvoid.Clear();
-			_configValue.UpdatePicturesToAvoid();
+			//_configValue.UpdatePicturesToAvoid();
 		}
 
 		/// <summary>

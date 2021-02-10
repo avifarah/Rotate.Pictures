@@ -368,34 +368,33 @@ namespace Rotate.Pictures.Utility
 			return mff;
 		}
 
-		private const string PicturesToAvoidFileName = "Pictures Path To Avoid.lst";
+		//private const string PicturesToAvoidFileName = "Pictures Path To Avoid.lst";
 
 		public IEnumerable<string> PicturesToAvoidPaths()
 		{
-			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
+			//var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
 			lock (_syncUpdatePics)
 			{
 				var doNotDisplayPicPaths = new List<string>();
-				if (!File.Exists(doNotDisplayFn))
-				{
-					// Empty list returned
-					return doNotDisplayPicPaths;
-				}
+				//if (!File.Exists(doNotDisplayFn))
+				//{
+				//	// Empty list returned
+				//	return doNotDisplayPicPaths;
+				//}
 
-                doNotDisplayPicPaths.AddRange(DoNotDisplayUtil.RetrieveDoNotDisplay(doNotDisplayFn));
+                doNotDisplayPicPaths.AddRange(DoNotDisplayUtil.RetrieveDoNotDisplay());
 				return doNotDisplayPicPaths;
 
 			}
 		}
 
-		// TODO: Complete
 		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null)
 		{
-			var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
+			//var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
 
 			lock (_syncUpdatePics)
             {
-                DoNotDisplayUtil.SaveDoNotDisplay(picsToAvoid, doNotDisplayFn);
+                DoNotDisplayUtil.SaveDoNotDisplay(picsToAvoid);
             }
 		}
 
