@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Rotate.Pictures.Utility;
 
-
 namespace Rotate.Pictures
 {
 	/// <summary>

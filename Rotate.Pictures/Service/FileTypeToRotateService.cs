@@ -3,7 +3,6 @@ using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 using Rotate.Pictures.View;
 
-
 namespace Rotate.Pictures.Service
 {
 	/// <summary>

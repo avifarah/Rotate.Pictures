@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-
 namespace Rotate.Pictures.Utility
 {
 	/// <summary>

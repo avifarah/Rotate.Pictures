@@ -19,7 +19,11 @@ namespace Rotate.Pictures.Utility
                 : Environment.ExpandEnvironmentVariables(repositoryFilePath);
 
             // If neither repositoryFilePath is passed in nor is it provided in the configuration file then return;
-            if (string.IsNullOrWhiteSpace(fileName)) return true;
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                Log.Warn($"fileName is empty.  Unexpected. Stack trace:{Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
+                return true;
+            }
 
             try
             {
@@ -48,9 +52,11 @@ namespace Rotate.Pictures.Utility
             // If neither repositoryFilePath is passed in nor is it provided in the configuration file then return;
             if (string.IsNullOrWhiteSpace(fileName)) return items;
 
+            var fullFn = Path.GetFullPath(fileName);
+            if (!File.Exists(fullFn)) return items;
+
             try
             {
-                var fullFn = Path.GetFullPath(fileName);
                 using var sr = new StreamReader(fullFn);
                 while (!sr.EndOfStream)
                 {

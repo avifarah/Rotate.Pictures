@@ -1,6 +1,5 @@
 ﻿using System;
 
-
 namespace Rotate.Pictures.Utility
 {
 	public interface ICommand<in T>

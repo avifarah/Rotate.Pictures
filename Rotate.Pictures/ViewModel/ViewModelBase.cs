@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-
 namespace Rotate.Pictures.ViewModel
 {
 	public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo

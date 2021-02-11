@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+//using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.Utility;
-
 
 namespace Rotate.Pictures.Model
 {
@@ -102,7 +101,7 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		public PictureModel(IConfigValue configValue)
 		{
-            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
+            //Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = configValue;
 			_selectionTracker = new SelectionTracker(this, configValue.MaxPictureTrackerDepth());
 			_avoidCollection = new PicturesToAvoidCollection(this, configValue);

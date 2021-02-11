@@ -153,8 +153,7 @@ namespace Rotate.Pictures.Utility
 
 		public void SetStillExtension(string stillExt) => _stillExt = StringToExtensionArray(stillExt).ToList();
 
-
-		private const string StillPictureExtensionsKey = "Still pictures";
+        private const string StillPictureExtensionsKey = "Still pictures";
 
 		public List<string> StillPictureExtensions()
 		{
@@ -221,7 +220,6 @@ namespace Rotate.Pictures.Utility
 
 		public void UpdateMotionPictures(string motionPicExt) => WriteConfigValue(MotionPictureExtensionsKey, motionPicExt);
 
-
 		private const string ImageToStretchKey = "Image stretch";
 
 		public string ImageStretch()
@@ -240,7 +238,6 @@ namespace Rotate.Pictures.Utility
 		}
 
 		public void UpdateImageToStretch(SelectedStretchMode mode) => WriteConfigValue(ImageToStretchKey, mode.ToString());
-
 
 		private int _intervalBetweenPics = -1;
 
@@ -296,7 +293,6 @@ namespace Rotate.Pictures.Utility
 		}
 
 		public void UpdateFirstPictureToDisplay(string firstPicture) => WriteConfigValue(FirstPictureToDisplayKey, firstPicture);
-
 
 		private const string RotatingInitKey = "On start image rotating";
 
@@ -372,29 +368,33 @@ namespace Rotate.Pictures.Utility
 
 		public IEnumerable<string> PicturesToAvoidPaths()
 		{
-			//var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
 			lock (_syncUpdatePics)
 			{
 				var doNotDisplayPicPaths = new List<string>();
-				//if (!File.Exists(doNotDisplayFn))
-				//{
-				//	// Empty list returned
-				//	return doNotDisplayPicPaths;
-				//}
-
                 doNotDisplayPicPaths.AddRange(DoNotDisplayUtil.RetrieveDoNotDisplay());
 				return doNotDisplayPicPaths;
-
-			}
+            }
 		}
 
-		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null)
-		{
-			//var doNotDisplayFn = Path.GetFullPath(PicturesToAvoidFileName);
+		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null, Func<string, int> pathToIndex = null)
+        {
+            if (picsToAvoid == null)
+            {
+				Log.Warn($"Picture to avoid collection is null.  Unexpected!  Stack:{Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
+                return;
+            }
 
+			if (pathToIndex == null)
+            {
+                Log.Warn($"pathToIndex is null.  Unexpected!  Stack:{Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
+                return;
+            }
+
+			const string configKey = @"Pictures Indices To Avoid.  Comma separated";
 			lock (_syncUpdatePics)
             {
                 DoNotDisplayUtil.SaveDoNotDisplay(picsToAvoid);
+				WriteConfigValue(configKey, string.Join(",", picsToAvoid.Select(p => pathToIndex(p))));
             }
 		}
 

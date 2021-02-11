@@ -7,7 +7,6 @@ using Rotate.Pictures.Annotations;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 
-
 namespace Rotate.Pictures.ViewModel
 {
 	public class BufferDepthViewModel : INotifyPropertyChanged

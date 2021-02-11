@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Windows;
 
-
 namespace Rotate.Pictures.Service
 {
 	/// <summary>

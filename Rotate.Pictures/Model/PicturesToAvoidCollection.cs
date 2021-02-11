@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
+//using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
 {
-	public class PicturesToAvoidCollection : ISubscriber<PictureLoadingDoneEventArgs>
+    public class PicturesToAvoidCollection : ISubscriber<PictureLoadingDoneEventArgs>
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -49,9 +47,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>PicIndex</summary>
 		private readonly List<int> _orderedPicturesToAvoid = new();
 
-		//private readonly object _populateSync = new();
-
-		private readonly IPictureModel _parent;
+		private readonly IPictureModel _parentModel;
 
 		private readonly IConfigValue _configValue;
 
@@ -72,11 +68,11 @@ namespace Rotate.Pictures.Model
 
 		public IReadOnlyList<int> PicturesToAvoid => _orderedPicturesToAvoid;
 
-		public PicturesToAvoidCollection(IPictureModel parent, IConfigValue configValue)
+		public PicturesToAvoidCollection(IPictureModel parentModel, IConfigValue configValue)
 		{
-            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
+            //Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
             //Debug.WriteLine($"_orderedPicturesToAvoid: ({string.Join("; ", _orderedPicturesToAvoid)}){Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
-			_parent = parent;
+			_parentModel = parentModel;
 			_configValue = configValue;
 			Task.Run(Initialize);
 		}
@@ -90,19 +86,18 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		private void Initialize()
 		{
-            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
+            //Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			// _avoidPicPaths from a file, avoid duplicates if they exist
 			var picIndices = _configValue.PicturesToAvoidPaths().Where(p => !_avoidPicPaths.Contains(p));
 			_avoidPicPaths.AddRange(picIndices);
-			//Debug.WriteLine($"{new string('*', 30)}  \"{string.Join(", ", _avoidPicPaths)}\"");
 
 			// Wait for all paths to be read
-			_parent.RetrievedEvent.WaitOne();
+			_parentModel.RetrievedEvent.WaitOne();
 
 			// _orderedPicturesToAvoid
 			foreach (var picPath in _avoidPicPaths)
 			{
-				var picIndex = _parent.PicPathToIndex(picPath);
+				var picIndex = _parentModel.PicPathToIndex(picPath);
 				//Debug.WriteLine($"{new string('*', 30)}  picIndex of: \"{picPath}\" is {picIndex}");
 				if (!_orderedPicturesToAvoid.Contains(picIndex))
 					_orderedPicturesToAvoid.Add(picIndex);
@@ -146,7 +141,7 @@ namespace Rotate.Pictures.Model
 			_orderedPicturesToAvoid.Sort();
 			_avoidPicPaths = RepopulatePicturesPathToAvoid(_orderedPicturesToAvoid);
 			PopulatePicIndexMappingAndKeys();
-			_configValue.UpdatePicturesToAvoid(_avoidPicPaths);
+			_configValue.UpdatePicturesToAvoid(_avoidPicPaths, _parentModel.PicPathToIndex);
 
 			return true;
 		}
@@ -163,7 +158,7 @@ namespace Rotate.Pictures.Model
 			_orderedPicturesToAvoid.Sort();
 			_avoidPicPaths = RepopulatePicturesPathToAvoid(_orderedPicturesToAvoid);
 			PopulatePicIndexMappingAndKeys();
-			_configValue.UpdatePicturesToAvoid(_avoidPicPaths);
+			_configValue.UpdatePicturesToAvoid(_avoidPicPaths, _parentModel.PicPathToIndex);
 
 			return true;
 		}
@@ -274,9 +269,9 @@ namespace Rotate.Pictures.Model
 		/// </summary>
 		private void PopulatePicIndexMappingAndKeys()
 		{
-			// Make sure parent is done loading
+			// Make sure parentModel is done loading
 			var isLoading = Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 1) == 1;
-			var success = _parent.RetrievedEvent.WaitOne(WaitForPicturesToLoad);
+			var success = _parentModel.RetrievedEvent.WaitOne(WaitForPicturesToLoad);
 			if (!success || isLoading)
 			{
 				_populatePicIndexMappingAndKeysDone = false;
@@ -316,7 +311,7 @@ namespace Rotate.Pictures.Model
 		{
 			var avoidPicPaths = new ThreadSafeList<string>();
 			foreach (var picIndex in orderedPicturesToAvoid)
-				avoidPicPaths.Add(_parent.PicIndexToPath(picIndex));
+				avoidPicPaths.Add(_parentModel.PicIndexToPath(picIndex));
 
 			return avoidPicPaths;
 		}

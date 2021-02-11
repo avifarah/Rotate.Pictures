@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Windows.Input;
 using log4net;
 
-
 namespace Rotate.Pictures.Utility
 {
 	/// <summary>

@@ -108,8 +108,7 @@ namespace Rotate.Pictures.ViewModel
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-
-		public override string ToString() => $"{ColumnPicIndex}. {ColumnPath}";
+        public override string ToString() => $"{ColumnPicIndex}. {ColumnPath}";
 
 		#endregion
 	}

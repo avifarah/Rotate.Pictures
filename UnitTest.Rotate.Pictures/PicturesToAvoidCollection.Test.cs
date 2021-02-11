@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace UnitTest.Rotate.Pictures
 		[TestInitialize()]
 		public void MyTestInitialize()
 		{
-			ConfigValue.Inst.UpdatePicturesToAvoid(new List<string>());
+			ConfigValue.Inst.UpdatePicturesToAvoid(new List<string>(), p => 1);
 		}
 
 		// Use TestCleanup to run code after each test has run

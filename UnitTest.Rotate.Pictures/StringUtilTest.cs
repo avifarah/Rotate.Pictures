@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Rotate.Pictures.Utility;
 
-
 namespace UnitTest.Rotate.Pictures
 {
 	/// <summary>

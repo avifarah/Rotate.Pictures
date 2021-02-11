@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
+//using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Windows.Data;
 using Rotate.Pictures.Utility;
-
 
 namespace Rotate.Pictures.Converter
 {

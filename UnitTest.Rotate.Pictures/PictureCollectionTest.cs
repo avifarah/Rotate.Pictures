@@ -1,7 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Rotate.Pictures.Model;
-using Rotate.Pictures.Utility;
-
 
 namespace UnitTest.Rotate.Pictures
 {

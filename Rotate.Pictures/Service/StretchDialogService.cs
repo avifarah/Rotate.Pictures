@@ -3,7 +3,6 @@ using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 using Rotate.Pictures.View;
 
-
 namespace Rotate.Pictures.Service
 {
 	/// <summary>
@@ -12,7 +11,6 @@ namespace Rotate.Pictures.Service
 	public sealed class StretchDialogService : DialogService
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
 
 		public StretchDialogService() : base(() => new StretchModeView()) { }
 

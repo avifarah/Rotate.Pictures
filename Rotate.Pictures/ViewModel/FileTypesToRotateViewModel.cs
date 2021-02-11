@@ -6,7 +6,6 @@ using System.Windows.Input;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 
-
 namespace Rotate.Pictures.ViewModel
 {
 	public class FileTypesToRotateViewModel : ViewModelBase

@@ -4,7 +4,6 @@ using Moq;
 using Rotate.Pictures.Model;
 using Rotate.Pictures.Utility;
 
-
 namespace UnitTest.Rotate.Pictures
 {
 	/// <summary>

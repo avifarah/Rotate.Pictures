@@ -26,10 +26,10 @@ namespace Rotate.Pictures.ViewModel
 		private readonly PictureModel _model;
 
 		private readonly StretchDialogService _stretchSvc;
-		private readonly IntervalBetweenPicturesService _intervalBetweenPicturesService;
-		private readonly FileTypeToRotateService _pictureMetadataService;
-		private readonly PictureBufferDepthService _pictureBufferService;
-		private readonly NoDisplayPictureService _noDisplayPictureService;
+		private readonly IntervalBetweenPicturesService _intervalBetweenPicturesSvc;
+		private readonly FileTypeToRotateService _pictureMetadataSvc;
+		private readonly PictureBufferDepthService _pictureBufferSvc;
+		private readonly NoDisplayPictureService _noDisplayPictureSvc;
 
 		private const int RetryPictureCount = 5;
 
@@ -42,13 +42,16 @@ namespace Rotate.Pictures.ViewModel
 			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository", _configValue);
 
 			_stretchSvc = new StretchDialogService();
-			_intervalBetweenPicturesService = new IntervalBetweenPicturesService();
-			_pictureMetadataService = new FileTypeToRotateService();
-			_pictureBufferService = new PictureBufferDepthService();
-			_noDisplayPictureService = new NoDisplayPictureService();
+			_intervalBetweenPicturesSvc = new IntervalBetweenPicturesService();
+			_pictureMetadataSvc = new FileTypeToRotateService();
+			_pictureBufferSvc = new PictureBufferDepthService();
+			_noDisplayPictureSvc = new NoDisplayPictureService();
 
+			// Use the local variable, _intervalBetweenPictures, as opposed to the property, IntervalBetweenPictures,
+			// because we initialize the property and need not need the side effects the occur with the property.
 			_intervalBetweenPictures = _configValue.IntervalBetweenPictures();
-			_visHeartBeatValue = _configValue.VisualHeartbeat();
+
+            _visHeartBeatValue = _configValue.VisualHeartbeat();
 
 			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_configValue.VisualHeartbeat()), IsEnabled = true };
 			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
@@ -420,9 +423,9 @@ namespace Rotate.Pictures.ViewModel
 			_configValue.UpdateIntervalBetweenPictures(IntervalBetweenPictures);
 		}
 
-		private void OnCloseIntervalBetweenPictures() => _intervalBetweenPicturesService.CloseDetailDialog();
+		private void OnCloseIntervalBetweenPictures() => _intervalBetweenPicturesSvc.CloseDetailDialog();
 
-		private void OnCancelFileTypes() => _pictureMetadataService.CloseDetailDialog();
+		private void OnCancelFileTypes() => _pictureMetadataSvc.CloseDetailDialog();
 
 		private void OnSetMetadataAction(SelectedMetadataMessage metadata)
 		{
@@ -472,9 +475,9 @@ namespace Rotate.Pictures.ViewModel
 			_model.SelectionTrackerSetMaxPictureDepth(depth);
 		}
 
-		private void OnCloseBufferDepth() => _pictureBufferService.CloseDetailDialog();
+		private void OnCloseBufferDepth() => _pictureBufferSvc.CloseDetailDialog();
 
-		private void OnCloseNoDisplayPictures() => _noDisplayPictureService.CloseDetailDialog();
+		private void OnCloseNoDisplayPictures() => _noDisplayPictureSvc.CloseDetailDialog();
 
 		private void OnDeleteFromDoNotDisplay(DoNotDisplayMessage removeNoDisplayMessage)
 		{
@@ -646,7 +649,7 @@ namespace Rotate.Pictures.ViewModel
 			NextImageMove();
 		}
 
-		private void SetTimeBetweenPictures() => _intervalBetweenPicturesService.ShowDetailDialog(IntervalBetweenPictures);
+		private void SetTimeBetweenPictures() => _intervalBetweenPicturesSvc.ShowDetailDialog(IntervalBetweenPictures);
 
 		private void SetSelectedStrechMode()
 		{
@@ -666,13 +669,13 @@ namespace Rotate.Pictures.ViewModel
 				StillPictureExtensions = stillExtentions,
 				MotionPictureExtensions = motionExtentions
 			};
-			_pictureMetadataService.ShowDetailDialog(metaData);
+			_pictureMetadataSvc.ShowDetailDialog(metaData);
 		}
 
 		private void SetPictureBufferDepth()
 		{
 			var depth = _configValue.MaxPictureTrackerDepth();
-			_pictureBufferService.ShowDetailDialog(depth);
+			_pictureBufferSvc.ShowDetailDialog(depth);
 		}
 
 		private void ManageNoDisplayList()
@@ -680,7 +683,7 @@ namespace Rotate.Pictures.ViewModel
 			var picsToAvoid = _model.PicturesToAvoid;
 			var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
 			var param = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
-			_noDisplayPictureService.ShowDetailDialog(param);
+			_noDisplayPictureSvc.ShowDetailDialog(param);
 		}
 
 		private void WindowClosingAction() => UnregisterMessages();

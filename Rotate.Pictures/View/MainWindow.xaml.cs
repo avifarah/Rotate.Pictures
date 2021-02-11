@@ -11,7 +11,6 @@ using System.Windows.Threading;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 
-
 namespace Rotate.Pictures.View
 {
 	/// <summary>

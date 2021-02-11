@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Reflection;
 using Rotate.Pictures.Model;
 
-
 namespace Rotate.Pictures.Utility
 {
 	/// <summary>

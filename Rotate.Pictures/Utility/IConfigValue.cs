@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Rotate.Pictures.Utility
 {
@@ -54,7 +55,7 @@ namespace Rotate.Pictures.Utility
 		
 		void UpdateOnStartRotatingPicture(bool initialRotatingMode);
 		
-		void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null);
+		void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null, Func<string, int> pathToIndex = null);
 		
 		void UpdateStillPictureExtensions(string stillPictureExt);
 

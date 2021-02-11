@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using Rotate.Pictures.Utility;
 
-
 namespace Rotate.Pictures.View
 {
 	/// <summary>

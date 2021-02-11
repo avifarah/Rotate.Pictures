@@ -1,6 +1,5 @@
 ﻿using Rotate.Pictures.Utility;
 
-
 namespace Rotate.Pictures.MessageCommunication
 {
 	/// <summary>
