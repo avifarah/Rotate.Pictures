@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.ComponentModel;
-using System.Diagnostics;
+//using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -47,12 +47,11 @@ namespace Rotate.Pictures.ViewModel
 			_pictureBufferSvc = new PictureBufferDepthService();
 			_noDisplayPictureSvc = new NoDisplayPictureService();
 
-			// Use the local variable, _intervalBetweenPictures, as opposed to the property, IntervalBetweenPictures,
-			// because we initialize the property and need not need the side effects the occur with the property.
+			// Use the local variables like, _intervalBetweenPictures, _visHeartBeatInterval, etc, as opposed
+			// to their properties like, IntervalBetweenPictures, VisHeartBeatInterval, etc, because we
+			// initialize the property and need not need the side effects the occur with their properties.
 			_intervalBetweenPictures = _configValue.IntervalBetweenPictures();
-
-            _visHeartBeatValue = _configValue.VisualHeartbeat();
-
+            _visHeartBeatInterval = _configValue.VisualHeartbeat();
 			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_configValue.VisualHeartbeat()), IsEnabled = true };
 			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
 
@@ -75,7 +74,7 @@ namespace Rotate.Pictures.ViewModel
 				Interval = TimeSpan.FromMilliseconds(IntervalBetweenPictures),
 				IsEnabled = RotationRunning
 			};
-			_picChangeTmr.Tick += (sender, args) => RetrieveNextPicture();
+			_picChangeTmr.Tick += (_, _) => RetrieveNextPicture();
 
 			_model.SelectionTrackerAppend(CurrentPicture);
 
@@ -264,15 +263,15 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		private int _visHeartBeatValue;
+		private int _visHeartBeatInterval;
 		private double _intervalBetweenPics;
 
-		public int VisHeartBeatValue
+		public int VisHeartBeatInterval
 		{
-			get => _visHeartBeatValue;
+			get => _visHeartBeatInterval;
 			set
 			{
-				_visHeartBeatValue = value;
+				_visHeartBeatInterval = value;
 				OnPropertyChanged();
 			}
 		}
@@ -351,8 +350,8 @@ namespace Rotate.Pictures.ViewModel
 		private void VisualHeartBeatUpdate(object sender, EventArgs e)
 		{
 			var cnt = (double)IntervalBetweenPictures / _configValue.VisualHeartbeat();
-			_intervalBetweenPics += (double)_intervalProgressBarMax / (cnt - 1);
-			VisHeartBeatValue = (int)_intervalBetweenPics;
+			_intervalBetweenPics += _intervalProgressBarMax / (cnt - 1D);
+			VisHeartBeatInterval = (int)_intervalBetweenPics;
 		}
 
 		private void ResetHeartBeat()

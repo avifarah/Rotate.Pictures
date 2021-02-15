@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -11,22 +10,24 @@ using System.Windows.Input;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 
+// TODO: ColumnPath cannot be resolved in the View,
+// TODO: Media and image occupy the same space, one is visible the other is not.  Make sure that object is always set to a valid instance.
+// TODO: .	Do the same thing that we did to the main window.
+// TODO: Target="TbPicturePath" and Target=FilePath pose an error
 namespace Rotate.Pictures.ViewModel
 {
 	public partial class NoDisplayPictureViewModel : INotifyPropertyChanged
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-		private readonly IConfigValue _configValue;
-
-		public NoDisplayPictureViewModel()
+        public NoDisplayPictureViewModel()
 		{
-			NoDisplayItems = new ObservableCollection<NoDisplayItem>();
+            NoDisplayItems = new ObservableCollection<NoDisplayItem>();
 			LoadCommands();
 			RegisterMessages();
 
-			_configValue = ConfigValueProvider.Default;
-			RepositoryFilePath = _configValue.FilePathToSavePicturesToAvoid();
+			var configValue = ConfigValueProvider.Default;
+			RepositoryFilePath = configValue.FilePathToSavePicturesToAvoid();
 		}
 
 		private void OnNoDisplayList(NoDisplayPicturesMessage noDisplayParam)
@@ -45,9 +46,9 @@ namespace Rotate.Pictures.ViewModel
 			if (obj == null)
 			{
 				Log.Error($"noDisplay cannot be null in OnFromMainToDoNotDisplay(..)");
-				MessageBox.Show("Cannot delete picture from the collection of Do-Not-Display.  Picture ID is not provided.  " +
+				MessageBox.Show(@"Cannot delete picture from the collection of Do-Not-Display.  Picture ID is not provided.  " +
 						$"You may manually delete the picture from the {Environment.GetCommandLineArgs()[0]}.Config file",
-					"No Display Picture View Model");
+					@"No Display Picture View Model");
 				return;
 			}
 

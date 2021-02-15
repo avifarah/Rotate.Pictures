@@ -47,14 +47,14 @@ namespace Rotate.Pictures.Model
 		/// <summary>PicIndex</summary>
 		private readonly List<int> _orderedPicturesToAvoid = new();
 
-		private readonly IPictureModel _parentModel;
+		private readonly PictureModelBase _parentModel;
 
 		private readonly IConfigValue _configValue;
 
 		/// <summary>Is done loading paths flag</summary>
 		private int _isDoneLoading;
 
-		private const int WaitForPicturesToLoad = 100;		// milliseconds
+		private const int WaitForPicturesToLoad = 1000;		// milliseconds
 
 		/// <summary>If a picture to avoid is added before the list of pictures is loaded then the picture to avoid did not take place</summary>
 		private bool _populatePicIndexMappingAndKeysDone = true;
@@ -68,13 +68,14 @@ namespace Rotate.Pictures.Model
 
 		public IReadOnlyList<int> PicturesToAvoid => _orderedPicturesToAvoid;
 
-		public PicturesToAvoidCollection(IPictureModel parentModel, IConfigValue configValue)
+		public PicturesToAvoidCollection(PictureModelBase parentModel, IConfigValue configValue)
 		{
             //Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
             //Debug.WriteLine($"_orderedPicturesToAvoid: ({string.Join("; ", _orderedPicturesToAvoid)}){Environment.NewLine}{DebugStackTrace.GetStackFrameString()}");
 			_parentModel = parentModel;
 			_configValue = configValue;
-			Task.Run(Initialize);
+			Task.Factory.StartNew(p => Initialize((PictureModelBase)(p ?? _parentModel)), _parentModel,
+                    CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 		}
 
 		/// <summary>
@@ -84,7 +85,7 @@ namespace Rotate.Pictures.Model
 		///		FlatToPicIndexMapping		Dictionary{int, int}, flat to pic index mapping
 		///		_orderedKeys:				A list of flat indices
 		/// </summary>
-		private void Initialize()
+		private void Initialize(PictureModelBase parentModel)
 		{
             //Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			// _avoidPicPaths from a file, avoid duplicates if they exist
@@ -92,12 +93,24 @@ namespace Rotate.Pictures.Model
 			_avoidPicPaths.AddRange(picIndices);
 
 			// Wait for all paths to be read
-			_parentModel.RetrievedEvent.WaitOne();
+			parentModel.RetrievedEvent.WaitOne();
+			Log.Debug("PictureToAvoidCollection::Initialize  All paths of pictures have been read");
 
 			// _orderedPicturesToAvoid
-			foreach (var picPath in _avoidPicPaths)
+            var picPaths = DoNotDisplayUtil.RetrieveDoNotDisplay();
+            if (picPaths != null && picPaths.Any())
+            {
+                foreach (var picPath in picPaths)
+                {
+                    var picIndex = parentModel.PicPathToIndex(picPath);
+                    if (!_orderedPicturesToAvoid.Contains(picIndex))
+                        _orderedPicturesToAvoid.Add(picIndex);
+				}
+			}
+
+            foreach (var picPath in _avoidPicPaths)
 			{
-				var picIndex = _parentModel.PicPathToIndex(picPath);
+				var picIndex = parentModel.PicPathToIndex(picPath);
 				//Debug.WriteLine($"{new string('*', 30)}  picIndex of: \"{picPath}\" is {picIndex}");
 				if (!_orderedPicturesToAvoid.Contains(picIndex))
 					_orderedPicturesToAvoid.Add(picIndex);
@@ -272,6 +285,7 @@ namespace Rotate.Pictures.Model
 			// Make sure parentModel is done loading
 			var isLoading = Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 1) == 1;
 			var success = _parentModel.RetrievedEvent.WaitOne(WaitForPicturesToLoad);
+			Log.Debug($"PicturesToAvoidCollection::PopulatePicIndexMappingAndKeys  _parentModel.RetrievedEvent.WaitOne({WaitForPicturesToLoad}) passed");
 			if (!success || isLoading)
 			{
 				_populatePicIndexMappingAndKeysDone = false;
@@ -282,15 +296,16 @@ namespace Rotate.Pictures.Model
 
 			try
 			{
+				// TODO: Verify correctness
 				FlatToPicIndexMapping.Clear();
-				if (!_orderedPicturesToAvoid.Any())
-				{
-					FlatToPicIndexMapping.Clear();
-					_orderedKeys.Clear();
-					return;
-				}
+                if (!_orderedPicturesToAvoid.Any())
+                {
+                    //FlatToPicIndexMapping.Clear();
+                    _orderedKeys.Clear();
+                    return;
+                }
 
-				var inx = 0;
+                var inx = 0;
 				foreach (var x in _orderedPicturesToAvoid)
 				{
 					var flatIndex = x - inx;
@@ -354,7 +369,8 @@ namespace Rotate.Pictures.Model
 		public void OnEvent(PictureLoadingDoneEventArgs e)
 		{
 			if (!_populatePicIndexMappingAndKeysDone)
-				Task.Run(Initialize);
+                Task.Factory.StartNew(p => Initialize((PictureModelBase)(p ?? _parentModel)), _parentModel,
+                        CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 		}
 	}
 }

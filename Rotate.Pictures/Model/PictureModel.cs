@@ -12,19 +12,19 @@ using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
 {
-	public interface IPictureModel
-	{
-		ManualResetEvent RetrievedEvent { get; }
+	public abstract class PictureModelBase
+    {
+        public ManualResetEvent RetrievedEvent;
 
-		int PicPathToIndex(string path);
+		public abstract int PicPathToIndex(string path);
 
-		string PicIndexToPath(int picIndex);
+		public abstract string PicIndexToPath(int picIndex);
 	}
 
 	/// <summary>
 	/// Repository for picture collection
 	/// </summary>
-	public class PictureModel : IPictureModel
+	public class PictureModel : PictureModelBase
 	{
 		protected static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -46,17 +46,12 @@ namespace Rotate.Pictures.Model
 		private volatile int _retrieved;
 
 		/// <summary>
-		/// RetrievedEvent allows for waiting
-		/// </summary>
-		public ManualResetEvent RetrievedEvent => new(false);
-
-		/// <summary>
 		/// File extensions to consider
 		/// </summary>
 		private List<string> _extensionList;
 
 		private readonly Random _rand = new();
-		private Task _taskModel;
+		private readonly Task _taskModel;
 		private CancellationTokenSource _cts;
 
 		private readonly IConfigValue _configValue;
@@ -82,12 +77,12 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Mark as virtual in order to be able to unit test
 		/// </summary>
-		public virtual string PicIndexToPath(int picIndex) => _picCollection[picIndex];
+		public override string PicIndexToPath(int picIndex) => _picCollection[picIndex];
 
 		/// <summary>
 		/// Mark as virtual in order to be able to unit test
 		/// </summary>
-		public virtual int PicPathToIndex(string path) => _picCollection[path];
+		public override int PicPathToIndex(string path) => _picCollection[path];
 
 		public bool IsPictureToAvoid(int index) => _avoidCollection.IsPictureToAvoid(index);
 
@@ -103,23 +98,29 @@ namespace Rotate.Pictures.Model
 		{
             //Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = configValue;
-			_selectionTracker = new SelectionTracker(this, configValue.MaxPictureTrackerDepth());
+
+            RetrievedEvent = new(false);
+
+            _selectionTracker = new SelectionTracker(this, configValue.MaxPictureTrackerDepth());
 			_avoidCollection = new PicturesToAvoidCollection(this, configValue);
-			Restart();
+            _cts = new CancellationTokenSource();
+			_taskModel = Restart(_cts);
 		}
 
-		public void Restart()
-		{
+		public Task Restart(CancellationTokenSource cts = null)
+        {
+            cts ??= _cts;
+
 			if (_taskModel != null)
 			{
-				_cts.Cancel();
+				cts.Cancel();
 				try
 				{
 					// Note that _taskModel.Wait() will not work.  We need to 
 					// ContinueWith(..).Wait() in order to successfully wait for
 					// the task to complete successfully.
 					_taskModel.ContinueWith(a => { }).Wait();
-					_cts.Dispose();
+					cts.Dispose();
 				}
 				catch (AggregateException ae) { Log.Error($"Message: {ae.Flatten()}", ae); }
 				catch (Exception e) { Log.Error($"Message: {e.Message}", e); }
@@ -134,8 +135,8 @@ namespace Rotate.Pictures.Model
 			ClearDoNotDisplayCollection();
 
 			_extensionList = _configValue.FileExtensionsToConsider();
-			_cts = new CancellationTokenSource();
-			_taskModel = Task.Run(() => RetrievePictures(_cts.Token), _cts.Token);
+			return Task.Factory.StartNew(t => RetrievePictures((CancellationToken)(t ?? cts.Token)),
+                        cts.Token, cts.Token, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 		}
 
 		public void ClearDoNotDisplayCollection() => _avoidCollection.ClearPicsToAvoid();
