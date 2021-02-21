@@ -1,5 +1,6 @@
 # Rotate.Pictures
 2020-05-21
+See article: https://www.codeproject.com/Articles/1204207/Rotating-Picture-Display
 
 ## Installation Instructions
 Get the source code and compile it, preferably in Release mode.
