@@ -14,7 +14,7 @@ namespace Rotate.Pictures.Model
 {
 	public abstract class PictureModelBase
     {
-        public ManualResetEvent RetrievedEvent;
+        public ManualResetEventSlim RetrievedEvent;
 
 		public abstract int PicPathToIndex(string path);
 

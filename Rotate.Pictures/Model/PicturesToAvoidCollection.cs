@@ -93,8 +93,8 @@ namespace Rotate.Pictures.Model
 			_avoidPicPaths.AddRange(picIndices);
 
 			// Wait for all paths to be read
-			parentModel.RetrievedEvent.WaitOne();
-			Log.Debug("PictureToAvoidCollection::Initialize  All paths of pictures have been read");
+			parentModel.RetrievedEvent.Wait();
+			//Log.Debug("PictureToAvoidCollection::Initialize  All paths of pictures have been read");
 
 			// _orderedPicturesToAvoid
             var picPaths = DoNotDisplayUtil.RetrieveDoNotDisplay();
@@ -284,8 +284,8 @@ namespace Rotate.Pictures.Model
 		{
 			// Make sure parentModel is done loading
 			var isLoading = Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 1) == 1;
-			var success = _parentModel.RetrievedEvent.WaitOne(WaitForPicturesToLoad);
-			Log.Debug($"PicturesToAvoidCollection::PopulatePicIndexMappingAndKeys  _parentModel.RetrievedEvent.WaitOne({WaitForPicturesToLoad}) passed");
+			var success = _parentModel.RetrievedEvent.Wait(WaitForPicturesToLoad);
+			//Log.Debug($"PicturesToAvoidCollection::PopulatePicIndexMappingAndKeys  _parentModel.RetrievedEvent.Wait({WaitForPicturesToLoad}) passed");
 			if (!success || isLoading)
 			{
 				_populatePicIndexMappingAndKeysDone = false;

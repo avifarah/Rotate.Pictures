@@ -28,7 +28,7 @@ namespace Rotate.Pictures.Utility
 				}
 				catch (Exception ex)
 				{
-					Log.Info($"Try: {i}.  File: \"{filePath}\" is locked.", ex);
+					Log.Warn($"Try: {i}.  File: \"{filePath}\" is locked.", ex);
 				}
 			}
 

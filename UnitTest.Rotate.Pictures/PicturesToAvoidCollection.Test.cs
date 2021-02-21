@@ -385,8 +385,6 @@ namespace UnitTest.Rotate.Pictures
 				RetrievePictures();
 			}
 
-			// public ManualResetEvent RetrievedEvent => new ManualResetEvent(true);
-
 			public override string PicIndexToPath(int picIndex)
 			{
 				if (picIndex < 0) return picIndex.ToString();
