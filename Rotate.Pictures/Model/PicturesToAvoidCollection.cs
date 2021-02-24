@@ -47,7 +47,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>PicIndex</summary>
 		private readonly List<int> _orderedPicturesToAvoid = new();
 
-		private readonly PictureModelBase _parentModel;
+		private readonly IPictureModel _parentModel;
 
 		private readonly IConfigValue _configValue;
 
@@ -284,7 +284,7 @@ namespace Rotate.Pictures.Model
 		{
 			// Make sure parentModel is done loading
 			var isLoading = Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 1) == 1;
-			var success = _parentModel.RetrievedEvent.Wait(WaitForPicturesToLoad);
+			var success = ((PictureModelBase)_parentModel).RetrievedEvent.Wait(WaitForPicturesToLoad);
 			//Log.Debug($"PicturesToAvoidCollection::PopulatePicIndexMappingAndKeys  _parentModel.RetrievedEvent.Wait({WaitForPicturesToLoad}) passed");
 			if (!success || isLoading)
 			{

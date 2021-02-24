@@ -12,8 +12,27 @@ using Rotate.Pictures.Utility;
 
 namespace Rotate.Pictures.Model
 {
-	public abstract class PictureModelBase
-    {
+	/// <summary>
+	/// This interface will make it easier to test.
+	/// The difference between the interface and the base abstract class is the
+	///			ManualResetEventSlim RetrievedEvent
+	/// which means that for the code we will need to either use the base abstract class
+	/// or cast it to the base abstract class in order to use the RetrievedEvent.
+	///
+	/// The reason we need
+	///			ManualResetEventSlim RetrievedEvent
+	/// is to be able to signal the end of reading all pictures.  The reason we need it as
+	/// a variable as opposed to a property is that a property will not work.
+	/// </summary>
+	public interface IPictureModel
+	{
+		int PicPathToIndex(string path);
+
+		string PicIndexToPath(int picIndex);
+	}
+
+	public abstract class PictureModelBase : IPictureModel
+	{
         public ManualResetEventSlim RetrievedEvent;
 
 		public abstract int PicPathToIndex(string path);
@@ -31,7 +50,7 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Collection of all pictures in all directories supplied by the user in the configuration file
 		/// </summary>
-		protected readonly PictureCollection _picCollection = new();
+		protected readonly PictureCollection PicCollection = new();
 
 		/// <summary>
 		/// Collection of pictures to avoid
@@ -52,12 +71,11 @@ namespace Rotate.Pictures.Model
 
 		private readonly Random _rand = new();
 		private readonly Task _taskModel;
-		private CancellationTokenSource _cts;
+		private readonly CancellationTokenSource _cts;
 
 		private readonly IConfigValue _configValue;
 
-		public event EventHandler<PictureRetrievingEventArgs> PictureRetrievingHandler = delegate { };
-		public string RetrievingNow;
+		public event EventHandler<PictureRetrievingEventArgs> OnPictureRetrieving = delegate { };
 
 		/// <summary>
 		/// The current Picture Index
@@ -77,18 +95,18 @@ namespace Rotate.Pictures.Model
 		/// <summary>
 		/// Mark as virtual in order to be able to unit test
 		/// </summary>
-		public override string PicIndexToPath(int picIndex) => _picCollection[picIndex];
+		public override string PicIndexToPath(int picIndex) => PicCollection[picIndex];
 
 		/// <summary>
 		/// Mark as virtual in order to be able to unit test
 		/// </summary>
-		public override int PicPathToIndex(string path) => _picCollection[path];
+		public override int PicPathToIndex(string path) => PicCollection[path];
 
 		public bool IsPictureToAvoid(int index) => _avoidCollection.IsPictureToAvoid(index);
 
 		public bool IsPictureToAvoid(string path) => _avoidCollection.IsPictureToAvoid(PicPathToIndex(path));
 
-		public bool IsCollectionContains(string path) => _picCollection.Contains(path);
+		public bool IsCollectionContains(string path) => PicCollection.Contains(path);
 
 		/// <summary>
 		/// .ctor
@@ -130,7 +148,7 @@ namespace Rotate.Pictures.Model
 			// _picCollection is responsible for the pictures in the directories provided by the 
 			// configuration's key="Initial Folders" while SelectionTracker is responsible for tracking
 			// pictures that were previously displayed.
-			_picCollection.Clear();
+			PicCollection.Clear();
 			_selectionTracker.ClearTracker();
 			ClearDoNotDisplayCollection();
 
@@ -147,7 +165,7 @@ namespace Rotate.Pictures.Model
 		/// <returns></returns>
 		public string GetNextPicture()
 		{
-			var cnt = _picCollection.Count;
+			var cnt = PicCollection.Count;
 			if (cnt == 0)
 			{
 				var pic1 = _configValue.FirstPictureToDisplay();
@@ -157,7 +175,7 @@ namespace Rotate.Pictures.Model
 
 			var flatIndex = _rand.Next(cnt);
 			CurrentPicIndex = _avoidCollection.GetPictureIndexFromFlatIndex(flatIndex);
-			var pic = _picCollection[CurrentPicIndex];
+			var pic = PicCollection[CurrentPicIndex];
 			try
 			{
 				if (string.IsNullOrWhiteSpace(pic) || !File.Exists(pic))
@@ -187,7 +205,7 @@ namespace Rotate.Pictures.Model
 			}
 		}
 
-		public int Count => _picCollection.Count;
+		public int Count => PicCollection.Count;
 
 		#region SelectionTracker
 
@@ -229,7 +247,7 @@ namespace Rotate.Pictures.Model
 			RetrievedEvent.Set();
 			CustomEventAggregator.Inst.Publish(new PictureLoadingDoneEventArgs(true));
 
-			if (_picCollection.Count == 0)
+			if (PicCollection.Count == 0)
 			{
 				const string errMsg = "No picture could be retrieved.  Please check configuration file for error";
 				Log.Error(errMsg);
@@ -245,15 +263,14 @@ namespace Rotate.Pictures.Model
 			// Start by checking cancellation token
 			if (ct.IsCancellationRequested) return false;
 
-			// Publish an event to announce RetrievingNow directory
-			RetrievingNow = dir;
-			OnPictureRetrieving(dir);
+			// Publish an event to announce the "Retrieving Now" directory
+			PictureRetrieving(dir);
 
 			var files = Directory.GetFiles(dir);
 			var rightFiles = files.Where(fl => _extensionList.Any(e => fl.EndsWith(e, StringComparison.CurrentCultureIgnoreCase)));
 			var rightFormatted = rightFiles.Where(f => f.IsPictureValidFormat()).ToList();
 			//Log.Debug(string.Join(Environment.NewLine, rightFormatted.Select((p, i) => $"({i,4}, \"{p}\")")));
-			_picCollection.AddRange(rightFormatted);
+			PicCollection.AddRange(rightFormatted);
 
 			// Done processing local files, check for cancellation token
 			if (ct.IsCancellationRequested) return false;
@@ -268,6 +285,6 @@ namespace Rotate.Pictures.Model
 			return true;
 		}
 
-		private void OnPictureRetrieving(string picDirectory) => PictureRetrievingHandler(this, new PictureRetrievingEventArgs(picDirectory));
+		private void PictureRetrieving(string picDirectory) => OnPictureRetrieving(this, new PictureRetrievingEventArgs(picDirectory));
 	}
 }

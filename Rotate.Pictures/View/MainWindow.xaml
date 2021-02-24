@@ -162,10 +162,22 @@
 				</Button>
 
 				<!-- Path of picture -->
-				<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding DisplayCurrentPic}"
-				         Background="Yellow" Foreground="Black" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
-				         BorderBrush="Transparent" BorderThickness="0" Grid.Column="1" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"
-				         KeyDown="UIElement_OnKeyDown"/>
+				<Grid Grid.Column="1" Background="Yellow">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="2*"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding DisplayCurrentPic}"
+					         Background="Yellow" Foreground="Black" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
+					         BorderBrush="Transparent" BorderThickness="0" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"
+					         KeyDown="UIElement_OnKeyDown"/>
+					<TextBlock Text="Retrieving: " Grid.Column="1" FontSize="10" Background="Yellow" Foreground="Black" Margin="4,0,4,0"
+					           VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="{Binding DirRetrievingVisible}"/>
+					<TextBox Grid.Column="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding DirectoryRetrievingNow}"
+					         Background="Yellow" Foreground="Black" FontSize="10" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Left"
+					         BorderBrush="Transparent" BorderThickness="0" Visibility="{Binding DirRetrievingVisible}"/>
+				</Grid>
 
 				<!-- Progress bar to end of time for display -->
 				<ProgressBar Minimum="0" Maximum="{Binding IntervalProgressBarMax, Mode=OneWay}" Visibility="{Binding SliderVisibility}"

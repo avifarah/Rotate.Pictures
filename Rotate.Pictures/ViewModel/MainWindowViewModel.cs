@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.ServiceModel.PeerResolvers;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -40,6 +41,7 @@ namespace Rotate.Pictures.ViewModel
 			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = ConfigValueProvider.Default;
 			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository", _configValue);
+			_model.OnPictureRetrieving += Model_OnPictureRetrieving;
 
 			_stretchSvc = new StretchDialogService();
 			_intervalBetweenPicturesSvc = new IntervalBetweenPicturesService();
@@ -101,6 +103,36 @@ namespace Rotate.Pictures.ViewModel
 
 			// Initialize fields
 			IsModelDoneLoadingPictures = !_model.IsPicturesRetrieving;
+			DirRetrievingVisible = Visibility.Visible;
+		}
+
+		private void Model_OnPictureRetrieving(object sender, PictureRetrievingEventArgs e)
+		{
+			DirectoryRetrievingNow = e.CurrentPictureDirectory;
+		}
+
+		private string _dirRetrievingNow;
+
+		public string DirectoryRetrievingNow
+		{
+			get => _dirRetrievingNow;
+			set
+			{
+				_dirRetrievingNow = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private Visibility _dirRetrievingVisibility;
+
+		public Visibility DirRetrievingVisible
+		{
+			get => _dirRetrievingVisibility;
+			set
+			{
+				_dirRetrievingVisibility = value;
+				OnPropertyChanged();
+			}
 		}
 
 		/// <summary>
