@@ -65,11 +65,11 @@ namespace UnitTest.Rotate.Pictures
 			//		public string SelectionTrackerPrev() => _selectionTracker.Prev();
 			//		public string SelectionTrackerNext() => _selectionTracker.Next();
 			//		public int SelectionTrackerCount => _selectionTracker.Count;
-	}
+		}
 
-	// Use TestCleanup to run code after each test has run
-	// [TestCleanup()]
-	public void MyTestCleanup()
+		// Use TestCleanup to run code after each test has run
+		// [TestCleanup()]
+		public void MyTestCleanup()
 		{
 		}
 

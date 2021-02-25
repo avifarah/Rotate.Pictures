@@ -30,14 +30,17 @@ namespace Rotate.Pictures.EventAggregator
 	///				CustomEventAggregator.Inst.Subscribe(this);
 	///			before it can listen to events published.  Other than this registration we have no more coupling between
 	///			The subscriber and the event aggregator.
+	///
+	/// For more information and unit tests samples (within the UnitTest.Rotate.Pictures proj)
+	/// see: <see cref="T:UnitTest.Rotate.Pictures.CustomEventAggregatorTest"/>
 	/// </summary>
 	public class CustomEventAggregator : IEventAggregator
 	{
-		private readonly Dictionary<Type, List<WeakReference>> _eventSubscriberLists = new Dictionary<Type, List<WeakReference>>();
-		private readonly object _lock = new object();
+		private readonly Dictionary<Type, List<WeakReference>> _eventSubscriberLists = new();
+		private readonly object _lock = new();
 
 		private CustomEventAggregator() { }
-		private static Lazy<CustomEventAggregator> _inst = new Lazy<CustomEventAggregator>(() => new CustomEventAggregator());
+		private static Lazy<CustomEventAggregator> _inst = new(() => new CustomEventAggregator());
 		public static CustomEventAggregator Inst = _inst.Value;
 
 		public void Publish<TEvent>(TEvent eventToPublish) where TEvent : EventArgs

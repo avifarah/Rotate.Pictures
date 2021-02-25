@@ -366,11 +366,15 @@ namespace Rotate.Pictures.Model
 			return FindUsi(flatIndex, midRangePoint, upperRangeLimit, (midRangePoint + 1 + upperRangeLimit) / 2);
 		}
 
+		#region ISubscriber<PictureLoadingDoneEventArgs>
+
 		public void OnEvent(PictureLoadingDoneEventArgs e)
 		{
 			if (!_populatePicIndexMappingAndKeysDone)
-                Task.Factory.StartNew(p => Initialize((PictureModelBase)(p ?? _parentModel)), _parentModel,
-                        CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+				Task.Factory.StartNew(p => Initialize((PictureModelBase)(p ?? _parentModel)), _parentModel,
+					CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 		}
+
+		#endregion
 	}
 }

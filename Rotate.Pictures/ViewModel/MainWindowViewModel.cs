@@ -40,6 +40,9 @@ namespace Rotate.Pictures.ViewModel
 		{
 			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = ConfigValueProvider.Default;
+
+			// Newing up the Model hear, marries the model to the MainWindow (hard dependency).  I feel that this is OK.
+			// Having it married it is OK to hook an event
 			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository", _configValue);
 			_model.OnPictureRetrieving += Model_OnPictureRetrieving;
 
@@ -207,7 +210,7 @@ namespace Rotate.Pictures.ViewModel
 				}
 
 				_visualHeartbeatTmr.IsEnabled = _rotationRunning;
-				CurrentPictureColumnSpan = _rotationRunning ? 1 : 2;
+				CurrentPictureColumnSpan = IsModelDoneLoadingPictures ? 3 : 1;
 			}
 		}
 
@@ -394,7 +397,13 @@ namespace Rotate.Pictures.ViewModel
 
 		#region ISubscriber<PictureLoadingDoneEventArgs>
 
-		public void OnEvent(PictureLoadingDoneEventArgs e) => IsModelDoneLoadingPictures = e.RetrieveCompleted;
+		public void OnEvent(PictureLoadingDoneEventArgs e)
+		{
+			IsModelDoneLoadingPictures = e.RetrieveCompleted;
+			DirRetrievingVisible = Visibility.Collapsed;
+			DirectoryRetrievingNow = string.Empty;
+			CurrentPictureColumnSpan = IsModelDoneLoadingPictures ? 3 : 1;
+		}
 
 		#endregion
 
