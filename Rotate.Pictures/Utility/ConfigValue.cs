@@ -393,7 +393,7 @@ namespace Rotate.Pictures.Utility
 			const string configKey = @"Pictures Indices To Avoid.  Comma separated";
 			lock (_syncUpdatePics)
             {
-                DoNotDisplayUtil.SaveDoNotDisplay(picsToAvoid);
+                DoNotDisplayUtil.AddDoNotDisplay(picsToAvoid);
 				WriteConfigValue(configKey, string.Join(",", picsToAvoid.Select(p => pathToIndex(p))));
             }
 		}
@@ -403,6 +403,11 @@ namespace Rotate.Pictures.Utility
 		public string FilePathToSavePicturesToAvoid()
 		{
 			var filePath = ReadConfigValue(FilePathToSavePicturesToAvoidKey);
+			if (filePath == string.Empty) return string.Empty;
+			filePath = Environment.ExpandEnvironmentVariables(filePath);
+			filePath = Path.GetFullPath(filePath);
+			if (!File.Exists(filePath))
+				using (File.Create(filePath)) { }
 			return filePath;
 		}
 

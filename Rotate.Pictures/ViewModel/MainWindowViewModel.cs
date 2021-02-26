@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.ComponentModel;
 //using System.Diagnostics;
@@ -210,7 +211,7 @@ namespace Rotate.Pictures.ViewModel
 				}
 
 				_visualHeartbeatTmr.IsEnabled = _rotationRunning;
-				CurrentPictureColumnSpan = IsModelDoneLoadingPictures ? 3 : 1;
+				CurrentPictureColumnSpan = PictureColumnSpan();
 			}
 		}
 
@@ -359,6 +360,41 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
+		#region ISubscriber<PictureLoadingDoneEventArgs>
+
+		public void OnEvent(PictureLoadingDoneEventArgs e)
+		{
+			IsModelDoneLoadingPictures = e.RetrieveCompleted;
+			DirRetrievingVisible = IsModelDoneLoadingPictures ? Visibility.Collapsed : Visibility.Visible;
+			DirectoryRetrievingNow = string.Empty;
+			CurrentPictureColumnSpan = PictureColumnSpan();
+		}
+
+		#endregion
+
+		/// <summary>
+		/// The method returns the column span for the picture path TextBox.
+		/// If we are done loading pictures then the column span should be 3 (covering the
+		///		TextBlock "Retrieving:" and the TextBox displaying the DirectoryRetrievingNow).
+		/// Otherwise, only ColumnSpan 1 column and the other two columns will be visible.
+		///
+		/// The picture path in the status bar looks like:
+		/// <code>
+		///		<Grid Grid.Column="1" Background="Yellow">
+		///			<Grid.ColumnDefinitions>
+		///				<ColumnDefinition Width="2*"/>
+		///				<ColumnDefinition Width="Auto"/>
+		///				<ColumnDefinition Width="*"/>
+		///			</Grid.ColumnDefinitions>
+		///			<TextBox ... Text="{Binding DisplayCurrentPic}" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}" .../>
+		///			<TextBlock Text="Retrieving: " Grid.Column="1" ... Visibility="{Binding DirRetrievingVisible}"/>
+		///			<TextBox Grid.Column="2" ... Text="{Binding DirectoryRetrievingNow}" ... Visibility="{Binding DirRetrievingVisible}"/>
+		///		</Grid>
+		/// </code>
+		/// </summary>
+		/// <returns></returns>
+		private int PictureColumnSpan() => IsModelDoneLoadingPictures ? 3 : 1;
+
 		private void RetrieveNextPicture()
 		{
 			// If window is minimized then do not advance pictures
@@ -394,18 +430,6 @@ namespace Rotate.Pictures.ViewModel
 			_intervalBetweenPics = 0.0;
 			_visualHeartbeatTmr.Start();
 		}
-
-		#region ISubscriber<PictureLoadingDoneEventArgs>
-
-		public void OnEvent(PictureLoadingDoneEventArgs e)
-		{
-			IsModelDoneLoadingPictures = e.RetrieveCompleted;
-			DirRetrievingVisible = Visibility.Collapsed;
-			DirectoryRetrievingNow = string.Empty;
-			CurrentPictureColumnSpan = IsModelDoneLoadingPictures ? 3 : 1;
-		}
-
-		#endregion
 
 		#region Inner VM Communication Message Handling
 
@@ -531,12 +555,15 @@ namespace Rotate.Pictures.ViewModel
 		private void OnAddToDoNotDisplay(DoNotDisplayPathMessage path)
 		{
 			var inx = _model.PicPathToIndex(path.PicPath);
-			_model.AddPictureToAvoid(inx);
+			var added = _model.AddPictureToAvoid(inx);
 
-			var picsToAvoid = _model.PicturesToAvoid;
-			var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
-			var parm = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
-			Messenger<NoDisplayPicturesMessage>.Instance.Send(new NoDisplayPicturesMessage(parm), MessageContext.NoDisplayPicture);
+			if (added)
+			{
+				var picsToAvoid = _model.PicturesToAvoid;
+				var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
+				var parm = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
+				Messenger<NoDisplayPicturesMessage>.Instance.Send(new NoDisplayPicturesMessage(parm), MessageContext.NoDisplayPicture);
+			}
 		}
 
 		private void OnClearDoNotDisplay()
@@ -550,17 +577,22 @@ namespace Rotate.Pictures.ViewModel
 			// Clear all pictures to avoid
 			_model.ClearDoNotDisplayCollection();
 
+			var added = false;
+
 			// Add all pictures from paths
 			foreach (var path in paths.PicturesToAvoid)
 			{
 				var inx = _model.PicPathToIndex(path);
-				_model.AddPictureToAvoid(inx);
+				added = added || _model.AddPictureToAvoid(inx);
 			}
 
-			var picsToAvoid = _model.PicturesToAvoid;
-			var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
-			var parm = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
-			Messenger<NoDisplayPicturesMessage>.Instance.Send(new NoDisplayPicturesMessage(parm), MessageContext.NoDisplayPicture);
+			if (added)
+			{
+				var picsToAvoid = _model.PicturesToAvoid;
+				var picsToAvoidDic = picsToAvoid.ToDictionary(p => p, p => _model.PicIndexToPath(p));
+				var parm = new NoDisplayPicturesMessage.NoDisplayParam(picsToAvoid, picsToAvoidDic);
+				Messenger<NoDisplayPicturesMessage>.Instance.Send(new NoDisplayPicturesMessage(parm), MessageContext.NoDisplayPicture);
+			}
 		}
 
 		#endregion
@@ -684,8 +716,9 @@ namespace Rotate.Pictures.ViewModel
 		public void DoNotShowImage()
 		{
 			var inx = _model.PicPathToIndex(CurrentPicture);
-			_model.AddPictureToAvoid(inx);
-            DoNotDisplayUtil.SaveDoNotDisplay(_model.PicturesToAvoid.Select(pi => _model.PicIndexToPath(pi)), ConfigValue.Inst.FilePathToSavePicturesToAvoid());
+			var added = _model.AddPictureToAvoid(inx);
+			if (added)
+	            DoNotDisplayUtil.AddDoNotDisplay(new List<string> { _model.PicIndexToPath(inx) }); //_model.PicturesToAvoid.Select(pi => _model.PicIndexToPath(pi))
 			NextImageMove();
 		}
 

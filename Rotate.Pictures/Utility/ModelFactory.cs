@@ -22,7 +22,7 @@ namespace Rotate.Pictures.Utility
 
 		public object Create(string modelName, IConfigValue configValue)
 		{
-            Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)  modelName={modelName}");
+            // Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)  modelName={modelName}");
 			switch (modelName)
 			{
 				case "PictureFileRepository":

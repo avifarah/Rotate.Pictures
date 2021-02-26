@@ -20,13 +20,13 @@ namespace Rotate.Pictures.Utility
 		/// execute have no parameters
 		/// no canExecute function parameter
 		/// </summary>
-		public CustomCommand(Action execute) : this(obj => execute()) { }
+		public CustomCommand(Action execute) : this(_ => execute()) { }
 
 		/// <summary>
 		/// execute has no parameters
 		/// canExecute has no parameters
 		/// </summary>
-		public CustomCommand(Action execute, Func<bool> canExecute) : this(obj => execute(), obj => canExecute()) {}
+		public CustomCommand(Action execute, Func<bool> canExecute) : this(_ => execute(), _ => canExecute()) {}
 
 		/// <summary>
 		/// execute has an object parameter

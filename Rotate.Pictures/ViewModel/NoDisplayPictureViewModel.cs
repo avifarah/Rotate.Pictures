@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using System.Windows.Input;
+using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 
@@ -16,7 +17,7 @@ using Rotate.Pictures.Utility;
 // TODO: Target="TbPicturePath" and Target=FilePath pose an error
 namespace Rotate.Pictures.ViewModel
 {
-	public partial class NoDisplayPictureViewModel : INotifyPropertyChanged
+	public partial class NoDisplayPictureViewModel : INotifyPropertyChanged, ISubscriber<PictureLoadingDoneEventArgs>
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -28,6 +29,8 @@ namespace Rotate.Pictures.ViewModel
 
 			var configValue = ConfigValueProvider.Default;
 			RepositoryFilePath = configValue.FilePathToSavePicturesToAvoid();
+
+			CustomEventAggregator.Inst.Subscribe(this);
 		}
 
 		private void OnNoDisplayList(NoDisplayPicturesMessage noDisplayParam)
@@ -163,6 +166,12 @@ namespace Rotate.Pictures.ViewModel
 		
 		public ICommand SaveRepositoryCommand { get; set; }
 
+		#region ISubscriber<PictureLoadingDoneEventArgs>
+
+		public void OnEvent(PictureLoadingDoneEventArgs e) => DoNotDisplayUtil.SaveDoNotDisplay(NoDisplayItems.Select(item => item.ColumnPath), RepositoryFilePath);
+
+		#endregion
+
 		private bool CanAddToNoDisplay()
 		{
 			if (string.IsNullOrEmpty(TextPicturePath)) return false;
@@ -190,7 +199,6 @@ namespace Rotate.Pictures.ViewModel
 				if (!rc) return false;
 
 				var attrs = File.GetAttributes(fullFn);
-				if (attrs == FileAttributes.Normal) return true;
 				if ((attrs & FileAttributes.Offline) == FileAttributes.Offline)
 				{
 					Log.Error($"File: \"{fullFn}\" is off-line");
@@ -299,13 +307,13 @@ namespace Rotate.Pictures.ViewModel
 			Messenger<CloseDialog>.Instance.Send(new CloseDialog(), MessageContext.NoDisplayPicture);
 		}
 
-#region INotifyPropertyChanged
+		#region INotifyPropertyChanged
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		public void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-#endregion
+		#endregion
 	}
 }

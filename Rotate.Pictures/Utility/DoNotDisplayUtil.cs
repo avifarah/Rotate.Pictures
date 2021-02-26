@@ -10,12 +10,53 @@ namespace Rotate.Pictures.Utility
     {
         private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        enum DoNotDisplayAction { AddPicture, SaveAll };
+
+        public static bool AddDoNotDisplay(IEnumerable<string> noDisplayItems, string repositoryFilePath = null)
+	        => UpdateDoNotDisplay(noDisplayItems, repositoryFilePath, DoNotDisplayAction.AddPicture);
+
         public static bool SaveDoNotDisplay(IEnumerable<string> noDisplayItems, string repositoryFilePath = null)
+	        => UpdateDoNotDisplay(noDisplayItems, repositoryFilePath, DoNotDisplayAction.SaveAll);
+
+        public static IEnumerable<string> RetrieveDoNotDisplay(string repositoryFilePath = null)
+        {
+	        var items = new List<string>();
+	        var fileName = repositoryFilePath == null
+		        ? ConfigValue.Inst.FilePathToSavePicturesToAvoid()
+		        : Environment.ExpandEnvironmentVariables(repositoryFilePath);
+
+	        // If neither repositoryFilePath is passed in nor is it provided in the configuration file then return;
+	        if (string.IsNullOrWhiteSpace(fileName)) return items;
+
+	        var fullFn = Path.GetFullPath(fileName);
+	        if (!File.Exists(fullFn)) return items;
+
+	        try
+	        {
+		        using var sr = new StreamReader(fullFn);
+		        while (!sr.EndOfStream)
+		        {
+			        var item = sr.ReadLine();
+			        if (item != null && item.Trim() != string.Empty)
+				        items.Add(item);
+		        }
+		        return items;
+	        }
+	        catch (Exception e)
+	        {
+		        const string msg = "Could not retrieve pictures to avoid";
+		        Log.Error(msg, e);
+		        MessageBox.Show(msg, @"DoNotDisplay Retrieve");
+		        return items;
+	        }
+        }
+
+        private static bool UpdateDoNotDisplay(IEnumerable<string> noDisplayItems, string repositoryFilePath, DoNotDisplayAction actionFlag)
         {
             noDisplayItems ??= new List<string>();
 
             var fileName = repositoryFilePath == null
-                ? Environment.ExpandEnvironmentVariables(ConfigValue.Inst.FilePathToSavePicturesToAvoid())
+                ? ConfigValue.Inst.FilePathToSavePicturesToAvoid()
                 : Environment.ExpandEnvironmentVariables(repositoryFilePath);
 
             // If neither repositoryFilePath is passed in nor is it provided in the configuration file then return;
@@ -28,7 +69,10 @@ namespace Rotate.Pictures.Utility
             try
             {
                 var fullFn = Path.GetFullPath(fileName);
-                using var sw = new StreamWriter(fullFn, false);
+                if (!File.Exists(fullFn)) return true;
+
+                bool actionValue = actionFlag == DoNotDisplayAction.AddPicture;
+                using var sw = new StreamWriter(fullFn, actionValue);
                 foreach (var item in noDisplayItems)
                     sw.WriteLine(item);
                 return true;
@@ -39,39 +83,6 @@ namespace Rotate.Pictures.Utility
                 Log.Error(msg, e);
                 MessageBox.Show(msg, @"DoNotDisplay Save");
                 return false;
-            }
-        }
-
-        public static IEnumerable<string> RetrieveDoNotDisplay(string repositoryFilePath = null)
-        {
-            var items = new List<string>();
-            var fileName = repositoryFilePath == null
-                ? Environment.ExpandEnvironmentVariables(ConfigValue.Inst.FilePathToSavePicturesToAvoid())
-                : Environment.ExpandEnvironmentVariables(repositoryFilePath);
-
-            // If neither repositoryFilePath is passed in nor is it provided in the configuration file then return;
-            if (string.IsNullOrWhiteSpace(fileName)) return items;
-
-            var fullFn = Path.GetFullPath(fileName);
-            if (!File.Exists(fullFn)) return items;
-
-            try
-            {
-                using var sr = new StreamReader(fullFn);
-                while (!sr.EndOfStream)
-                {
-                    var item = sr.ReadLine();
-                    if (item != null && item.Trim() != string.Empty)
-                        items.Add(item);
-                }
-                return items;
-            }
-            catch (Exception e)
-            {
-                const string msg = "Could not retrieve pictures to avoid";
-                Log.Error(msg, e);
-                MessageBox.Show(msg, @"DoNotDisplay Retrieve");
-                return items;
             }
         }
     }
