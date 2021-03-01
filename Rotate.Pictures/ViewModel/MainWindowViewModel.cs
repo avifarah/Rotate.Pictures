@@ -718,7 +718,7 @@ namespace Rotate.Pictures.ViewModel
 			var inx = _model.PicPathToIndex(CurrentPicture);
 			var added = _model.AddPictureToAvoid(inx);
 			if (added)
-	            DoNotDisplayUtil.AddDoNotDisplay(new List<string> { _model.PicIndexToPath(inx) }); //_model.PicturesToAvoid.Select(pi => _model.PicIndexToPath(pi))
+				DoNotDisplayUtil.AddAndSaveDoNotDisplay(new List<string> { _model.PicIndexToPath(inx) }, null, _model.IsPicturesRetrieving);
 			NextImageMove();
 		}
 

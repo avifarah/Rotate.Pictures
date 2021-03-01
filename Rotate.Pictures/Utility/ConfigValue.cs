@@ -364,8 +364,6 @@ namespace Rotate.Pictures.Utility
 			return mff;
 		}
 
-		//private const string PicturesToAvoidFileName = "Pictures Path To Avoid.lst";
-
 		public IEnumerable<string> PicturesToAvoidPaths()
 		{
 			lock (_syncUpdatePics)
@@ -376,7 +374,7 @@ namespace Rotate.Pictures.Utility
             }
 		}
 
-		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null, Func<string, int> pathToIndex = null)
+		public void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null, Func<string, int> pathToIndex = null, bool isPicLoading = true)
         {
             if (picsToAvoid == null)
             {
@@ -392,8 +390,8 @@ namespace Rotate.Pictures.Utility
 
 			const string configKey = @"Pictures Indices To Avoid.  Comma separated";
 			lock (_syncUpdatePics)
-            {
-                DoNotDisplayUtil.AddDoNotDisplay(picsToAvoid);
+			{
+				DoNotDisplayUtil.AddAndSaveDoNotDisplay(picsToAvoid, null, isPicLoading);
 				WriteConfigValue(configKey, string.Join(",", picsToAvoid.Select(p => pathToIndex(p))));
             }
 		}

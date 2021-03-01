@@ -29,6 +29,8 @@ namespace Rotate.Pictures.Model
 		int PicPathToIndex(string path);
 
 		string PicIndexToPath(int picIndex);
+
+		bool IsPicturesRetrieving { get; }
 	}
 
 	public abstract class PictureModelBase : IPictureModel
@@ -38,6 +40,8 @@ namespace Rotate.Pictures.Model
 		public abstract int PicPathToIndex(string path);
 
 		public abstract string PicIndexToPath(int picIndex);
+
+		public abstract bool IsPicturesRetrieving { get; }
 	}
 
 	/// <summary>
@@ -196,7 +200,7 @@ namespace Rotate.Pictures.Model
 
 		public void RemovePictureToAvoid(int picToAvoid) => _avoidCollection.RemovePictureToAvoid(picToAvoid);
 
-		public bool IsPicturesRetrieving
+		public override bool IsPicturesRetrieving
 		{
 			get
 			{

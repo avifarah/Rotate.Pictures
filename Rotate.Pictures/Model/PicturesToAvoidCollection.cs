@@ -154,7 +154,7 @@ namespace Rotate.Pictures.Model
 			_orderedPicturesToAvoid.Sort();
 			_avoidPicPaths = RepopulatePicturesPathToAvoid(_orderedPicturesToAvoid);
 			PopulatePicIndexMappingAndKeys();
-			_configValue.UpdatePicturesToAvoid(_avoidPicPaths, _parentModel.PicPathToIndex);
+			_configValue.UpdatePicturesToAvoid(_avoidPicPaths, _parentModel.PicPathToIndex, _parentModel.IsPicturesRetrieving);
 
 			return true;
 		}
@@ -171,7 +171,7 @@ namespace Rotate.Pictures.Model
 			_orderedPicturesToAvoid.Sort();
 			_avoidPicPaths = RepopulatePicturesPathToAvoid(_orderedPicturesToAvoid);
 			PopulatePicIndexMappingAndKeys();
-			_configValue.UpdatePicturesToAvoid(_avoidPicPaths, _parentModel.PicPathToIndex);
+			_configValue.UpdatePicturesToAvoid(_avoidPicPaths, _parentModel.PicPathToIndex, _parentModel.IsPicturesRetrieving);
 
 			return true;
 		}

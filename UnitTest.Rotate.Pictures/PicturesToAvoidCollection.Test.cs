@@ -44,7 +44,7 @@ namespace UnitTest.Rotate.Pictures
 		[TestInitialize()]
 		public void MyTestInitialize()
 		{
-			ConfigValue.Inst.UpdatePicturesToAvoid(new List<string>(), p => 1);
+			ConfigValue.Inst.UpdatePicturesToAvoid(new List<string>(), p => 1, false);
 
 			// PictureModel
 			//		public int CurrentPicIndex { get; set; }
@@ -400,6 +400,8 @@ namespace UnitTest.Rotate.Pictures
 			private string _pathLetters = new string(Enumerable.Range(0, 'Z' - 'A' + 1).Select(i => (char)('A' + i)).ToArray());	// A .. Z
 
 			private List<string> _extensions;
+
+			public bool IsPicturesRetrieving => throw new NotImplementedException();
 
 			public MockPicModel(IConfigValue configValue, List<string> pathsToAvoid, List<int> indicesToAvoid, IEnumerable<string> exts)
 			{

@@ -11,10 +11,6 @@ using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
 
-// TODO: ColumnPath cannot be resolved in the View,
-// TODO: Media and image occupy the same space, one is visible the other is not.  Make sure that object is always set to a valid instance.
-// TODO: .	Do the same thing that we did to the main window.
-// TODO: Target="TbPicturePath" and Target=FilePath pose an error
 namespace Rotate.Pictures.ViewModel
 {
 	public partial class NoDisplayPictureViewModel : INotifyPropertyChanged, ISubscriber<PictureLoadingDoneEventArgs>
@@ -168,7 +164,8 @@ namespace Rotate.Pictures.ViewModel
 
 		#region ISubscriber<PictureLoadingDoneEventArgs>
 
-		public void OnEvent(PictureLoadingDoneEventArgs e) => DoNotDisplayUtil.SaveDoNotDisplay(NoDisplayItems.Select(item => item.ColumnPath), RepositoryFilePath);
+		public void OnEvent(PictureLoadingDoneEventArgs e) =>
+			DoNotDisplayUtil.AddAndSaveDoNotDisplay(NoDisplayItems.Select(item => item.ColumnPath), RepositoryFilePath, false);
 
 		#endregion
 
@@ -273,8 +270,8 @@ namespace Rotate.Pictures.ViewModel
 
 		private void SaveRepositoryAction()
         {
-            DoNotDisplayUtil.SaveDoNotDisplay(NoDisplayItems.Select(item => item.ColumnPath), RepositoryFilePath);
-            MessageBox.Show("Saved", "Rotating.Pictures");
+            DoNotDisplayUtil.AddAndSaveDoNotDisplay(NoDisplayItems.Select(item => item.ColumnPath), RepositoryFilePath, false);
+            MessageBox.Show(@"Saved", @"Rotating.Pictures");
         }
 
 		private void RegisterMessages()

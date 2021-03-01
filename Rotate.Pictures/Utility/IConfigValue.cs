@@ -55,7 +55,7 @@ namespace Rotate.Pictures.Utility
 		
 		void UpdateOnStartRotatingPicture(bool initialRotatingMode);
 		
-		void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null, Func<string, int> pathToIndex = null);
+		void UpdatePicturesToAvoid(IEnumerable<string> picsToAvoid = null, Func<string, int> pathToIndex = null, bool isPicturesLoading = true);
 		
 		void UpdateStillPictureExtensions(string stillPictureExt);
 
