@@ -6,10 +6,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.ServiceModel.PeerResolvers;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.Utility;
@@ -37,12 +37,14 @@ namespace Rotate.Pictures.ViewModel
 
 		private readonly IConfigValue _configValue;
 
+		private enum BeatColors { Black = 0, White = 1 }
+
 		public MainWindowViewModel()
 		{
 			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
 			_configValue = ConfigValueProvider.Default;
 
-			// Newing up the Model hear, marries the model to the MainWindow (hard dependency).  I feel that this is OK.
+			// New-ing up the Model hear, marries the model to the MainWindow (hard dependency).  I feel that this is OK.
 			// Having it married it is OK to hook an event
 			_model = (PictureModel)ModelFactory.Inst.Create("PictureFileRepository", _configValue);
 			_model.OnPictureRetrieving += Model_OnPictureRetrieving;
@@ -60,6 +62,7 @@ namespace Rotate.Pictures.ViewModel
             _visHeartBeatInterval = _configValue.VisualHeartbeat();
 			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_configValue.VisualHeartbeat()), IsEnabled = true };
 			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
+			_beatColor = BeatColors.Black.ToString();
 
 			CurrentPicture = _configValue.FirstPictureToDisplay();
 			if (!File.Exists(CurrentPicture))
@@ -78,7 +81,7 @@ namespace Rotate.Pictures.ViewModel
 
 			_picChangeTmr = new DispatcherTimer {
 				Interval = TimeSpan.FromMilliseconds(IntervalBetweenPictures),
-				IsEnabled = RotationRunning
+				IsEnabled = true
 			};
 			_picChangeTmr.Tick += (_, _) => RetrieveNextPicture();
 
@@ -210,7 +213,7 @@ namespace Rotate.Pictures.ViewModel
 						_picChangeTmr.Stop();
 				}
 
-				_visualHeartbeatTmr.IsEnabled = _rotationRunning;
+				//_visualHeartbeatTmr.IsEnabled = _rotationRunning;
 				CurrentPictureColumnSpan = PictureColumnSpan();
 			}
 		}
@@ -308,6 +311,18 @@ namespace Rotate.Pictures.ViewModel
 			set
 			{
 				_visHeartBeatInterval = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private string _beatColor;
+
+		public string BeatColor
+		{
+			get => _beatColor;
+			set
+			{
+				_beatColor = value;
 				OnPropertyChanged();
 			}
 		}
@@ -423,6 +438,7 @@ namespace Rotate.Pictures.ViewModel
 			var cnt = (double)IntervalBetweenPictures / _configValue.VisualHeartbeat();
 			_intervalBetweenPics += _intervalProgressBarMax / (cnt - 1D);
 			VisHeartBeatInterval = (int)_intervalBetweenPics;
+			BeatColor = _beatColor == BeatColors.Black.ToString() ? BeatColors.White.ToString() : BeatColors.Black.ToString();
 		}
 
 		private void ResetHeartBeat()

@@ -168,7 +168,7 @@
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="*"/>
 					</Grid.ColumnDefinitions>
-					<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding DisplayCurrentPic}"
+					<TextBox VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding DisplayCurrentPic}" IsReadOnly="true"
 					         Background="Yellow" Foreground="Black" FontSize="14" VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
 					         BorderBrush="Transparent" BorderThickness="0" Grid.ColumnSpan="{Binding CurrentPictureColumnSpan}"
 					         KeyDown="UIElement_OnKeyDown"/>
@@ -193,12 +193,16 @@
 
 				<!-- Stop/Start button (Key shortcut = 'S') -->
 				<Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="4" Command="{Binding StopStartCommand}" Style="{StaticResource ShrinkOnPress}">
-					<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-					         Width="15" Height="15"
-					         Margin="0,0,3,0"
-					         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
-					         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
-					         ToolTipService.ShowDuration="3000" />
+					<Grid>
+						<Ellipse HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+						         Width="15" Height="15"
+						         Margin="0,0,3,0"
+						         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
+						         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
+						         ToolTipService.ShowDuration="3000" />
+						<Ellipse HorizontalAlignment="Center" VerticalAlignment="Center" Width="1" Height="1" Margin="0,0,0,0"
+						         Fill="{Binding BeatColor}" />
+					</Grid>
 				</Button>
 
 				<!-- Right arrow, forward 1 picture in the selection-stack -->
