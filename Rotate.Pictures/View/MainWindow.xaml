@@ -162,7 +162,7 @@
 				</Button>
 
 				<!-- Path of picture -->
-				<Grid Grid.Column="1" Background="Yellow">
+				<Grid Grid.Column="1" Grid.ColumnSpan="{Binding BottomBarInfoColumnSpan}" Background="Yellow" >
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="2*"/>
 						<ColumnDefinition Width="Auto"/>
@@ -200,7 +200,7 @@
 						         Fill="{Binding RotationRunning, Converter={StaticResource LocalStartStopConverter}}"
 						         ToolTip="Traffic like icon indicating the status of picture rotation.  Stopping picture rotation does not stop video play"
 						         ToolTipService.ShowDuration="3000" />
-						<Ellipse HorizontalAlignment="Center" VerticalAlignment="Center" Width="1" Height="1" Margin="0,0,0,0"
+						<Ellipse HorizontalAlignment="Center" VerticalAlignment="Center" Width="1.3" Height="1.3" Margin="0,0,0,0"
 						         Fill="{Binding BeatColor}" />
 					</Grid>
 				</Button>

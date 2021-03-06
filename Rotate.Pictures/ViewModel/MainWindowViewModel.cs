@@ -62,7 +62,9 @@ namespace Rotate.Pictures.ViewModel
             _visHeartBeatInterval = _configValue.VisualHeartbeat();
 			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_configValue.VisualHeartbeat()), IsEnabled = true };
 			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
+			_intervalProgressBarMax = 1000;
 			_beatColor = BeatColors.Black.ToString();
+			_bottomBarInfoColumnSpan = 1;
 
 			CurrentPicture = _configValue.FirstPictureToDisplay();
 			if (!File.Exists(CurrentPicture))
@@ -201,7 +203,17 @@ namespace Rotate.Pictures.ViewModel
 				_rotationRunning = value;
 				OnPropertyChanged();
 				if (_picChangeTmr != null) _picChangeTmr.IsEnabled = _rotationRunning;
-				SliderVisibility = _rotationRunning ? "Visible" : "Collapsed";
+				if (_rotationRunning)
+				{
+					SliderVisibility = "Visible";
+					BottomBarInfoColumnSpan = 1;
+				}
+				else
+				{
+					SliderVisibility = "Collapsed";
+					BottomBarInfoColumnSpan = 2;
+				}
+
 				if (_picChangeTmr != null && IsWindowStateMinimized(WindowSizeState))
 				{
 					if (_rotationRunning)
@@ -213,7 +225,6 @@ namespace Rotate.Pictures.ViewModel
 						_picChangeTmr.Stop();
 				}
 
-				//_visualHeartbeatTmr.IsEnabled = _rotationRunning;
 				CurrentPictureColumnSpan = PictureColumnSpan();
 			}
 		}
@@ -226,6 +237,18 @@ namespace Rotate.Pictures.ViewModel
 			set
 			{
 				_sliderVisibility = value ?? "visible";
+				OnPropertyChanged();
+			}
+		}
+
+		private int _bottomBarInfoColumnSpan;
+
+		public int BottomBarInfoColumnSpan
+		{
+			get => _bottomBarInfoColumnSpan;
+			set
+			{
+				_bottomBarInfoColumnSpan = value;
 				OnPropertyChanged();
 			}
 		}
@@ -327,7 +350,7 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		private int _intervalProgressBarMax = 1000;
+		private int _intervalProgressBarMax;
 
 		public int IntervalProgressBarMax
 		{
@@ -652,7 +675,11 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand WindowClosing { get; set; }
 
-		private void StopStartRotation() => RotationRunning = !RotationRunning;
+		private void StopStartRotation()
+		{
+			RotationRunning = !RotationRunning;
+			if (RotationRunning) _intervalBetweenPics = 0;
+		}
 
 		public bool CanPlay() => !IsMotionRunning;
 
