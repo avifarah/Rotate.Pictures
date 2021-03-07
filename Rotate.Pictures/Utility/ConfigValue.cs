@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using log4net;
 using System.Configuration;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
@@ -407,6 +408,23 @@ namespace Rotate.Pictures.Utility
 			if (!File.Exists(filePath))
 				using (File.Create(filePath)) { }
 			return filePath;
+		}
+
+		private const string MediaVolumeKey = "MediaVolume";
+
+		public double MediaVolume
+		{
+			get
+			{
+				var sMediaVolume = ReadConfigValue(MediaVolumeKey);
+				var rc = double.TryParse(sMediaVolume, NumberStyles.Any, CultureInfo.CurrentCulture, out var mediaVolume);
+				return rc ?  mediaVolume : 0.0;
+			}
+			set
+			{
+				var mediaVolume = value;
+				WriteConfigValue(MediaVolumeKey, mediaVolume.ToString(CultureInfo.CurrentCulture));
+			}
 		}
 
 		private string ReadConfigValue(string key) => _configValues.ContainsKey(key) ? _configValues[key] : null;

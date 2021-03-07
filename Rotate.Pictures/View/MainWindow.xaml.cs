@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -38,6 +39,8 @@ namespace Rotate.Pictures.View
 			_tmr.Start();
 
 			DataContext = VmFactory.Inst.CreateVm(this);
+
+			MeSliderVolume.Value = ConfigValue.Inst.MediaVolume;
 		}
 
 		private void UIElement_OnKeyDown(object sender, KeyEventArgs e)
@@ -193,7 +196,8 @@ namespace Rotate.Pictures.View
 		private void OnVolumeValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
 			if (MePlayer == null) return;
-			MePlayer.Volume = MeSliderVolume.Value;
+			MePlayer.Volume = e.NewValue;
+			ConfigValue.Inst.MediaVolume = e.NewValue;
 		}
 
 		private void ChangeMotionPosition()

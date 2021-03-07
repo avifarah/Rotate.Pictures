@@ -55,11 +55,11 @@ namespace Rotate.Pictures.ViewModel
 			_pictureBufferSvc = new PictureBufferDepthService();
 			_noDisplayPictureSvc = new NoDisplayPictureService();
 
-			// Use the local variables like, _intervalBetweenPictures, _visHeartBeatInterval, etc, as opposed
-			// to their properties like, IntervalBetweenPictures, VisHeartBeatInterval, etc, because we
+			// Use the local variables like, _intervalBetweenPictures, _progressBarPosition, etc, as opposed
+			// to their properties like, IntervalBetweenPictures, ProgressBarPosition, etc, because we
 			// initialize the property and need not need the side effects the occur with their properties.
 			_intervalBetweenPictures = _configValue.IntervalBetweenPictures();
-            _visHeartBeatInterval = _configValue.VisualHeartbeat();
+			_progressBarPosition = _configValue.VisualHeartbeat();
 			_visualHeartbeatTmr = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_configValue.VisualHeartbeat()), IsEnabled = true };
 			_visualHeartbeatTmr.Tick += VisualHeartBeatUpdate;
 			_intervalProgressBarMax = 1000;
@@ -325,15 +325,15 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		private int _visHeartBeatInterval;
-		private double _intervalBetweenPics;
+		private int _progressBarPosition;
+		private double _timePassedDisplayingCurrentPicture;
 
-		public int VisHeartBeatInterval
+		public int ProgressBarPosition
 		{
-			get => _visHeartBeatInterval;
+			get => _progressBarPosition;
 			set
 			{
-				_visHeartBeatInterval = value;
+				_progressBarPosition = value;
 				OnPropertyChanged();
 			}
 		}
@@ -458,15 +458,21 @@ namespace Rotate.Pictures.ViewModel
 
 		private void VisualHeartBeatUpdate(object sender, EventArgs e)
 		{
-			var cnt = (double)IntervalBetweenPictures / _configValue.VisualHeartbeat();
-			_intervalBetweenPics += _intervalProgressBarMax / (cnt - 1D);
-			VisHeartBeatInterval = (int)_intervalBetweenPics;
+			double ProgressBarDelta(double timeBtwnPics, double timeBtwnHeartBeats)
+			{
+				var cnt = timeBtwnPics / timeBtwnHeartBeats;
+				return _intervalProgressBarMax / (cnt - 1D);
+			}
+
+			_timePassedDisplayingCurrentPicture += ProgressBarDelta(IntervalBetweenPictures, _configValue.VisualHeartbeat());
+			ProgressBarPosition = (int)_timePassedDisplayingCurrentPicture;
+
 			BeatColor = _beatColor == BeatColors.Black.ToString() ? BeatColors.White.ToString() : BeatColors.Black.ToString();
 		}
 
 		private void ResetHeartBeat()
 		{
-			_intervalBetweenPics = 0.0;
+			_timePassedDisplayingCurrentPicture = 0.0;
 			_visualHeartbeatTmr.Start();
 		}
 
@@ -678,7 +684,7 @@ namespace Rotate.Pictures.ViewModel
 		private void StopStartRotation()
 		{
 			RotationRunning = !RotationRunning;
-			if (RotationRunning) _intervalBetweenPics = 0;
+			if (RotationRunning) _timePassedDisplayingCurrentPicture = 0.0;
 		}
 
 		public bool CanPlay() => !IsMotionRunning;
