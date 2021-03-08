@@ -418,7 +418,13 @@ namespace Rotate.Pictures.Utility
 			{
 				var sMediaVolume = ReadConfigValue(MediaVolumeKey);
 				var rc = double.TryParse(sMediaVolume, NumberStyles.Any, CultureInfo.CurrentCulture, out var mediaVolume);
-				return rc ?  mediaVolume : 0.0;
+
+				// This check for the case where the user initially enters a value that is out of range.  Otherwise,
+				// the system will enter the correct number.
+				if (!rc) return 0.0;
+				if (mediaVolume < 0.0) return 0.0;
+				if (mediaVolume > 1.0) return 1.0;
+				return mediaVolume;
 			}
 			set
 			{
