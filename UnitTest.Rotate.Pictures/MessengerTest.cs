@@ -4,12 +4,12 @@ using Rotate.Pictures.MessageCommunication;
 namespace UnitTest.Rotate.Pictures
 {
 	/// <summary>
-	/// Summary description for MessenerTest
+	/// Summary description for MessengerTest
 	/// </summary>
 	[TestClass]
-	public class MessenerTest
+	public class MessengerTest
 	{
-		//public MessenerTest() { }
+		//public MessengerTest() { }
 
 		/// <summary>
 		///Gets or sets the test context which provides
