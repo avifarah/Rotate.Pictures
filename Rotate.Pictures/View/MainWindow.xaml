@@ -100,9 +100,9 @@
 				<MenuItem.Header>
 					<StackPanel Orientation="Horizontal">
 						<Image Source="/Rotate.Pictures;component/Images/Volume.gif" Width="18" Height="18" Margin="0,0,8,0"/>
-						<Slider x:Name="MeSliderVolume" TickPlacement="BottomRight" TickFrequency="0.05" Width="100" Minimum="0" Maximum="1" Value="0.25"
-						        IsMoveToPointEnabled="True" 
-						        Thumb.DragStarted="OnVolumeDragStarted" Thumb.DragCompleted="OnVolumeDragCompleted" ValueChanged="OnVolumeValueChanged"/>
+						<Slider x:Name="MeSliderVolume" TickPlacement="BottomRight" TickFrequency="0.05" Width="100" Minimum="0" Maximum="1" Value="{Binding Path=VolumeValue}"
+						        IsMoveToPointEnabled="True" />
+						        <!--Thumb.DragStarted="OnVolumeDragStarted" Thumb.DragCompleted="OnVolumeDragCompleted" ValueChanged="OnVolumeValueChanged" />-->
 					</StackPanel>
 				</MenuItem.Header>
 			</MenuItem>
@@ -134,7 +134,7 @@
 					       Stretch="{Binding ImageStretch}"
 					       IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}" />
 					<MediaElement x:Name="MePlayer" Source="{Binding CurrentPicture, Mode=OneWay}"
-								  LoadedBehavior="Play" UnloadedBehavior="Stop" MediaOpened="MePlayer_OnMediaOpened"
+								  LoadedBehavior="Play" UnloadedBehavior="Stop" MediaOpened="MePlayer_OnMediaOpened" Volume="{Binding VolumeValue}"
 								  Stretch="{Binding ImageStretch}"
 								  IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 								  Margin="0,3,0,-3"/>

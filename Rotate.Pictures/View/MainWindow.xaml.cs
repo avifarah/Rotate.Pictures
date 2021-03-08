@@ -25,7 +25,10 @@ namespace Rotate.Pictures.View
 		private readonly DispatcherTimer _tmr;
 		private bool _isVolumeGt0 = true;
 		private double _lastVolume;
+
+		/// TODO: Explain _isDurationSet
 		private bool _isDurationSet;
+
 		private readonly IConfigValue _configValue;
 
 		public MainWindow()
@@ -69,6 +72,7 @@ namespace Rotate.Pictures.View
 		{
 			_isDurationSet = false;
 			if (!MePlayer.NaturalDuration.HasTimeSpan) return;
+
 			MeSliderPosition.Minimum = 0.0;
 			MeSliderPosition.Maximum = MePlayer.NaturalDuration.TimeSpan.TotalSeconds;
 			MeSliderPosition.Value = 0.0;
@@ -187,17 +191,6 @@ namespace Rotate.Pictures.View
 			else
 				MePlayer.Volume = _lastVolume;
 			_isVolumeGt0 = !_isVolumeGt0;
-		}
-
-		private void OnVolumeDragStarted(object sender, DragStartedEventArgs e) => _tmr.Stop();
-
-		private void OnVolumeDragCompleted(object sender, DragCompletedEventArgs e) => _tmr.Start();
-
-		private void OnVolumeValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-		{
-			if (MePlayer == null) return;
-			MePlayer.Volume = e.NewValue;
-			ConfigValue.Inst.MediaVolume = e.NewValue;
 		}
 
 		private void ChangeMotionPosition()

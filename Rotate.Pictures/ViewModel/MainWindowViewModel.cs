@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Rotate.Pictures.EventAggregator;
 using Rotate.Pictures.Utility;
@@ -65,6 +64,7 @@ namespace Rotate.Pictures.ViewModel
 			_intervalProgressBarMax = 1000;
 			_beatColor = BeatColors.Black.ToString();
 			_bottomBarInfoColumnSpan = 1;
+			_volumeValue = ConfigValue.Inst.MediaVolume;
 
 			CurrentPicture = _configValue.FirstPictureToDisplay();
 			if (!File.Exists(CurrentPicture))
@@ -394,6 +394,19 @@ namespace Rotate.Pictures.ViewModel
 			set
 			{
 				_isModelDoneLoadingPictures = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private double _volumeValue;
+
+		public double VolumeValue
+		{
+			get => _volumeValue;
+			set
+			{
+				_volumeValue = value;
+				ConfigValue.Inst.MediaVolume = _volumeValue;
 				OnPropertyChanged();
 			}
 		}
