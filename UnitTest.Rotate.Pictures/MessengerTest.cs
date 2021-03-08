@@ -44,13 +44,24 @@ namespace UnitTest.Rotate.Pictures
 			public int Test = 0;
 		}
 
+		public sealed class SecondTestCommunication : IVmCommunication
+		{
+			public int Test2 = 0;
+		}
+
+		private void OnTestCommunication(TestCommunication obj) => ++obj.Test;
+
+		private void OnSecondTestCommunication(SecondTestCommunication obj) => obj.Test2 += 100;
+
 		[TestMethod]
 		public void DefaultMessengerTest()
 		{
 			// Arrange
+			// Uses default context
 			Messenger<TestCommunication>.Instance.Register(this, OnTestCommunication);
 
 			// Act
+			// No context is specified in the Send(..) => Send(..) uses default context
 			var m = new TestCommunication();
 			Messenger<TestCommunication>.Instance.Send(m);
 
@@ -58,9 +69,54 @@ namespace UnitTest.Rotate.Pictures
 			Assert.AreEqual(1, m.Test);
 
 			// Cleanup
+			// No context is specified => the Unregister(..) uses default context.
 			Messenger<TestCommunication>.Instance.Unregister(this);
 		}
 
-		private void OnTestCommunication(TestCommunication obj) => ++obj.Test;
+		[TestMethod]
+		public void SecondMessengerTest()
+		{
+			// Arrange
+			// Explicitly named context.  Name could be any unique string.
+			var context = nameof(SecondTestCommunication);
+			Messenger<SecondTestCommunication>.Instance.Register(this, OnSecondTestCommunication, context);
+
+			// Act
+			var m = new SecondTestCommunication();
+			Messenger<SecondTestCommunication>.Instance.Send(m, context);
+
+			// Assert
+			Assert.AreEqual(100, m.Test2);
+
+			// Cleanup
+			Messenger<SecondTestCommunication>.Instance.Unregister(this, context);
+		}
+
+		[TestMethod]
+		public void TwoTestCommunicationClasses_TwoContextMessengerTest()
+		{
+			// Arrange
+			// Explicitly named context.  Name could be any unique string.
+			// Use different contexts to employ different IVmCommunication implementations.
+			const string context1 = nameof(TestCommunication);
+			const string context2 = nameof(SecondTestCommunication);
+			Messenger<TestCommunication>.Instance.Register(this, OnTestCommunication, context1);
+			Messenger<SecondTestCommunication>.Instance.Register(this, OnSecondTestCommunication, context2);
+
+			var m1 = new TestCommunication();
+			var m2 = new SecondTestCommunication();
+
+			// Act
+			Messenger<TestCommunication>.Instance.Send(m1, context1);
+			Messenger<SecondTestCommunication>.Instance.Send(m2, context2);
+
+			// Assert
+			Assert.AreEqual(1, m1.Test);
+			Assert.AreEqual(100, m2.Test2);
+
+			// Cleanup
+			Messenger<TestCommunication>.Instance.Unregister(this, context1);
+			Messenger<SecondTestCommunication>.Instance.Unregister(this, context2);
+		}
 	}
 }
