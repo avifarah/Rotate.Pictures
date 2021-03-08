@@ -23,8 +23,6 @@ namespace Rotate.Pictures.View
 
 		private bool _isMePlaying = true;
 		private readonly DispatcherTimer _tmr;
-		private bool _isVolumeGt0 = true;
-		private double _lastVolume;
 
 		/// TODO: Explain _isDurationSet
 		private bool _isDurationSet;
@@ -41,9 +39,9 @@ namespace Rotate.Pictures.View
 			_tmr.Tick += VisualTimerTick;
 			_tmr.Start();
 
-			DataContext = VmFactory.Inst.CreateVm(this);
-
 			MeSliderVolume.Value = ConfigValue.Inst.MediaVolume;
+
+			DataContext = VmFactory.Inst.CreateVm(this);
 		}
 
 		private void UIElement_OnKeyDown(object sender, KeyEventArgs e)
@@ -179,6 +177,9 @@ namespace Rotate.Pictures.View
 			var newPosition = MePlayer.Position - TimeSpan.FromSeconds(_configValue.MediaFastForward());
 			MePlayer.Position = newPosition.TotalSeconds >= 0 ? newPosition : TimeSpan.FromSeconds(0.0);
 		}
+
+		private bool _isVolumeGt0 = true;
+		private double _lastVolume;
 
 		private void MediaToggleVolume(object sender, ExecutedRoutedEventArgs e)
 		{
