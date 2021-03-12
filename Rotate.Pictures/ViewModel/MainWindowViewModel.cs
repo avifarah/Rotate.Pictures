@@ -38,6 +38,9 @@ namespace Rotate.Pictures.ViewModel
 
 		private enum BeatColors { Black = 0, White = 1 }
 
+		// TODO: find a way to set the application icon to the default picture (if default
+		// TODO: picture is not given, then leave the application idcon as the current
+		// TODO: Rotate.Picture.ico
 		public MainWindowViewModel()
 		{
 			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");
@@ -89,22 +92,6 @@ namespace Rotate.Pictures.ViewModel
 
 			_model.SelectionTrackerAppend(CurrentPicture);
 
-			if (CurrentPicture == null && !File.Exists(CurrentPicture))
-			{
-				bool succeeded = false;
-				for (var i = 0; i < 100 && !succeeded; ++i)
-				{
-					var t = Task.Delay(10);
-					t.Wait();
-					try
-					{
-						RetrieveNextPicture();
-						succeeded = true;
-					}
-					catch { succeeded = false; }
-				}
-			}
-
 			LoadCommands();
 			RegisterMessages();
 
@@ -113,6 +100,28 @@ namespace Rotate.Pictures.ViewModel
 			// Initialize fields
 			IsModelDoneLoadingPictures = !_model.IsPicturesRetrieving;
 			DirRetrievingVisible = Visibility.Visible;
+
+			RetrieveInitialNextPicture();
+		}
+
+		private async void RetrieveInitialNextPicture()
+		{
+			if (CurrentPicture != null) return;
+			if (File.Exists(CurrentPicture)) return;
+
+			for (var i = 0; i < 50; ++i)
+			{
+				await Task.Delay(5);
+				try
+				{
+					RetrieveNextPicture();
+					return;
+				}
+				catch
+				{
+					// Swallow exception
+				}
+			}
 		}
 
 		private void Model_OnPictureRetrieving(object sender, PictureRetrievingEventArgs e)
@@ -253,17 +262,17 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		private double _motionPicturePosition;
+		//private double _motionPicturePosition;
 
-		public double MotionPicturePosition
-		{
-			get => _motionPicturePosition;
-			set
-			{
-				_motionPicturePosition = value;
-				OnPropertyChanged();
-			}
-		}
+		//public double MotionPicturePosition
+		//{
+		//	get => _motionPicturePosition;
+		//	set
+		//	{
+		//		_motionPicturePosition = value;
+		//		OnPropertyChanged();
+		//	}
+		//}
 
 		private WindowState _windowSizeState;
 
@@ -664,11 +673,11 @@ namespace Rotate.Pictures.ViewModel
 			NextImageCommand = new CustomCommand(NextImageMove);
 			DoNotShowImageCommand = new CustomCommand(DoNotShowImage);
 			SetTimeBetweenPicturesCommand = new CustomCommand(SetTimeBetweenPictures);
-			SetSelectedStrechModeCommand = new CustomCommand(SetSelectedStrechMode);
+			SetSelectedStretchModeCommand = new CustomCommand(SetSelectedStretchMode);
 			SetPicturesMetaDataCommand = new CustomCommand(SetPicturesMetaData);
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
 			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
-			PalyCommand = new CustomCommand(Play, CanPlay);
+			PlayCommand = new CustomCommand(Play, CanPlay);
 			WindowClosing = new CustomCommand(WindowClosingAction);
 		}
 
@@ -682,7 +691,7 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand SetTimeBetweenPicturesCommand { get; set; }
 
-		public ICommand SetSelectedStrechModeCommand { get; set; }
+		public ICommand SetSelectedStretchModeCommand { get; set; }
 
 		public ICommand SetPicturesMetaDataCommand { get; set; }
 
@@ -690,7 +699,7 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand ManageNoDisplayListCommand { get; set; }
 
-		public ICommand PalyCommand { get; set; }
+		public ICommand PlayCommand { get; set; }
 
 		public ICommand WindowClosing { get; set; }
 
@@ -786,7 +795,7 @@ namespace Rotate.Pictures.ViewModel
 
 		private void SetTimeBetweenPictures() => _intervalBetweenPicturesSvc.ShowDetailDialog(IntervalBetweenPictures);
 
-		private void SetSelectedStrechMode()
+		private void SetSelectedStretchMode()
 		{
 			var mode = ImageStretch.TextToMode();
 			_stretchSvc.ShowDetailDialog(mode);
@@ -796,13 +805,13 @@ namespace Rotate.Pictures.ViewModel
 		{
 			var picFolder = string.Join(";", _configValue.InitialPictureDirectories());
 			var firstPicture = _configValue.FirstPictureToDisplay();
-			var stillExtentions = string.Join(";", _configValue.StillPictureExtensions());
-			var motionExtentions = string.Join(";", _configValue.MotionPictures());
+			var stillExtensions = string.Join(";", _configValue.StillPictureExtensions());
+			var motionExtensions = string.Join(";", _configValue.MotionPictures());
 			var metaData = new PictureMetaDataTransmission {
 				PictureFolder = picFolder,
 				FirstPictureToDisplay = firstPicture,
-				StillPictureExtensions = stillExtentions,
-				MotionPictureExtensions = motionExtentions
+				StillPictureExtensions = stillExtensions,
+				MotionPictureExtensions = motionExtensions
 			};
 			_pictureMetadataSvc.ShowDetailDialog(metaData);
 		}
