@@ -24,8 +24,7 @@ namespace Rotate.Pictures.View
 		private bool _isMePlaying = true;
 		private readonly DispatcherTimer _tmr;
 
-		/// TODO: Explain _isDurationSet
-		private bool _isDurationSet;
+		private bool _isMotionPicturePlaying;
 
 		private readonly IConfigValue _configValue;
 
@@ -68,13 +67,13 @@ namespace Rotate.Pictures.View
 
 		private void MePlayer_OnMediaOpened(object sender, RoutedEventArgs e)
 		{
-			_isDurationSet = false;
+			_isMotionPicturePlaying = false;
 			if (!MePlayer.NaturalDuration.HasTimeSpan) return;
 
 			MeSliderPosition.Minimum = 0.0;
 			MeSliderPosition.Maximum = MePlayer.NaturalDuration.TimeSpan.TotalSeconds;
 			MeSliderPosition.Value = 0.0;
-			_isDurationSet = true;
+			_isMotionPicturePlaying = true;
 		}
 
 		private void VisualTimerTick(object sender, EventArgs e)
@@ -82,14 +81,15 @@ namespace Rotate.Pictures.View
 			if (MePlayer.Source == null) return;
 			if (!MePlayer.NaturalDuration.HasTimeSpan) return;
 
-			if (!_isDurationSet)
+			if (!_isMotionPicturePlaying)
 			{
 				if (!MePlayer.NaturalDuration.HasTimeSpan) return;
 				MeSliderPosition.Minimum = 0.0;
 				MeSliderPosition.Maximum = MePlayer.NaturalDuration.TimeSpan.TotalSeconds;
 				MeSliderPosition.Value = 0.0;
-				_isDurationSet = true;
+				_isMotionPicturePlaying = true;
 			}
+
 			MeSliderPosition.Value = MePlayer.Position.TotalSeconds;
 		}
 
@@ -196,6 +196,8 @@ namespace Rotate.Pictures.View
 
 		private void ChangeMotionPosition()
 		{
+			// TODO: Find a way to set MePlayer.Position from the ViewModel
+			// https://stackoverflow.com/questions/22606067/mediaelement-play-from-within-viewmodel/56181630#56181630
 			MePlayer.Position = TimeSpan.FromSeconds(MeSliderPosition.Value);
 		}
 
