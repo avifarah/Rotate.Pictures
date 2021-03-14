@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -8,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Rotate.Pictures.MessageCommunication;
 using Rotate.Pictures.Utility;
@@ -40,7 +42,23 @@ namespace Rotate.Pictures.View
 
 			MeSliderVolume.Value = ConfigValue.Inst.MediaVolume;
 
+			// Satisfy MVVM equation
 			DataContext = VmFactory.Inst.CreateVm(this);
+
+			ChangeWindowIconToFirstPicture();
+		}
+
+		/// <summary>
+		/// Change window's icon to First picture
+		/// </summary>
+		private void ChangeWindowIconToFirstPicture()
+		{
+			var iconPath = ConfigValue.Inst.FirstPictureToDisplay();
+			if (iconPath == null) return;
+			if (!File.Exists(iconPath)) return;
+
+			var iconUri = new Uri(iconPath, UriKind.RelativeOrAbsolute);
+			Icon = BitmapFrame.Create(iconUri);
 		}
 
 		private void UIElement_OnKeyDown(object sender, KeyEventArgs e)

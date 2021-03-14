@@ -288,8 +288,22 @@ namespace Rotate.Pictures.Utility
 			if (!string.IsNullOrWhiteSpace(_firstPic)) return _firstPic;
 
 			var raw = ReadConfigValue(FirstPictureToDisplayKey);
-			if (raw == null) Log.Error($"Missing configuration appSettings entry {FirstPictureToDisplayKey}");
-			_firstPic = raw;
+			if (raw == null)
+			{
+				Log.Error($"Missing configuration appSettings entry {FirstPictureToDisplayKey}");
+				_firstPic = null;
+				return _firstPic;
+			}
+
+			var fullPath = Path.GetFullPath(raw);
+			_firstPic = fullPath;
+
+			if (!File.Exists(fullPath))
+			{
+				Log.Error($"First picture to display (in configuration file) \"{fullPath}\"does not represent a valid file path.");
+				_firstPic = null;
+			}
+
 			return _firstPic;
 		}
 
