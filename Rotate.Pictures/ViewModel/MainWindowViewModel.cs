@@ -38,9 +38,6 @@ namespace Rotate.Pictures.ViewModel
 
 		private enum BeatColors { Black = 0, White = 1 }
 
-		// TODO: find a way to set the application icon to the default picture (if default
-		// TODO: picture is not given, then leave the application idcon as the current
-		// TODO: Rotate.Picture.ico
 		public MainWindowViewModel()
 		{
 			//Debug.WriteLine($"{MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}(..)");

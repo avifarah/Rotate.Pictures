@@ -21,11 +21,12 @@ namespace Rotate.Pictures.Model
 		/// value (picIndex)	:	int, index of picture collection: [0 .. n).  This 
 		///							index includes the pictures that are not to be shown.
 		/// <remarks>
-		/// I contemplated between the name "flatIndex" and "runningIndex" and decided
-		/// to use name "flatIndex" as it indicates that the index has no "holes",
-		/// more reminiscent of the index out of the random number generator.  While the
-		/// name "runningIndex" could also be reminiscent of the second index which is
-		/// the picture index.
+		/// I contemplated naming the variable (the one that is now named "flatIndex")
+		/// between two contenders, the names "flatIndex" and "runningIndex" and decided
+		/// to use name "flatIndex" as it indicates that the index has no "holes", more
+		/// reminiscent of the index out of the random number generator.  While the name
+		/// "runningIndex" could also be reminiscent of the second index which is the
+		/// picture index.
 		///
 		/// I decided to call the second index the picIndex (Picture Index) which does
 		/// have "holes" (pictures not to be used), as per user request.
@@ -214,7 +215,7 @@ namespace Rotate.Pictures.Model
 		///		Say that total pictures count = 30
 		///			pictures to avoid: 3, 10, 11, 12, 13, 14, 25 (this is: 3, 10-14, 25)
 		///
-		///		One possible algorithm:
+		///		One possible algorithm (that we will not use):
 		///		<code>
 		///			// Input: freeIndex
 		///			// Output: picIndex
@@ -260,7 +261,8 @@ namespace Rotate.Pictures.Model
 		///			FlatToPicIndexMapping[25 - 6] = 7	// If flatIndex >= 19 (25 - 6) then
 		///												// .. picIndex = flatIndex + FlatToPicIndexMapping[19]
 		///
-		///		Now the code to convert flatIndex to picIndex is as follows:
+		///		Now, the code, in this new algorithm--the one that we will use,
+		///		to convert flatIndex to picIndex is as follows:
 		///		<code>
 		///			upperSmallestIndex = FindGreatestSmallerIndex(flatIndex);
 		///			if flatIndex is &lt; FlatToPicIndexMapping.SmallestIndex
@@ -269,16 +271,16 @@ namespace Rotate.Pictures.Model
 		///				picIndex = flatIndex + FlatToPicIndexMapping[upperSmallestIndex];
 		///		</code>
 		///
-		///		Now the FindGreatestSmallerIndex(..) can be a binary search.
+		///		The FindGreatestSmallerIndex(..) method can be implemented as a binary search.
 		///
 		///		Conclusion: This algorithm avoids the running through all the values 0 .. flatIndex
 		///		in order to find out the value of the picIndex.
 		///
-		///		Discussion: This is nice, though in real life, it is of questionable consequences
-		///		since it is not a real-time application where the cycling through a few 1,000s of
-		///		pictures or even 10s of 1,000s of pictures, is not a big deal for each time
-		///		interval between pictures.  Nevertheless, it is simple enough to implement and I
-		///		felt that it was worth the extra effort.
+		///		Discussion: This, new algorithm, is nice, though in real life, it is of questionable
+		///		benefit since this picture rotation is not a real-time application where the
+		///		cycling through a few 1,000s of picture induces or even a few 10s of 1,000s of
+		///		pictures, is not a big deal for each time interval between pictures.  Nevertheless,
+		///		it is simple enough to implement and I felt that it was worth the extra effort.
 		/// </summary>
 		private void PopulatePicIndexMappingAndKeys()
 		{
@@ -292,20 +294,19 @@ namespace Rotate.Pictures.Model
 				return;
 			}
 
+			// Signal that pictures are done loading
 			Interlocked.CompareExchange(ref _populatePictureMappingFlag, 1, 0);
 
 			try
 			{
-				// TODO: Verify correctness
 				FlatToPicIndexMapping.Clear();
                 if (!_orderedPicturesToAvoid.Any())
                 {
-                    //FlatToPicIndexMapping.Clear();
                     _orderedKeys.Clear();
                     return;
                 }
 
-                var inx = 0;
+				var inx = 0;
 				foreach (var x in _orderedPicturesToAvoid)
 				{
 					var flatIndex = x - inx;
