@@ -674,7 +674,7 @@ namespace Rotate.Pictures.ViewModel
 			SetPicturesMetaDataCommand = new CustomCommand(SetPicturesMetaData);
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
 			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
-			PlayCommand = new CustomCommand(Play, CanPlay);
+			//PlayCommand = new CustomCommand(Play, CanPlay);
 			WindowClosing = new CustomCommand(WindowClosingAction);
 		}
 
@@ -706,9 +706,9 @@ namespace Rotate.Pictures.ViewModel
 			if (RotationRunning) _timePassedDisplayingCurrentPicture = 0.0;
 		}
 
-		public bool CanPlay() => !IsMotionRunning;
+		//public bool CanPlay() => !IsMotionRunning;
 
-		public void Play() => IsMotionRunning = true;
+		//public void Play() => IsMotionRunning = true;
 
 		private bool CanBackImageMove() => !_model.SelectionTrackerAtHead;
 

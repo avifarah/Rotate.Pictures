@@ -69,7 +69,7 @@
     <Compile Include="ConfigurationTest.cs" />
     <Compile Include="ImageExtTest.cs" />
     <Compile Include="LinqExtensionsTest.cs" />
-    <Compile Include="MessenerTest.cs" />
+    <Compile Include="MessengerTest.cs" />
     <Compile Include="PictureCollectionTest.cs" />
     <Compile Include="PictureModelTest.cs" />
     <Compile Include="PicturesToAvoidCollection.Test.cs" />
