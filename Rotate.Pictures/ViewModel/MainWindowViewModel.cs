@@ -432,6 +432,21 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
+		//private MediaState _mediaPause = MediaState.Close;
+		private MediaState _mediaPause = MediaState.Pause;
+
+		public MediaState MediaPause
+		{
+			get => _mediaPause;
+			set
+			{
+				LoadedBehavior = MediaState.Manual;
+				IsMotionRunning = false;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(LoadedBehavior));
+			}
+		}
+
 		private MediaState _loadedBehavior;
 
 		public MediaState LoadedBehavior
@@ -701,7 +716,8 @@ namespace Rotate.Pictures.ViewModel
 			SetPicturesMetaDataCommand = new CustomCommand(SetPicturesMetaData);
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
 			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
-			PlayCommand = new CustomCommand(Play, CanPlay);
+			//PlayCommand = new CustomCommand(MediaPlayerPlay, CanPlay);
+			//PauseCommand = new CustomCommand(MediaPlayerPause, CanMediaPlayerPause);
 			WindowClosing = new CustomCommand(WindowClosingAction);
 		}
 
@@ -723,9 +739,11 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand ManageNoDisplayListCommand { get; set; }
 
+		public ICommand WindowClosing { get; set; }
+
 		public ICommand PlayCommand { get; set; }
 
-		public ICommand WindowClosing { get; set; }
+		public ICommand PauseCommand { get; set; }
 
 		private void StopStartRotation()
 		{
@@ -733,13 +751,22 @@ namespace Rotate.Pictures.ViewModel
 			if (RotationRunning) _timePassedDisplayingCurrentPicture = 0.0;
 		}
 
-		public bool CanPlay() => !IsMotionRunning;
+		//public bool CanPlay() => !IsMotionRunning;
 
-		public void Play()
-		{
-			IsMotionRunning = true;
-			MediaPlay = MediaState.Play;
-		}
+		//public void MediaPlayerPlay()
+		//{
+		//	IsMotionRunning = true;
+		//	MediaPlay = MediaState.Play;
+		//}
+
+		//public bool CanMediaPlayerPause() => IsMotionRunning;
+
+		//public void MediaPlayerPause()
+		//{
+		//	LoadedBehavior = MediaState.Manual;
+		//	MediaPlay = MediaState.Pause;
+		//	IsMotionRunning = false;
+		//}
 
 		private bool CanBackImageMove() => !_model.SelectionTrackerAtHead;
 

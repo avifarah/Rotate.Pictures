@@ -2,7 +2,7 @@
 /packages/*
 
 # .vs
-/.vs/Rotate.Pictures/v16/.suo
+/.vs/*
 
 # bin
 /Rotate.Pictures/bin/*

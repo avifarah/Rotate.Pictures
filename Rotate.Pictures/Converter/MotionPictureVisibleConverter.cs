@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Data;
 using Rotate.Pictures.Utility;
 
@@ -36,7 +37,7 @@ namespace Rotate.Pictures.Converter
 			if (string.IsNullOrWhiteSpace(fn)) return false;
 			var rc = _motionExtensions.Any(s => string.Compare(new FileInfo(fn).Extension, s, StringComparison.OrdinalIgnoreCase) == 0);
 			//Debug.WriteLine($"MotionPictureVisibleConverter.  Value: {value}");
-			return rc ? "Visible" : "Collapsed";
+			return rc ? Visibility.Visible : Visibility.Collapsed;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

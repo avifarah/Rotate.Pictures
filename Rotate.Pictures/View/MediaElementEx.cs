@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace Rotate.Pictures.View
 {
 	public class MediaElementEx : MediaElement
 	{
+		//
+		// MediaPlayerPlay
+		//
 		/// <summary>Identifies the <see cref="P:System.Windows.Controls.MediaElementEx.PlayAlternative" /> dependency property.</summary>
 		/// <returns>The identifier for the <see cref="P:System.Windows.Controls.MediaElementEx.PlayAlternative" /> dependency property.</returns>
 		public static readonly DependencyProperty PlayAlternativeProperty = DependencyProperty.Register(
@@ -19,7 +17,7 @@ namespace Rotate.Pictures.View
 			new FrameworkPropertyMetadata(MediaState.Play, FrameworkPropertyMetadataOptions.None, PlayAlternativePropertyChanged));
 
 		/// <summary>Gets or sets the PlayAlternative and returns MediaState <see cref="T:System.Windows.Controls.MediaState" />. </summary>
-		/// <returns>The load behavior <see cref="T:System.Windows.Controls.MediaState" /> set for the media. The default value is <see cref="F:System.Windows.Controls.MediaState.Play" />.</returns>
+		/// <returns>The load behavior <see cref="T:System.Windows.Controls.MediaState" /> set for the media. The default value is <see cref="F:System.Windows.Controls.MediaState.MediaPlayerPlay" />.</returns>
 		public MediaState PlayAlternative
 		{
 			get => (MediaState)GetValue(PlayAlternativeProperty);
@@ -31,9 +29,29 @@ namespace Rotate.Pictures.View
 			((MediaElement)d)?.Play();
 		}
 
+		//
+		// Pause
+		//
+		public static readonly DependencyProperty PauseAlternativeProperty = DependencyProperty.Register(
+			nameof(PauseAlternative),
+			typeof(MediaState),
+			typeof(MediaElementEx),
+			new FrameworkPropertyMetadata(MediaState.Pause, FrameworkPropertyMetadataOptions.None, PauseAlternativePropertyChanged));
+
+		public MediaState PauseAlternative
+		{
+			get => (MediaState)GetValue(PauseAlternativeProperty);
+			set => SetValue(PauseAlternativeProperty, value);
+		}
+
+		private static void PauseAlternativePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			((MediaElement)d)?.Pause();
+		}
+
 		///// <summary>Pauses media at the current position.</summary>
 		///// <exception cref="T:System.InvalidOperationException">The <see cref="P:System.Windows.Controls.MediaElement.Clock" /> property is not <see langword="null" />.</exception>
-		//public void Pause() => this._helper.SetState(MediaState.Pause);
+		//public void MediaPlayerPause() => this._helper.SetState(MediaState.MediaPlayerPause);
 
 		///// <summary>Stops and resets media to be played from the beginning.</summary>
 		///// <exception cref="T:System.InvalidOperationException">The <see cref="P:System.Windows.Controls.MediaElement.Clock" /> property is not <see langword="null" />.</exception>

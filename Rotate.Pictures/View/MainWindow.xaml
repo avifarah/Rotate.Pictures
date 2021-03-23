@@ -25,8 +25,8 @@
 	<Window.CommandBindings>
 		<CommandBinding Command="{StaticResource BackImageCommand}" Executed="BackImageMove" />
 		<CommandBinding Command="{StaticResource NextImageCommand}" Executed="NextImageMove" />
-		<CommandBinding Command="MediaCommands.Play" CanExecute="MediaCanExecute" Executed="{Binding MediaPlay}"/>
-		<CommandBinding Command="MediaCommands.Pause" CanExecute="MediaCanPause" Executed="MediaPause"/>
+		<!--<CommandBinding Command="MediaCommands.Play" CanExecute="MediaCanExecute" Executed="MediaPlay"/>-->
+		<!--<CommandBinding Command="MediaCommands.Pause" CanExecute="MediaCanPause" Executed="MediaPause"/>-->
 		<CommandBinding Command="MediaCommands.Stop" CanExecute="MediaCanStop" Executed="MediaStop"/>
 		<CommandBinding Command="MediaCommands.FastForward" CanExecute="MediaCanFastForward" Executed="MediaFastForward"/>
 		<CommandBinding Command="MediaCommands.Rewind" CanExecute="MediaCanRewind" Executed="MediaRewind"/>
@@ -132,17 +132,22 @@
 				<Grid>
 					<Image Source="{Binding CurrentPicture, Converter={StaticResource StillPictureImageConverter}, Mode=OneWay}"
 					       Stretch="{Binding ImageStretch}"
-					       IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}" />
+					       IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}"
+					       />
 					<view:MediaElementEx x:Name="MePlayer" Source="{Binding CurrentPicture, Mode=OneWay}"
-								  LoadedBehavior="{Binding LoadedBehavior}"
-								  UnloadedBehavior="Stop"
-								  MediaOpened="MePlayer_OnMediaOpened"
-								  Volume="{Binding VolumeValue}"
-								  PlayAlternative="{Binding MediaPlay, Mode=TwoWay}"
-								  Stretch="{Binding ImageStretch}"
-								  IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
-								  Margin="0,3,0,-3"/>
+					                     LoadedBehavior="{Binding LoadedBehavior}"
+					                     UnloadedBehavior="Stop"
+					                     MediaOpened="MePlayer_OnMediaOpened"
+					                     Volume="{Binding VolumeValue}"
+					                     PlayAlternative="{Binding MediaPlay, Mode=TwoWay}"
+					                     PauseAlternative="{Binding MediaPause, Mode=TwoWay}"
+					                     Stretch="{Binding ImageStretch}"
+					                     IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+					                     Margin="0,3,0,-3" />
 				</Grid>
+				<!--PauseAlternative="{Binding MediaPause, Mode=TwoWay}"-->
+				<!--Visibility="{Binding CurrentPicture, Converter={StaticResource StillPictureVisibleConverter}}"-->
+				<!--Visibility="{Binding CurrentPciture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"-->
 			</Button>
 
 			<Grid Grid.Row="1">

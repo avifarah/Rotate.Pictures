@@ -80,7 +80,7 @@ namespace UnitTest.Rotate.Pictures
 		{
 			// Arrange
 			var mockConfig = new Mock<IConfigValue>();
-			var picN = 10;
+			//var picN = 10;
 			var path = @"dir\fldr";
 			mockConfig.Setup(mc => mc.StillPictureExtensions()).Returns(new List<string> { ".s1", ".s2" });
 			mockConfig.Setup(mc => mc.MotionPictures()).Returns(new List<string> { ".m1", ".m2" });
@@ -395,7 +395,7 @@ namespace UnitTest.Rotate.Pictures
 
 			private Dictionary<string, int> _picInxMapping = new Dictionary<string, int>();
 
-			private int _inx;
+			//private int _inx;
 
 			private string _pathLetters = new string(Enumerable.Range(0, 'Z' - 'A' + 1).Select(i => (char)('A' + i)).ToArray());	// A .. Z
 
@@ -408,7 +408,7 @@ namespace UnitTest.Rotate.Pictures
 				_extensions = exts.ToList();
 				_pathsToAvoid = pathsToAvoid;
 				_indicesToAvoid = indicesToAvoid;
-				_inx = 0;
+				//_inx = 0;
 
 				RetrievePictures();
 			}
