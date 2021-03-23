@@ -144,12 +144,12 @@ namespace Rotate.Pictures.View
 
 		private void MediaCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = !_isMePlaying;
 
-		private void MediaPlay(object sender, ExecutedRoutedEventArgs e)
-		{
-			MePlayer.LoadedBehavior = MediaState.Manual;
-			MePlayer.Play();
-			_isMePlaying = true;
-		}
+		//private void MediaPlay(object sender, ExecutedRoutedEventArgs e)
+		//{
+		//	MePlayer.LoadedBehavior = MediaState.Manual;
+		//	MePlayer.Play();
+		//	_isMePlaying = true;
+		//}
 
 		private void MediaCanPause(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
 

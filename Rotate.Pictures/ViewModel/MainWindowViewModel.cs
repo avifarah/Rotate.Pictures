@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Rotate.Pictures.EventAggregator;
@@ -417,6 +418,32 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
+		private MediaState _mediaPlay = MediaState.Manual;
+
+		public MediaState MediaPlay
+		{
+			get => _mediaPlay;
+			set
+			{
+				_loadedBehavior = MediaState.Manual;
+				IsMotionRunning = true;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(LoadedBehavior));
+			}
+		}
+
+		private MediaState _loadedBehavior;
+
+		public MediaState LoadedBehavior
+		{
+			get => _loadedBehavior;
+			set
+			{
+				_loadedBehavior = value;
+				OnPropertyChanged();
+			}
+		}
+
 		#region ISubscriber<PictureLoadingDoneEventArgs>
 
 		public void OnEvent(PictureLoadingDoneEventArgs e)
@@ -674,7 +701,7 @@ namespace Rotate.Pictures.ViewModel
 			SetPicturesMetaDataCommand = new CustomCommand(SetPicturesMetaData);
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
 			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
-			//PlayCommand = new CustomCommand(Play, CanPlay);
+			PlayCommand = new CustomCommand(Play, CanPlay);
 			WindowClosing = new CustomCommand(WindowClosingAction);
 		}
 
@@ -706,15 +733,19 @@ namespace Rotate.Pictures.ViewModel
 			if (RotationRunning) _timePassedDisplayingCurrentPicture = 0.0;
 		}
 
-		//public bool CanPlay() => !IsMotionRunning;
+		public bool CanPlay() => !IsMotionRunning;
 
-		//public void Play() => IsMotionRunning = true;
+		public void Play()
+		{
+			IsMotionRunning = true;
+			MediaPlay = MediaState.Play;
+		}
 
 		private bool CanBackImageMove() => !_model.SelectionTrackerAtHead;
 
 		public void BackImageMove()
 		{
-			int i = 0;
+			int i;
 			for (i = 0; i < _model.SelectionTrackerCount; ++i)
 			{
 				// _model.SelectionTrackerPrev() checks for File.Exists(..)
