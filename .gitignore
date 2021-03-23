@@ -1,0 +1,17 @@
+# Packages
+/packages/*
+
+# .vs
+/.vs/Rotate.Pictures/v16/.suo
+
+# bin
+/Rotate.Pictures/bin/*
+
+# obj
+/Rotate.Pictures/obj/*
+
+# UnitTest/bin
+/UnitTest.Rotate.Pictures/bin/*
+
+# UnitTest/obj
+/UnitTest.Rotate.Pictures/obj/*
