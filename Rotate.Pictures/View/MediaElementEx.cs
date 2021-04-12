@@ -49,9 +49,25 @@ namespace Rotate.Pictures.View
 			((MediaElement)d)?.Pause();
 		}
 
-		///// <summary>Pauses media at the current position.</summary>
-		///// <exception cref="T:System.InvalidOperationException">The <see cref="P:System.Windows.Controls.MediaElement.Clock" /> property is not <see langword="null" />.</exception>
-		//public void MediaPlayerPause() => this._helper.SetState(MediaState.MediaPlayerPause);
+		//
+		// Stop
+		//
+		public static readonly DependencyProperty StopAlternativeProperty = DependencyProperty.Register(
+			nameof(StopAlternative),
+			typeof(MediaState),
+			typeof(MediaElementEx),
+			new FrameworkPropertyMetadata(MediaState.Stop, FrameworkPropertyMetadataOptions.None, StopAlternativePropertyChanged));
+
+		public MediaState StopAlternative
+		{
+			get => (MediaState)GetValue(StopAlternativeProperty);
+			set => SetValue(StopAlternativeProperty, value);
+		}
+
+		private static void StopAlternativePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			((MediaElement)d)?.Stop();
+		}
 
 		///// <summary>Stops and resets media to be played from the beginning.</summary>
 		///// <exception cref="T:System.InvalidOperationException">The <see cref="P:System.Windows.Controls.MediaElement.Clock" /> property is not <see langword="null" />.</exception>

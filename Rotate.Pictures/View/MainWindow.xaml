@@ -27,7 +27,7 @@
 		<CommandBinding Command="{StaticResource NextImageCommand}" Executed="NextImageMove" />
 		<!--<CommandBinding Command="MediaCommands.Play" CanExecute="MediaCanExecute" Executed="MediaPlay"/>-->
 		<!--<CommandBinding Command="MediaCommands.Pause" CanExecute="MediaCanPause" Executed="MediaPause"/>-->
-		<CommandBinding Command="MediaCommands.Stop" CanExecute="MediaCanStop" Executed="MediaStop"/>
+		<!--<CommandBinding Command="MediaCommands.Stop" CanExecute="MediaCanStop" Executed="MediaStop"/>-->
 		<CommandBinding Command="MediaCommands.FastForward" CanExecute="MediaCanFastForward" Executed="MediaFastForward"/>
 		<CommandBinding Command="MediaCommands.Rewind" CanExecute="MediaCanRewind" Executed="MediaRewind"/>
 		<CommandBinding Command="MediaCommands.MuteVolume" Executed="MediaToggleVolume"/>
@@ -52,21 +52,21 @@
 			<MenuItem Header="_Stretch Mode..." Command="{Binding SetSelectedStretchModeCommand}" />
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 					  Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
-					  Command="MediaCommands.Play" >
+					  Command="{Binding PlayCommand}">
 				<MenuItem.Header>
 					<Image Source="/Rotate.Pictures;component/Images/Play.ico" Height="20" Width="20"/>
 				</MenuItem.Header>
 			</MenuItem>
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
-					  Command="MediaCommands.Pause">
+					  Command="{Binding PauseCommand}">
 				<MenuItem.Header>
 					<Image Source="/Rotate.Pictures;component/Images/Pause.png" Height="20" Width="20"/>
 				</MenuItem.Header>
 			</MenuItem>
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
-			          Command="MediaCommands.Stop">
+			          Command="{Binding StopCommand}">
 				<MenuItem.Header>
 					<Image Source="/Rotate.Pictures;component/Images/Stop.png" Height="20" Width="20"/>
 				</MenuItem.Header>
@@ -141,6 +141,7 @@
 					                     Volume="{Binding VolumeValue}"
 					                     PlayAlternative="{Binding MediaPlay, Mode=TwoWay}"
 					                     PauseAlternative="{Binding MediaPause, Mode=TwoWay}"
+										 StopAlternative="{Binding MediaStop, Mode=TwoWay}"
 					                     Stretch="{Binding ImageStretch}"
 					                     IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 					                     Margin="0,3,0,-3" />

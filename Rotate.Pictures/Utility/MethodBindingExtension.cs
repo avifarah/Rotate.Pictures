@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Markup;
 
 namespace Rotate.Pictures.Utility
 {
+	/// <summary>
+	/// See external reference
+	///		<see cref="https://docs.microsoft.com/en-us/dotnet/desktop/wpf/advanced/markup-extensions-and-wpf-xaml?view=netframeworkdesktop-4.8"/>
+	/// </summary>
 	public class MethodBindingExtension : MarkupExtension
 	{
-		/// <summary>
-		/// List of attached properties shared by all MethodBindings
-		/// </summary>
-		private static readonly List<DependencyProperty> StorageProperties = new();
-
-		public override object ProvideValue(IServiceProvider serviceProvider) => throw new NotImplementedException();
+		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		private readonly object[] _methodArguments;
 
-		public string MethodName { get; }
+		private string _methodName { get; }
 
-		public PropertyPath MethodTargetPath { get; }
+		private PropertyPath _methodTargetPath { get; }
 
 		public MethodBindingExtension(string path) : this(path, new object[] { null }) { }
 
@@ -26,28 +27,59 @@ namespace Rotate.Pictures.Utility
 		{
 			_methodArguments = arguments ?? new object[0];
 
-			int pathSeparatorIndex = path.LastIndexOf('.');
-
+			var pathSeparatorIndex = path.LastIndexOf('.');
 			if (pathSeparatorIndex != -1)
-			{
-				MethodTargetPath = new PropertyPath(path.Substring(0, pathSeparatorIndex), null);
-			}
+				_methodTargetPath = new PropertyPath(path.Substring(0, pathSeparatorIndex), null);
 
-			MethodName = path.Substring(pathSeparatorIndex + 1);
+			_methodName = path.Substring(pathSeparatorIndex + 1);
 		}
 
-		private DependencyProperty GetUnusedStorageProperty(DependencyObject obj)
+		public override object ProvideValue(IServiceProvider serviceProvider)
 		{
-			foreach (var property in StorageProperties)
+			var targetProvider = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
+			if (targetProvider == null)
 			{
-				if (obj.ReadLocalValue(property) == DependencyProperty.UnsetValue)
-					return property;
+				var msg = $"In {MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}() failed to retrieve service for targetProvider.";
+				Log.Error(msg);
+				throw new InvalidOperationException(msg);
 			}
 
-			var newProperty = DependencyProperty.RegisterAttached("Storage" + StorageProperties.Count, typeof(object), typeof(MethodBindingExtension), new PropertyMetadata());
-			StorageProperties.Add(newProperty);
+			var targetEventAddMethod = targetProvider.TargetProperty as MethodInfo;
+			if (targetEventAddMethod == null)
+			{
+				var msg = $"In {MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}() failed to get targetEventAddMethod.";
+				Log.Error(msg);
+				throw new InvalidOperationException(msg);
+			}
 
-			return newProperty;
+			// Retrieve the handler of the event
+			var pars = targetEventAddMethod.GetParameters();
+			var delegateType = pars[1].ParameterType;
+			if (delegateType == null)
+			{
+				var msg = $"In {MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}() failed to get delegateType.";
+				Log.Error(msg);
+				throw new InvalidOperationException(msg);
+			}
+
+			// Retrieves the method info of the proxy handler
+			var methodInfo = GetType().GetMethod("MyMarkupExtensionInternalHandler", BindingFlags.NonPublic | BindingFlags.Instance);
+			if (methodInfo == null)
+			{
+				var msg = $"In {MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}() failed to find handler.";
+				Log.Error(msg);
+				throw new InvalidOperationException(msg);
+			}
+
+			// Create a delegate to the proxy handler on the markupExtension
+			var returnedDelegate = Delegate.CreateDelegate(delegateType, this, methodInfo);
+
+			return returnedDelegate;
+		}
+
+		void MyMarkupExtensionInternalHandler(object sender, EventArgs e)
+		{
+			// Here something can be performed.
 		}
 	}
 }

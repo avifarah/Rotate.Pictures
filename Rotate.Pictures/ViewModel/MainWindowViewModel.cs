@@ -432,12 +432,25 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
-		//private MediaState _mediaPause = MediaState.Close;
 		private MediaState _mediaPause = MediaState.Pause;
 
 		public MediaState MediaPause
 		{
 			get => _mediaPause;
+			set
+			{
+				LoadedBehavior = MediaState.Manual;
+				IsMotionRunning = false;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(LoadedBehavior));
+			}
+		}
+
+		private MediaState _mediaStop = MediaState.Stop;
+
+		public MediaState MediaStop
+		{
+			get => _mediaStop;
 			set
 			{
 				LoadedBehavior = MediaState.Manual;
@@ -716,8 +729,9 @@ namespace Rotate.Pictures.ViewModel
 			SetPicturesMetaDataCommand = new CustomCommand(SetPicturesMetaData);
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
 			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
-			//PlayCommand = new CustomCommand(MediaPlayerPlay, CanPlay);
-			//PauseCommand = new CustomCommand(MediaPlayerPause, CanMediaPlayerPause);
+			PlayCommand = new CustomCommand(MediaPlayerPlay, CanPlay);
+			PauseCommand = new CustomCommand(MediaPlayerPause, CanMediaPlayerPause);
+			StopCommand = new CustomCommand(MediaPlayerStop, CanMediaPlayerStop);
 			WindowClosing = new CustomCommand(WindowClosingAction);
 		}
 
@@ -745,28 +759,37 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand PauseCommand { get; set; }
 
+		public ICommand StopCommand { get; set; }
+
 		private void StopStartRotation()
 		{
 			RotationRunning = !RotationRunning;
 			if (RotationRunning) _timePassedDisplayingCurrentPicture = 0.0;
 		}
 
-		//public bool CanPlay() => !IsMotionRunning;
+		public bool CanPlay() => !IsMotionRunning;
 
-		//public void MediaPlayerPlay()
-		//{
-		//	IsMotionRunning = true;
-		//	MediaPlay = MediaState.Play;
-		//}
+		public void MediaPlayerPlay()
+		{
+			IsMotionRunning = true;
+			MediaPlay = MediaState.Play;
+		}
 
-		//public bool CanMediaPlayerPause() => IsMotionRunning;
+		public bool CanMediaPlayerPause() => IsMotionRunning;
 
-		//public void MediaPlayerPause()
-		//{
-		//	LoadedBehavior = MediaState.Manual;
-		//	MediaPlay = MediaState.Pause;
-		//	IsMotionRunning = false;
-		//}
+		public void MediaPlayerPause()
+		{
+			MediaPause = MediaState.Pause;
+			IsMotionRunning = false;
+		}
+
+		public bool CanMediaPlayerStop() => IsMotionRunning;
+
+		public void MediaPlayerStop()
+		{
+			MediaStop = MediaState.Stop;
+			IsMotionRunning = false;
+		}
 
 		private bool CanBackImageMove() => !_model.SelectionTrackerAtHead;
 

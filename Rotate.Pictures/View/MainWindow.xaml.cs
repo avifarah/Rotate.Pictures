@@ -160,14 +160,14 @@ namespace Rotate.Pictures.View
 		//	_isMePlaying = false;
 		//}
 
-		private void MediaCanStop(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
+		//private void MediaCanStop(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
 
-		private void MediaStop(object sender, ExecutedRoutedEventArgs e)
-		{
-			MePlayer.LoadedBehavior = MediaState.Manual;
-			MePlayer.Stop();
-			_isMePlaying = false;
-		}
+		//private void MediaStop(object sender, ExecutedRoutedEventArgs e)
+		//{
+		//	MePlayer.LoadedBehavior = MediaState.Manual;
+		//	MePlayer.Stop();
+		//	_isMePlaying = false;
+		//}
 
 		private void MediaCanFastForward(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
 
