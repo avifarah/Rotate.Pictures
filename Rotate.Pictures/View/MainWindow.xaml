@@ -92,7 +92,8 @@
 						<TextBlock Text="Position:" Margin="16,0,8,0"/>
 						<Slider x:Name="MeSliderPosition" TickPlacement="BottomRight" TickFrequency="5" Width="300" Maximum="100"
 						        IsMoveToPointEnabled="True" MouseLeftButtonDown="OnMotionMouseLeftButtonDown" MouseLeftButtonUp="OnMotionMouseLeftButtonDown"
-						        Thumb.DragStarted="MotionDragStarted" Thumb.DragCompleted="MotionDragCompleted"/>
+						        Thumb.DragStarted="MotionDragStarted" Thumb.DragCompleted="MotionDragCompleted"
+						        Value="{Binding SliderVal}"/>
 					</StackPanel>
 				</MenuItem.Header>
 			</MenuItem>

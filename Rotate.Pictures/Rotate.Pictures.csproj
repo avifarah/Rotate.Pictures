@@ -97,8 +97,10 @@
     <Compile Include="Converter\WindowSizeStateConverter.cs" />
     <Compile Include="EventAggregator\IEventAggregator.cs" />
     <Compile Include="EventAggregator\ISubscriber.cs" />
+    <Compile Include="EventAggregator\MotionPicturePlayingEventArgs.cs" />
     <Compile Include="EventAggregator\PictureLoadingDoneEventArgs.cs" />
     <Compile Include="EventAggregator\CustomEventAggregator.cs" />
+    <Compile Include="EventAggregator\SliderPositionEventArgs.cs" />
     <Compile Include="MessageCommunication\BufferDepthMessage.cs" />
     <Compile Include="MessageCommunication\ClearDoNotDisplayPathMessage.cs" />
     <Compile Include="MessageCommunication\CloseDialog.cs" />
@@ -128,7 +130,7 @@
     <Compile Include="Utility\ImageExt.cs" />
     <Compile Include="Utility\LinqComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
-    <Compile Include="Utility\MethodBindingExtension.cs" />
+    <Compile Include="Utility\MediaPlayerOnOpened.cs" />
     <Compile Include="Utility\ModelFactory.cs" />
     <Compile Include="Utility\RotationException.cs" />
     <Compile Include="Utility\VmFactory.cs" />

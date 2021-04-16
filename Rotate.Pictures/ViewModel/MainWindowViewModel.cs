@@ -19,7 +19,8 @@ using Rotate.Pictures.Service;
 
 namespace Rotate.Pictures.ViewModel
 {
-	public class MainWindowViewModel : INotifyPropertyChanged, ISubscriber<PictureLoadingDoneEventArgs>
+	public class MainWindowViewModel : INotifyPropertyChanged, ISubscriber<PictureLoadingDoneEventArgs>, ISubscriber<MotionPicturePlayingEventArgs>,
+		ISubscriber<SliderPositionEventArgs>
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -472,6 +473,42 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
+		private double _sliderMin = 0.0;
+
+		public double SliderMin
+		{
+			get => _sliderMin;
+			set
+			{
+				_sliderMin = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private double _sliderMax = 0.0;
+
+		public double SliderMax
+		{
+			get => _sliderMax;
+			set
+			{
+				_sliderMax = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private double _sliderVal = 0.0;
+
+		public double SliderVal
+		{
+			get => _sliderVal;
+			set
+			{
+				_sliderVal = value;
+				OnPropertyChanged();
+			}
+		}
+
 		#region ISubscriber<PictureLoadingDoneEventArgs>
 
 		public void OnEvent(PictureLoadingDoneEventArgs e)
@@ -480,6 +517,26 @@ namespace Rotate.Pictures.ViewModel
 			DirRetrievingVisible = IsModelDoneLoadingPictures ? Visibility.Collapsed : Visibility.Visible;
 			DirectoryRetrievingNow = string.Empty;
 			CurrentPictureColumnSpan = PictureColumnSpan();
+		}
+
+		#endregion
+
+
+		#region ISubscriber<MotionPicturePlayingEventArgs>
+
+		public void OnEvent(MotionPicturePlayingEventArgs e) => IsMotionRunning = e.IsMotionPicturePlaying;
+
+		#endregion
+
+
+		#region ISubscriber<SliderPositionEventArgs>
+
+		// TODO: Set Minimum, Maximum and Value of slider to Duration of pictures in milliseconds
+		public void OnEvent(SliderPositionEventArgs e)
+		{
+			SliderMin = e.Minimum;
+			SliderMax = e.Maximum;
+			SliderVal = e.Value;
 		}
 
 		#endregion
