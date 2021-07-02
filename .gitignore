@@ -1,3 +1,7 @@
+# Ignore all files in obj directory
 Rotate.Pictures/obj/*
 UnitTest.Rotate.Pictures/obj/*
+
+# Ignore all files in bin directory
+Rotate.Pictures/bin/*
 UnitTest.Rotate.Pictures/bin/*
