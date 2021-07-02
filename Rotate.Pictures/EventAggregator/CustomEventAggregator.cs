@@ -15,21 +15,27 @@ namespace Rotate.Pictures.EventAggregator
 	/// 
 	/// Usage:
 	///		1.	You need an aggregate event, which is an extension class of the EventArgs class
+	/// 
 	///		2.	The publisher, may be more than one, say a model class, needs to fire an event using the
 	///			eventAggregator.  The publisher will issue a command, like:
+	///			<code>
 	///				CustomEventAggregator.Inst.Publish({The event arg class instance that act as data-transport, from point 1});
+	///			</code>
 	///			Other than this registration there is no more dependence on the EventAggregator class.
 	///			Therefore, if the class instance was injected then we will have no dependency at all.
 	/// 
 	///		3.	The subscriber, say a ViewModel class needs to listen to the events published by the
-	///			appropriate model class, will implements the ISubscriber{the event arg class, from point 1} interface.
-	///			The subscriber class may implement more than one ISubscriber{} interfaces.  Each of
-	///			the ISubscriber{} interfaces will need an implementation of an OnEvent(T e) method.  The various
-	///			OnEvent(T e) methods are distinguished by the various types of T.
+	///			appropriate model class, will implements the ISubscriber{the event arg class, from point 1}
+	///			interface.  The subscriber class may implement more than one ISubscriber{} interfaces.
+	///			Each of the ISubscriber{} interfaces will need an implementation of an OnEvent(T e) method.
+	///			The various OnEvent(T e) methods are distinguished by the various types of T.
+	/// 
 	///		4.	The subscriber class will need to call:
+	///			<code>
 	///				CustomEventAggregator.Inst.Subscribe(this);
-	///			before it can listen to events published.  Other than this registration we have no more coupling between
-	///			The subscriber and the event aggregator.
+	///			</code>
+	///			before it can listen to events published.  Other than this registration we have no more
+	///			coupling between the subscriber and the event aggregator.
 	///
 	/// For more information and unit tests samples (within the UnitTest.Rotate.Pictures proj)
 	/// see: <see cref="T:UnitTest.Rotate.Pictures.CustomEventAggregatorTest"/>
@@ -40,8 +46,8 @@ namespace Rotate.Pictures.EventAggregator
 		private readonly object _lock = new();
 
 		private CustomEventAggregator() { }
-		private static Lazy<CustomEventAggregator> _inst = new(() => new CustomEventAggregator());
-		public static CustomEventAggregator Inst = _inst.Value;
+		private static readonly Lazy<CustomEventAggregator> _inst = new(() => new CustomEventAggregator());
+		public static readonly CustomEventAggregator Inst = _inst.Value;
 
 		public void Publish<TEvent>(TEvent eventToPublish) where TEvent : EventArgs
 		{
@@ -61,7 +67,7 @@ namespace Rotate.Pictures.EventAggregator
 					else
 					{
 						var syncContext = SynchronizationContext.Current;
-						syncContext.Post(s => subscriber.OnEvent(eventToPublish), null);
+						syncContext.Post(_ => subscriber.OnEvent(eventToPublish), null);
 					}
 				}
 				else

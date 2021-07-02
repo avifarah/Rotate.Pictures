@@ -8,7 +8,8 @@
 	<Application.Resources>
 		<ResourceDictionary>
 			<converter:IsMotionPictureConverter x:Key="LocalMotionPictureConverter" />
-			<converter:IsStillPictureConverter x:Key="LocalStillPictureConverter"/>
+			<converter:IsStillPictureConverter x:Key="LocalStillPictureConverter" />
+			<!--<converter:LocalStillPictureVisibleConverter x:Key="StillPictureVisibleConverter" />-->
 			<converter:StartStopRotateConverter x:Key="LocalStartStopConverter"/>
 			<converter:MotionPictureVisibleConverter x:Key="LocalMotionPictureVisibleConverter"/>
 			<converter:WindowSizeStateConverter x:Key="LocalWindowSizeStateConverter"/>

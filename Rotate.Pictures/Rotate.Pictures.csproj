@@ -62,9 +62,6 @@
     <ApplicationIcon>Rotate.Pictures.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="C1.WPF.4.5.2, Version=4.5.20201.697, Culture=neutral, PublicKeyToken=2aa4ec5576d6c3ce, processorArchitecture=MSIL">
-      <HintPath>..\packages\C1.Xaml.WPF.4.5.20201.697\lib\net452\C1.WPF.4.5.2.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -94,13 +91,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converter\LocalStillPictureVisibleConverter.cs" />
     <Compile Include="Converter\MotionPictureVisibleConverter.cs" />
     <Compile Include="Converter\StillPictureImageConverter.cs" />
     <Compile Include="Converter\WindowSizeStateConverter.cs" />
     <Compile Include="EventAggregator\IEventAggregator.cs" />
     <Compile Include="EventAggregator\ISubscriber.cs" />
+    <Compile Include="EventAggregator\MotionPicturePlayingEventArgs.cs" />
     <Compile Include="EventAggregator\PictureLoadingDoneEventArgs.cs" />
     <Compile Include="EventAggregator\CustomEventAggregator.cs" />
+    <Compile Include="EventAggregator\SliderPositionEventArgs.cs" />
     <Compile Include="MessageCommunication\BufferDepthMessage.cs" />
     <Compile Include="MessageCommunication\ClearDoNotDisplayPathMessage.cs" />
     <Compile Include="MessageCommunication\CloseDialog.cs" />
@@ -130,6 +130,7 @@
     <Compile Include="Utility\ImageExt.cs" />
     <Compile Include="Utility\LinqComparer.cs" />
     <Compile Include="Utility\LinqExtensions.cs" />
+    <Compile Include="Utility\MediaPlayerOnOpened.cs" />
     <Compile Include="Utility\ModelFactory.cs" />
     <Compile Include="Utility\RotationException.cs" />
     <Compile Include="Utility\VmFactory.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="ViewModel\NoDisplayPictureViewModel.cs" />
     <Compile Include="ViewModel\StretchModeViewModel.cs" />
     <Compile Include="ViewModel\ViewModelBase.cs" />
+    <Compile Include="View\MediaElementEx.cs" />
     <Compile Include="View\NoDisplayPictureView.xaml.cs">
       <DependentUpon>NoDisplayPictureView.xaml</DependentUpon>
     </Compile>

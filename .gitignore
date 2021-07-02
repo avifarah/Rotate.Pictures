@@ -1,7 +1,17 @@
-# Ignore all files in obj directory
-Rotate.Pictures/obj/*
-UnitTest.Rotate.Pictures/obj/*
+# Packages
+/packages/*
 
-# Ignore all files in bin directory
-Rotate.Pictures/bin/*
-UnitTest.Rotate.Pictures/bin/*
+# .vs
+/.vs/*
+
+# bin
+/Rotate.Pictures/bin/*
+
+# obj
+/Rotate.Pictures/obj/*
+
+# UnitTest/bin
+/UnitTest.Rotate.Pictures/bin/*
+
+# UnitTest/obj
+/UnitTest.Rotate.Pictures/obj/*

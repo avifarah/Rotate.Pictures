@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Rotate.Pictures.EventAggregator;
@@ -18,7 +19,8 @@ using Rotate.Pictures.Service;
 
 namespace Rotate.Pictures.ViewModel
 {
-	public class MainWindowViewModel : INotifyPropertyChanged, ISubscriber<PictureLoadingDoneEventArgs>
+	public class MainWindowViewModel : INotifyPropertyChanged, ISubscriber<PictureLoadingDoneEventArgs>, ISubscriber<MotionPicturePlayingEventArgs>,
+		ISubscriber<SliderPositionEventArgs>
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -417,6 +419,96 @@ namespace Rotate.Pictures.ViewModel
 			}
 		}
 
+		private MediaState _mediaPlay = MediaState.Manual;
+
+		public MediaState MediaPlay
+		{
+			get => _mediaPlay;
+			set
+			{
+				_loadedBehavior = MediaState.Manual;
+				IsMotionRunning = true;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(LoadedBehavior));
+			}
+		}
+
+		private MediaState _mediaPause = MediaState.Pause;
+
+		public MediaState MediaPause
+		{
+			get => _mediaPause;
+			set
+			{
+				LoadedBehavior = MediaState.Manual;
+				IsMotionRunning = false;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(LoadedBehavior));
+			}
+		}
+
+		private MediaState _mediaStop = MediaState.Stop;
+
+		public MediaState MediaStop
+		{
+			get => _mediaStop;
+			set
+			{
+				LoadedBehavior = MediaState.Manual;
+				IsMotionRunning = false;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(LoadedBehavior));
+			}
+		}
+
+		private MediaState _loadedBehavior;
+
+		public MediaState LoadedBehavior
+		{
+			get => _loadedBehavior;
+			set
+			{
+				_loadedBehavior = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private double _sliderMin = 0.0;
+
+		public double SliderMin
+		{
+			get => _sliderMin;
+			set
+			{
+				_sliderMin = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private double _sliderMax = 0.0;
+
+		public double SliderMax
+		{
+			get => _sliderMax;
+			set
+			{
+				_sliderMax = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private double _sliderVal = 0.0;
+
+		public double SliderVal
+		{
+			get => _sliderVal;
+			set
+			{
+				_sliderVal = value;
+				OnPropertyChanged();
+			}
+		}
+
 		#region ISubscriber<PictureLoadingDoneEventArgs>
 
 		public void OnEvent(PictureLoadingDoneEventArgs e)
@@ -425,6 +517,26 @@ namespace Rotate.Pictures.ViewModel
 			DirRetrievingVisible = IsModelDoneLoadingPictures ? Visibility.Collapsed : Visibility.Visible;
 			DirectoryRetrievingNow = string.Empty;
 			CurrentPictureColumnSpan = PictureColumnSpan();
+		}
+
+		#endregion
+
+
+		#region ISubscriber<MotionPicturePlayingEventArgs>
+
+		public void OnEvent(MotionPicturePlayingEventArgs e) => IsMotionRunning = e.IsMotionPicturePlaying;
+
+		#endregion
+
+
+		#region ISubscriber<SliderPositionEventArgs>
+
+		// TODO: Set Minimum, Maximum and Value of slider to Duration of pictures in milliseconds
+		public void OnEvent(SliderPositionEventArgs e)
+		{
+			SliderMin = e.Minimum;
+			SliderMax = e.Maximum;
+			SliderVal = e.Value;
 		}
 
 		#endregion
@@ -674,7 +786,9 @@ namespace Rotate.Pictures.ViewModel
 			SetPicturesMetaDataCommand = new CustomCommand(SetPicturesMetaData);
 			SetPictureBufferDepthCommand = new CustomCommand(SetPictureBufferDepth);
 			ManageNoDisplayListCommand = new CustomCommand(ManageNoDisplayList);
-			PlayCommand = new CustomCommand(Play, CanPlay);
+			PlayCommand = new CustomCommand(MediaPlayerPlay, CanPlay);
+			PauseCommand = new CustomCommand(MediaPlayerPause, CanMediaPlayerPause);
+			StopCommand = new CustomCommand(MediaPlayerStop, CanMediaPlayerStop);
 			WindowClosing = new CustomCommand(WindowClosingAction);
 		}
 
@@ -696,9 +810,13 @@ namespace Rotate.Pictures.ViewModel
 
 		public ICommand ManageNoDisplayListCommand { get; set; }
 
+		public ICommand WindowClosing { get; set; }
+
 		public ICommand PlayCommand { get; set; }
 
-		public ICommand WindowClosing { get; set; }
+		public ICommand PauseCommand { get; set; }
+
+		public ICommand StopCommand { get; set; }
 
 		private void StopStartRotation()
 		{
@@ -708,13 +826,33 @@ namespace Rotate.Pictures.ViewModel
 
 		public bool CanPlay() => !IsMotionRunning;
 
-		public void Play() => IsMotionRunning = true;
+		public void MediaPlayerPlay()
+		{
+			IsMotionRunning = true;
+			MediaPlay = MediaState.Play;
+		}
+
+		public bool CanMediaPlayerPause() => IsMotionRunning;
+
+		public void MediaPlayerPause()
+		{
+			MediaPause = MediaState.Pause;
+			IsMotionRunning = false;
+		}
+
+		public bool CanMediaPlayerStop() => IsMotionRunning;
+
+		public void MediaPlayerStop()
+		{
+			MediaStop = MediaState.Stop;
+			IsMotionRunning = false;
+		}
 
 		private bool CanBackImageMove() => !_model.SelectionTrackerAtHead;
 
 		public void BackImageMove()
 		{
-			int i = 0;
+			int i;
 			for (i = 0; i < _model.SelectionTrackerCount; ++i)
 			{
 				// _model.SelectionTrackerPrev() checks for File.Exists(..)

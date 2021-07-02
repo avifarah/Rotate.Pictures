@@ -5,6 +5,8 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:Rotate.Pictures"
 		xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+		xmlns:view="clr-namespace:Rotate.Pictures.View"
+		xmlns:util="clr-namespace:Rotate.Pictures.Utility"
 		mc:Ignorable="d"
 		Title="Rotating picture display"
 		Height="850"
@@ -24,9 +26,9 @@
 	<Window.CommandBindings>
 		<CommandBinding Command="{StaticResource BackImageCommand}" Executed="BackImageMove" />
 		<CommandBinding Command="{StaticResource NextImageCommand}" Executed="NextImageMove" />
-		<CommandBinding Command="MediaCommands.Play" CanExecute="MediaCanExecute" Executed="MediaPlay"/>
-		<CommandBinding Command="MediaCommands.Pause" CanExecute="MediaCanPause" Executed="MediaPause"/>
-		<CommandBinding Command="MediaCommands.Stop" CanExecute="MediaCanStop" Executed="MediaStop"/>
+		<!--<CommandBinding Command="MediaCommands.Play" CanExecute="MediaCanExecute" Executed="MediaPlay"/>-->
+		<!--<CommandBinding Command="MediaCommands.Pause" CanExecute="MediaCanPause" Executed="MediaPause"/>-->
+		<!--<CommandBinding Command="MediaCommands.Stop" CanExecute="MediaCanStop" Executed="MediaStop"/>-->
 		<CommandBinding Command="MediaCommands.FastForward" CanExecute="MediaCanFastForward" Executed="MediaFastForward"/>
 		<CommandBinding Command="MediaCommands.Rewind" CanExecute="MediaCanRewind" Executed="MediaRewind"/>
 		<CommandBinding Command="MediaCommands.MuteVolume" Executed="MediaToggleVolume"/>
@@ -51,21 +53,21 @@
 			<MenuItem Header="_Stretch Mode..." Command="{Binding SetSelectedStretchModeCommand}" />
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 					  Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
-					  Command="MediaCommands.Play" >
+					  Command="{Binding PlayCommand}">
 				<MenuItem.Header>
 					<Image Source="/Rotate.Pictures;component/Images/Play.ico" Height="20" Width="20"/>
 				</MenuItem.Header>
 			</MenuItem>
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
-					  Command="MediaCommands.Pause">
+					  Command="{Binding PauseCommand}">
 				<MenuItem.Header>
 					<Image Source="/Rotate.Pictures;component/Images/Pause.png" Height="20" Width="20"/>
 				</MenuItem.Header>
 			</MenuItem>
 			<MenuItem IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
 			          Visibility="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"
-			          Command="MediaCommands.Stop">
+			          Command="{Binding StopCommand}">
 				<MenuItem.Header>
 					<Image Source="/Rotate.Pictures;component/Images/Stop.png" Height="20" Width="20"/>
 				</MenuItem.Header>
@@ -91,7 +93,8 @@
 						<TextBlock Text="Position:" Margin="16,0,8,0"/>
 						<Slider x:Name="MeSliderPosition" TickPlacement="BottomRight" TickFrequency="5" Width="300" Maximum="100"
 						        IsMoveToPointEnabled="True" MouseLeftButtonDown="OnMotionMouseLeftButtonDown" MouseLeftButtonUp="OnMotionMouseLeftButtonDown"
-						        Thumb.DragStarted="MotionDragStarted" Thumb.DragCompleted="MotionDragCompleted"/>
+						        Thumb.DragStarted="MotionDragStarted" Thumb.DragCompleted="MotionDragCompleted"
+						        Value="{Binding SliderVal}"/>
 					</StackPanel>
 				</MenuItem.Header>
 			</MenuItem>
@@ -131,13 +134,23 @@
 				<Grid>
 					<Image Source="{Binding CurrentPicture, Converter={StaticResource StillPictureImageConverter}, Mode=OneWay}"
 					       Stretch="{Binding ImageStretch}"
-					       IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}" />
-					<MediaElement x:Name="MePlayer" Source="{Binding CurrentPicture, Mode=OneWay}"
-								  LoadedBehavior="Play" UnloadedBehavior="Stop" MediaOpened="MePlayer_OnMediaOpened" Volume="{Binding VolumeValue}"
-								  Stretch="{Binding ImageStretch}"
-								  IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
-								  Margin="0,3,0,-3"/>
+					       IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalStillPictureConverter}}"
+					       />
+					<view:MediaElementEx x:Name="MePlayer" Source="{Binding CurrentPicture, Mode=OneWay}"
+					                     LoadedBehavior="{Binding LoadedBehavior}"
+					                     UnloadedBehavior="Stop"
+					                     MediaOpened="MePlayer_OnMediaOpened"
+					                     Volume="{Binding VolumeValue}"
+					                     PlayAlternative="{Binding MediaPlay, Mode=TwoWay}"
+					                     PauseAlternative="{Binding MediaPause, Mode=TwoWay}"
+										 StopAlternative="{Binding MediaStop, Mode=TwoWay}"
+					                     Stretch="{Binding ImageStretch}"
+					                     IsEnabled="{Binding CurrentPicture, Converter={StaticResource LocalMotionPictureConverter}}"
+					                     Margin="0,3,0,-3" />
 				</Grid>
+				<!--PauseAlternative="{Binding MediaPause, Mode=TwoWay}"-->
+				<!--Visibility="{Binding CurrentPicture, Converter={StaticResource StillPictureVisibleConverter}}"-->
+				<!--Visibility="{Binding CurrentPciture, Converter={StaticResource LocalMotionPictureVisibleConverter}}"-->
 			</Button>
 
 			<Grid Grid.Row="1">

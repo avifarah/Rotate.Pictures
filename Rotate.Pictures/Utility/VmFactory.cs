@@ -10,7 +10,7 @@ namespace Rotate.Pictures.Utility
 	{
 		private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-		private static readonly Lazy<VmFactory> _inst = new Lazy<VmFactory>(() => new VmFactory());
+		private static readonly Lazy<VmFactory> _inst = new(() => new VmFactory());
 
 		public static readonly VmFactory Inst = _inst.Value;
 
@@ -29,7 +29,7 @@ namespace Rotate.Pictures.Utility
 			var callerName = callingView.GetType().FullName;
 			if (callerName == null)
 			{
-				Log.Error($"callerName is null and did not generate a ViewModel class");
+				Log.Error("callerName is null and did not generate a ViewModel class");
 				return null;
 			}
 

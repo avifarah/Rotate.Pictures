@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Globalization;
 //using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -139,32 +142,32 @@ namespace Rotate.Pictures.View
 			_tmr.Start();
 		}
 
-		private void MediaCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = !_isMePlaying;
+		//private void MediaCanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = !_isMePlaying;
 
-		private void MediaPlay(object sender, ExecutedRoutedEventArgs e)
-		{
-			MePlayer.LoadedBehavior = MediaState.Manual;
-			MePlayer.Play();
-			_isMePlaying = true;
-		}
+		//private void MediaPlay(object sender, ExecutedRoutedEventArgs e)
+		//{
+		//	MePlayer.LoadedBehavior = MediaState.Manual;
+		//	MePlayer.MediaPlayerPlay();
+		//	_isMePlaying = true;
+		//}
 
-		private void MediaCanPause(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
+		//private void MediaCanPause(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
 
-		private void MediaPause(object sender, ExecutedRoutedEventArgs e)
-		{
-			MePlayer.LoadedBehavior = MediaState.Manual;
-			MePlayer.Pause();
-			_isMePlaying = false;
-		}
+		//private void MediaPause(object sender, ExecutedRoutedEventArgs e)
+		//{
+		//	MePlayer.LoadedBehavior = MediaState.Manual;
+		//	MePlayer.Pause();
+		//	_isMePlaying = false;
+		//}
 
-		private void MediaCanStop(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
+		//private void MediaCanStop(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
 
-		private void MediaStop(object sender, ExecutedRoutedEventArgs e)
-		{
-			MePlayer.LoadedBehavior = MediaState.Manual;
-			MePlayer.Stop();
-			_isMePlaying = false;
-		}
+		//private void MediaStop(object sender, ExecutedRoutedEventArgs e)
+		//{
+		//	MePlayer.LoadedBehavior = MediaState.Manual;
+		//	MePlayer.Stop();
+		//	_isMePlaying = false;
+		//}
 
 		private void MediaCanFastForward(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _isMePlaying;
 
@@ -228,7 +231,7 @@ namespace Rotate.Pictures.View
 				playerInfo.Append($"Volume: {MePlayer.Volume}.  ");
 				playerInfo.Append($"Balance: {MePlayer.Balance}.  ");
 				playerInfo.Append($"BufferingProgress: {MePlayer.BufferingProgress}.  ");
-				playerInfo.Append($"CanPause: {MePlayer.CanPause}.");
+				playerInfo.Append($"CanMediaPlayerPause: {MePlayer.CanPause}.");
 				playerInfo.AppendLine();
 
 				if (MePlayer.Clock != null)
