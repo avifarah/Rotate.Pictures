@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Markup;
 using Rotate.Pictures.EventAggregator;
 
@@ -45,18 +43,21 @@ namespace Rotate.Pictures.Utility
 		/// <returns></returns>
 		public override object ProvideValue(IServiceProvider serviceProvider)
 		{
-			//IProvideValueTarget targetProvider = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
-			//if (targetProvider == null)
-			//	throw new InvalidOperationException(@"The CallAction extension can’t retrieved the IProvideValueTarget service.");
-			var targetProvider = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
-			if (targetProvider == null)
+			if (!(serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget targetProvider))
 			{
 				var msg = $"In {MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}() failed to retrieve service for targetProvider.";
 				Log.Error(msg);
 				throw new InvalidOperationException(msg);
 			}
 
-			var targetEventAddMethod = targetProvider.TargetProperty as MethodInfo;
+			if (targetProvider.TargetObject is not FrameworkElement)
+			{
+				var msg = $"In {MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}() can only operate on a FrameworkElement.";
+				Log.Error(msg);
+				throw new InvalidOperationException(msg);
+			}
+
+			var targetEventAddMethod = targetProvider.TargetProperty as MethodInfo;		// or EventInfo
 			if (targetEventAddMethod == null)
 			{
 				var msg = $"In {MethodBase.GetCurrentMethod().DeclaringType}.{MethodBase.GetCurrentMethod().Name}() failed to get targetEventAddMethod.";
@@ -81,7 +82,7 @@ namespace Rotate.Pictures.Utility
 				throw new InvalidOperationException(msg);
 			}
 
-			// Retrieves the method info of the proxy handler
+			//Retrieves the method info of the proxy handler
 			var methodInfo = GetType().GetMethod("MyProxyHandler", BindingFlags.NonPublic | BindingFlags.Instance);
 			if (methodInfo == null)
 			{

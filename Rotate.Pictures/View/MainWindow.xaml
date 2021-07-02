@@ -6,6 +6,7 @@
 		xmlns:local="clr-namespace:Rotate.Pictures"
 		xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
 		xmlns:view="clr-namespace:Rotate.Pictures.View"
+		xmlns:util="clr-namespace:Rotate.Pictures.Utility"
 		mc:Ignorable="d"
 		Title="Rotating picture display"
 		Height="850"
